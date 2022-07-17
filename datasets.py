@@ -28,6 +28,7 @@ def postprocess(x):
     x = x * 2 ** n_bits
     return torch.clamp(x, 0, 255).byte()
 
+
 def one_hot_encode(target):
     """
     One hot encode with fixed 10 classes
@@ -56,7 +57,6 @@ def get_CIFAR10(augment, dataroot, download):
     train_transform = transforms.Compose(transformations)
 
     test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
-
 
     path = Path(dataroot) / "data" / "CIFAR10"
     train_dataset = datasets.CIFAR10(
@@ -91,7 +91,6 @@ def get_SVHN(augment, dataroot, download):
     train_transform = transforms.Compose(transformations)
 
     test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
-
 
     path = Path(dataroot) / "data" / "SVHN"
     train_dataset = datasets.SVHN(
