@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 temp = 1
 
 svhn_model, svhn_hparams = load_glow_model("svhn_glow/", "glow_checkpoint_286000.pt")
-cifar_model, cifar_hparams = load_glow_model("output_new/", "glow_checkpoint_195250.pt")
+cifar_model, cifar_hparams = load_glow_model("cifar_glow/", "glow_checkpoint_195250.pt")
 
 
 svhn_images = postprocess(svhn_model(temperature=1, reverse=True)).cpu()

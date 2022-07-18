@@ -134,7 +134,7 @@ def compute_nll(dataset, model, hparams):
     return torch.cat(nlls).cpu()
 
 
-output_folder = "output_new/"
+output_folder = "cifar_glow/"
 model_name = 'glow_checkpoint_194469.pt'
 
 

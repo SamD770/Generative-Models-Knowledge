@@ -9,7 +9,7 @@ from model import Glow
 
 device = torch.device("cuda")
 
-output_folder = 'output_new/'
+output_folder = 'cifar_glow/'
 model_name = 'glow_checkpoint_195250.pt'
 
 with open(output_folder + 'hparams.json') as json_file:
