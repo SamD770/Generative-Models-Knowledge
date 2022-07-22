@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 model, hparams = load_glow_model("svhn_glow/", "glow_checkpoint_286000.pt")
 
 
-plt.figure(figsize=(20,10))
+plt.figure(figsize=(20, 10))
 plt.title("Histogram Glow - trained on SVHN")
 plt.xlabel("Negative bits per dimension")
 
