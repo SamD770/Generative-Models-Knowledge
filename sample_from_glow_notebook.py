@@ -5,7 +5,7 @@ from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
 
 from datasets import get_CIFAR10, get_SVHN, postprocess
-from model import Glow
+from glow_model.model import Glow
 
 device = torch.device("cuda")
 

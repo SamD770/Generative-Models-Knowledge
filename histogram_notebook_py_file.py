@@ -1,5 +1,4 @@
 import json
-import pywt
 
 import torch
 import matplotlib.pyplot as plt
@@ -8,7 +7,7 @@ import seaborn as sns
 sns.set()
 
 from datasets import get_CIFAR10, get_SVHN
-from model import Glow
+from glow_model.model import Glow
 
 device = torch.device("cuda")
 

@@ -1,10 +1,9 @@
 
-from datasets import get_CIFAR10, get_SVHN, preprocess, postprocess
+from datasets import get_CIFAR10, get_SVHN
 
-from model import Glow
+from glow_model.model import Glow
 import json
 
-import numpy as np
 import torch
 
 

@@ -8,8 +8,8 @@ import seaborn as sns
 
 sns.set()
 
-from datasets import get_CIFAR10, get_SVHN, preprocess, one_hot_encode
-from model import Glow
+from datasets import preprocess, one_hot_encode
+from glow_model.model import Glow
 
 
 from torchvision import transforms, datasets
