@@ -1,6 +1,6 @@
 from analysis import *
 
-from datasets import postprocess
+from data.datasets import postprocess
 from torchvision.utils import make_grid
 
 import matplotlib.pyplot as plt

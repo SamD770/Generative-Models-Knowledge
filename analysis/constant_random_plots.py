@@ -6,7 +6,7 @@ import seaborn as sns
 
 sns.set()
 
-from datasets import get_CIFAR10, get_SVHN
+from data.datasets import get_CIFAR10, get_SVHN
 from glow_model.model import Glow
 
 

@@ -8,7 +8,7 @@ import seaborn as sns
 
 sns.set()
 
-from datasets import preprocess, one_hot_encode
+from data.datasets import preprocess, one_hot_encode
 from glow_model.model import Glow
 
 

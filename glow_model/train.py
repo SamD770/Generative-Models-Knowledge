@@ -15,7 +15,7 @@ from ignite.engine import Engine, Events
 from ignite.handlers import ModelCheckpoint, Timer
 from ignite.metrics import RunningAverage, Loss
 
-from analysis.datasets import get_CIFAR10, get_SVHN
+from data.datasets import get_CIFAR10, get_SVHN
 from glow_model.model import Glow
 
 
