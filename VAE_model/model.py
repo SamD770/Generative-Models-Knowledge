@@ -77,8 +77,8 @@ class Decoder(nn.Module):
 
 
 N = torch.distributions.Normal(0, 1)
-N.loc = N.loc.cuda()  # hack to get sampling on the GPU
-N.scale = N.scale.cuda()
+# N.loc = N.loc.cuda()  # hack to get sampling on the GPU
+# N.scale = N.scale.cuda()
 
 
 def get_sample(means, stds):
@@ -122,26 +122,44 @@ def training_loop(n_epochs, optimizer, encoder, decoder, train_loader, checkpoin
             }, checkpoint_path)
 
 
-svhn = datasets.get_SVHN(augment=False, dataroot="../", download=False)
-input_size, num_classes, train_dataset, test_dataset = svhn
+def load_VAE_model(path):
+    encoder = Encoder()
+    decoder = Decoder()
+    checkpoint = torch.load(path)
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=512, shuffle=True)
+    encoder.load_state_dict(
+        checkpoint["encoder_state_dict"]
+    )
+
+    decoder.load_state_dict(
+        checkpoint["decoder_state_dict"]
+    )
+
+    return encoder, decoder
 
 
-my_encoder = Encoder().to(device=device)
-my_decoder = Decoder().to(device=device)
-my_optimizer = torch.optim.Adam(chain(my_encoder.parameters(), my_decoder.parameters()), lr=3e-4)
+svhn = datasets.get_SVHN(augment=False, dataroot="../data/", download=False)
+# input_size, num_classes, train_dataset, test_dataset = svhn
+#
+# train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=512, shuffle=True)
+#
+#
+# my_encoder = Encoder().to(device=device)
+# my_decoder = Decoder().to(device=device)
+# my_optimizer = torch.optim.Adam(chain(my_encoder.parameters(), my_decoder.parameters()), lr=3e-4)
+#
+#
+# print(my_encoder)
+# print(my_decoder)
+
+#
+# training_loop(
+#     n_epochs=100,
+#     optimizer=my_optimizer,
+#     encoder=my_encoder,
+#     decoder=my_decoder,
+#     train_loader=train_loader,
+#     checkpoint_path="VAE_checkpoint.pt"
+# )
 
 
-print(my_encoder)
-print(my_decoder)
-
-
-training_loop(
-    n_epochs=100,
-    optimizer=my_optimizer,
-    encoder=my_encoder,
-    decoder=my_decoder,
-    train_loader=train_loader,
-    checkpoint_path="VAE_checkpoint.pt"
-)

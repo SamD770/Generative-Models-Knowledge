@@ -29,4 +29,4 @@ for dataset, name in zip(
 
 plt.legend()
 
-plt.savefig("images/cifar_samples_vs_data.png", dpi=300)
+plt.savefig("plots/cifar_samples_vs_data.png", dpi=300)

@@ -49,5 +49,5 @@ grid = make_grid(images[:30], nrow=6).permute(1,2,0)
 
 plt.figure(figsize=(10,10))
 plt.imshow(grid)
-plt.savefig("images/notebook_samples.png")
+plt.savefig("plots/notebook_samples.png")
 

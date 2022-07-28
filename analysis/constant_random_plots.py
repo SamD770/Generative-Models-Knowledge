@@ -116,4 +116,4 @@ for dataset, name in zip(
 
 plt.legend()
 # plt.show()
-plt.savefig("images/glow_nll_with_constant_random_2.png", dpi=300)
+plt.savefig("plots/glow_nll_with_constant_random_2.png", dpi=300)

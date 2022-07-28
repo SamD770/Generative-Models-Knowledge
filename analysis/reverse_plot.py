@@ -17,5 +17,5 @@ for dataset, name in zip(
     plt.hist(-nll.numpy(), label=name, density=True, alpha=0.6, bins=30)
 
 plt.legend()
-plt.savefig("images/glow_trained_svhn.png", dpi=300)
+plt.savefig("plots/glow_trained_svhn.png", dpi=300)
 

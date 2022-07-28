@@ -14,7 +14,7 @@ from glow_model.model import Glow
 
 from torchvision import transforms, datasets
 
-path = "data/SVHN"
+path = "../data/SVHN"
 
 SVHN_test = datasets.SVHN(
     path,
@@ -156,7 +156,7 @@ def make_likelihood_histogram(datasets, names, plot_file_name):
 
 make_likelihood_histogram([wavelet_cifar, wavelet_svhn],
                           ["wavelet cifar", "wavelet svhn"],
-                          "images/seminal_paper_recreations/glow_nll_only_wavelets.png")
+                          "plots/seminal_paper_recreations/glow_nll_only_wavelets.png")
 
 #
 # high_level = np.stack(high_level, -1)

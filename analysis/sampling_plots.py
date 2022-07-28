@@ -21,4 +21,4 @@ grid = make_grid(cifar_images, nrow=8).permute(1,2,0)
 plt.imshow(grid)
 plt.axis('off')
 
-plt.savefig("images/cifar_samples.png", dpi=300)
+plt.savefig("plots/cifar_samples.png", dpi=300)

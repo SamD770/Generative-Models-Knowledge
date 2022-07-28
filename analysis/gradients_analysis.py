@@ -80,4 +80,4 @@ def grad_dot_prod(delta_x, delta_y):
 # plt.legend()
 #
 # plt.show()
-# plt.savefig("images/gradients_proof_of_concept_2.png", dpi=300)
+# plt.savefig("plots/gradients_proof_of_concept_2.png", dpi=300)

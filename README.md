@@ -2,10 +2,10 @@
 
 This repository implements the [Glow](https://arxiv.org/abs/1807.03039) model using PyTorch on the CIFAR-10 and SVHN dataset. We use the trained Glow to reproduce some of the results of the paper ["Do Deep Generative Models Know What They Don't Know?"](https://arxiv.org/abs/1810.09136):
 
-![Histogram Glow - CIFAR10 and SVHN](images/seminal_paper_recreations/histogram_glow_cifar_svhn.png)
+![Histogram Glow - CIFAR10 and SVHN](analysis/plots/seminal_paper_recreations/histogram_glow_cifar_svhn.png)
 
 **To create histogram**:
-See [notebook](Do_deep_generative_models_know_what_they_dont_know.ipynb).
+See [notebook](analysis/Do_deep_generative_models_know_what_they_dont_know.ipynb).
 Pretrained model (on CIFAR-10): [download](https://www.cs.ox.ac.uk/people/joost.vanamersfoort/glow.zip) (unzip before use).
 
 Note this pretrained model was created using the `affine` coupling layer, so it does not work well for generative sampling (see qualitative vs quantitative models in the Glow paper). The pretrained model achieves 3.39 bpd, while the original paper gets 3.35. The difference between our pretrained model and the paper is that we use batch size 64 (single GPU) and the paper uses 512 (8 GPU).
@@ -49,8 +49,8 @@ for what is possible.
 
 There are two notebooks available for evaluation:
 
-* The [first notebook](Do_deep_generative_models_know_what_they_dont_know.ipynb) reproduces a plot from "Do Deep Generative models know what they don't know?" (see above) and computes the average bpd on the CIFAR-10 and SVHN test sets.
-* The [second notebook](Sample_from_Glow.ipynb) allows you to visualise samples from the model (This works best with a model trained using the `additive` coupling layer).
+* The [first notebook](analysis/Do_deep_generative_models_know_what_they_dont_know.ipynb) reproduces a plot from "Do Deep Generative models know what they don't know?" (see above) and computes the average bpd on the CIFAR-10 and SVHN test sets.
+* The [second notebook](analysis/Sample_from_Glow.ipynb) allows you to visualise samples from the model (This works best with a model trained using the `additive` coupling layer).
 
 
 ## Extensions

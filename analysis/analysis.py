@@ -41,8 +41,8 @@ class SampleDataset:
 device = torch.device("cpu")
 
 
-svhn_path = "data/SVHN"
-cifar_path = "data/CIFAR10"
+svhn_path = "../data/SVHN"
+cifar_path = "../data/CIFAR10"
 
 
 # _, _, _, vanilla_test_cifar = get_CIFAR10(False, "./", True)

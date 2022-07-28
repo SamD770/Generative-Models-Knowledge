@@ -88,7 +88,7 @@ def scatter_plot():
     plt.xlabel("log $L^2$ norm (flow.layers.20.actnorm.bias)")
     plt.ylabel("log $L^2$ norm (flow.layers.30.actnorm.bias)")
 
-    plt.savefig("images/gradients_scatter_plot_close.png")
+    plt.savefig("plots/gradients_scatter_plot_close.png")
 
 
 def layer_histograms():
@@ -107,7 +107,7 @@ def layer_histograms():
 
         plt.legend()
 
-        plt.savefig(f"images/layer_{n}_gradients.png")
+        plt.savefig(f"plots/layer_{n}_gradients.png")
 
 
 def gradient_sum_plot():
@@ -130,7 +130,7 @@ def gradient_sum_plot():
                  label=plot_label, density=True, alpha=0.6, bins=40)
 
     plt.legend()
-    plt.savefig(f"images/normalised_all_gradients.png")
+    plt.savefig(f"plots/normalised_all_gradients.png")
 
 
 def get_stacked(norm_dict):
@@ -183,7 +183,7 @@ def gaussian_fit_plot():
     #
     # plt.legend()
     #
-    # plt.savefig("images/gradients_fitted_Gaussian(2).png")
+    # plt.savefig("plots/gradients_fitted_Gaussian(2).png")
 
 
 # def principle_components_analysis():
