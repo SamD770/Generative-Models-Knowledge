@@ -7,13 +7,21 @@ import json
 import torch
 
 
+device = torch.device("cuda")
+print(f"using device: {device}")
+
+
+svhn_path = "../data/SVHN"
+cifar_path = "../data/CIFAR10"
+
+
 def vanilla_test_cifar():
-    _, _, _, test_cifar = get_CIFAR10(False, "./", True)
+    _, _, _, test_cifar = get_CIFAR10(False, "../", True)
     return test_cifar
 
 
 def vanilla_test_svhn():
-    _, _, _, test_svhn = get_SVHN(False, "./", True)
+    _, _, _, test_svhn = get_SVHN(False, "../", True)
     return test_svhn
 
 
@@ -38,18 +46,10 @@ class SampleDataset:
         return self.samples[item], torch.zeros(10)
 
 
-device = torch.device("cpu")
-
-
-svhn_path = "../data/SVHN"
-cifar_path = "../data/CIFAR10"
-
-
-# _, _, _, vanilla_test_cifar = get_CIFAR10(False, "./", True)
-# _, _, _, vanilla_test_svhn = get_SVHN(False, "./", True)
-
-
 def load_glow_model(output_folder, model_name, image_shape=(32, 32, 3), num_classes=10):
+
+    print(f"loading model from: {output_folder + model_name}")
+
     with open(output_folder + 'hparams.json') as json_file:
         hparams = json.load(json_file)
 
@@ -57,10 +57,11 @@ def load_glow_model(output_folder, model_name, image_shape=(32, 32, 3), num_clas
                  hparams['flow_permutation'], hparams['flow_coupling'], hparams['LU_decomposed'], num_classes,
                  hparams['learn_top'], hparams['y_condition'])
 
+    state_dicts = torch.load(
+        output_folder + model_name, map_location=device)
+    print(f"stored information: {state_dicts.keys()}")
 
-    print(output_folder + model_name)
-    model.load_state_dict(torch.load(
-        output_folder + model_name, map_location=device)["model"]) # You need to direct it "model" part of the file
+    model.load_state_dict(state_dicts["model"]) # You need to direct it "model" part of the file
 
     model.set_actnorm_init()
 
