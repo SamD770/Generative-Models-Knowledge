@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 
 from sklearn.linear_model import LogisticRegression
 
+from gradient_serialisation import GRADIENTS_DIR
+
+
 # def norm_dict(grad_dict):
 #     return {
 #         k: [
@@ -12,15 +15,17 @@ from sklearn.linear_model import LogisticRegression
 #     }
 
 
-cifar_norms = torch.load("cifar_norms.pt")
-svhn_norms = torch.load("svhn_norms.pt")
+cifar_norm_file = "cifar_id_norms_32.pt"
+svhn_norm_file = "cifar_od_norms_32.pt"
 
-zeroes = torch.zeros(2000)
+cifar_norms = torch.load(GRADIENTS_DIR + cifar_norm_file)
+svhn_norms = torch.load(GRADIENTS_DIR + svhn_norm_file)
 
 zero_keys = set()
 
 for norms in cifar_norms, svhn_norms:
     for key, value in norms.items():
+        zeroes = torch.zeros(len(value))
         if torch.any(value == zeroes):
             zero_keys.add(key)
 
@@ -77,7 +82,6 @@ def scatter_plot():
     for norms, dataset_name in zip([cifar_norms, svhn_norms],
                                    ["in distribution (cifar)", "out of distribution (svhn)"]):
 
-
         first_layer_norms = norms["flow.layers.20.actnorm.bias"][:100]
         last_layer_norms = norms["flow.layers.30.actnorm.bias"][:100]
 
@@ -94,11 +98,13 @@ def scatter_plot():
 def layer_histograms():
     for n in [1, 10, 40, 80, 100]:
         plt.figure(figsize=(20, 10))
-        plt.title(f"Gradient histogram: flow.layers.{n}.actnorm.bias")
-        plt.xlabel("$\log$ L^2$ norm")
+        layer_name = f"flow.layers.{n}.actnorm.bias"
 
-        log_cifar_gradients = torch.log(cifar_norms[f"flow.layers.{n}.actnorm.bias"])
-        log_svhn_gradients = torch.log(svhn_norms[f"flow.layers.{n}.actnorm.bias"])
+        plt.title(f"Gradient histogram batch size 32: {layer_name}")
+        plt.xlabel("$\log L^2$ norm")
+
+        log_cifar_gradients = torch.log(cifar_norms[layer_name])
+        log_svhn_gradients = torch.log(svhn_norms[layer_name])
 
         plt.hist(log_cifar_gradients.numpy(),
                  label="in distribution (cifar)", density=True, alpha=0.6, bins=40)
@@ -107,7 +113,7 @@ def layer_histograms():
 
         plt.legend()
 
-        plt.savefig(f"plots/layer_{n}_gradients.png")
+        plt.savefig(f"plots/layer_{n}_gradients_batch_size_32.png")
 
 
 def gradient_sum_plot():
@@ -258,4 +264,4 @@ def logistic_regression():
     print(f"test svhn predictions: {sep_model.predict(svhn_test[:6])}")
 
 
-logistic_regression()
+layer_histograms()
