@@ -15,8 +15,8 @@ from gradient_serialisation import GRADIENTS_DIR
 #     }
 
 
-cifar_norm_file = "cifar_id_norms_32.pt"
-svhn_norm_file = "cifar_od_norms_32.pt"
+cifar_norm_file = "svhn_od_norms_32.pt"
+svhn_norm_file = "svhn_id_norms_32.pt"
 
 cifar_norms = torch.load(GRADIENTS_DIR + cifar_norm_file)
 svhn_norms = torch.load(GRADIENTS_DIR + svhn_norm_file)
@@ -100,20 +100,20 @@ def layer_histograms():
         plt.figure(figsize=(20, 10))
         layer_name = f"flow.layers.{n}.actnorm.bias"
 
-        plt.title(f"Gradient histogram batch size 32: {layer_name}")
+        plt.title(f"Gradient histogram (trained svhn, batch size 32, {layer_name})")
         plt.xlabel("$\log L^2$ norm")
 
         log_cifar_gradients = torch.log(cifar_norms[layer_name])
         log_svhn_gradients = torch.log(svhn_norms[layer_name])
 
         plt.hist(log_cifar_gradients.numpy(),
-                 label="in distribution (cifar)", density=True, alpha=0.6, bins=40)
+                 label="out of distribution (cifar)", density=True, alpha=0.6, bins=40)
         plt.hist(log_svhn_gradients.numpy(),
-                 label="out of distribution (svhn)", density=True, alpha=0.6, bins=40)
+                 label="in distribution (svhn)", density=True, alpha=0.6, bins=40)
 
         plt.legend()
 
-        plt.savefig(f"plots/layer_{n}_gradients_batch_size_32.png")
+        plt.savefig(f"plots/Gradient histogram (trained svhn, batch size 32, {layer_name}).png")
 
 
 def gradient_sum_plot():
@@ -222,8 +222,12 @@ def logistic_regression():
     stacked_cifar_norms = get_stacked(cifar_norms)
     stacked_cifar_norms = torch.transpose(stacked_cifar_norms, 0, 1)
 
-    train_samples = 1500
-    test_samples = 2000 - train_samples
+    cifar_samples, layer_count = stacked_cifar_norms.shape
+
+    print(f"sample count: {cifar_samples} layer count: {layer_count}")
+
+    train_samples = 8000
+    test_samples = cifar_samples - train_samples
 
     cifar_mu = torch.mean(stacked_cifar_norms, 0)
     cifar_sigmas = torch.std(stacked_cifar_norms, 0)
@@ -234,6 +238,8 @@ def logistic_regression():
 
     stacked_svhn_norms = get_stacked(svhn_norms)
     stacked_svhn_norms = torch.transpose(stacked_svhn_norms, 0, 1)
+
+    svhn_samples, _ = stacked_svhn_norms.shape
 
     normalised_svhn = (stacked_svhn_norms - cifar_mu)/cifar_sigmas
     svhn_train = normalised_svhn[:train_samples]
@@ -252,7 +258,7 @@ def logistic_regression():
     ])
 
     y_test = torch.cat([
-        torch.zeros(test_samples), torch.ones(test_samples)
+        torch.zeros(test_samples), torch.ones(svhn_samples - train_samples)
     ])
 
     sep_model = LogisticRegression(max_iter=1000).fit(X_train, y_train)
@@ -262,6 +268,26 @@ def logistic_regression():
 
     print(f"test cifar predictions: {sep_model.predict(cifar_test[:6])}")
     print(f"test svhn predictions: {sep_model.predict(svhn_test[:6])}")
+
+    print(f"model coeffs: {sep_model.coef_}")
+
+    model_coeffs_tensor = torch.tensor(sep_model.coef_)
+    model_coeffs_tensor = torch.squeeze(model_coeffs_tensor)
+
+    plt.figure(figsize=(20, 10))
+    plt.title(f"Gradient histogram: normalised over the layers using weighting from logistic regression (no log)")
+    plt.xlabel("weighted $L^2$ norm")
+
+    for normalised_norms, label in zip([normalised_cifar, normalised_svhn],
+                                       ["cifar (in distribution)", "svhn (ood)"]):
+        scores = torch.sum(normalised_norms*model_coeffs_tensor, 1)
+        log_scores = torch.log(scores)
+
+        plt.hist(scores.numpy(),
+                 label=label, density=True, alpha=0.6, bins=40)
+
+    plt.legend()
+    plt.savefig("plots/normalised_using_logistic_regression.png")
 
 
 layer_histograms()

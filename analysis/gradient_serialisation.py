@@ -4,8 +4,8 @@ from torch.utils.data import DataLoader
 from analysis.analysis_utils import load_glow_model, vanilla_test_cifar, vanilla_test_svhn, device
 
 
-MODEL_DIR = "../glow_model/cifar_glow/"
-MODEL_FILE = "glow_checkpoint_195250.pt"
+MODEL_DIR = "../glow_model/svhn_3/"
+MODEL_FILE = "glow_checkpoint_280280.pt"
 
 GRADIENTS_DIR = "serialised_gradients/"
 
@@ -29,7 +29,7 @@ def grad_dot_prod(delta_x, delta_y):
 
 def serialise_gradients():
     for dataset, save_file in zip([vanilla_test_cifar(), vanilla_test_svhn()],
-                                  [f"cifar_id_norms_{batch_size}.pt", f"cifar_od_norms_{batch_size}.pt"]):
+                                  [f"svhn_od_norms_{batch_size}.pt", f"svhn_id_norms_{batch_size}.pt"]):
 
         print(f"creating {GRADIENTS_DIR + save_file}:")
         grad_dict = {
