@@ -15,7 +15,10 @@ from ignite.engine import Engine, Events
 from ignite.handlers import ModelCheckpoint, Timer
 from ignite.metrics import RunningAverage, Loss
 
-from data.datasets import get_CIFAR10, get_SVHN
+# TODO Fabian: I needed this
+from VAE_model.datasets import get_CIFAR10, get_SVHN, get_imagenet32, get_celeba
+# from data.datasets import get_CIFAR10, get_SVHN
+
 from glow_model.model import Glow
 
 
@@ -31,9 +34,13 @@ def check_dataset(dataset, dataroot, augment, download):
     if dataset == "cifar10":
         cifar10 = get_CIFAR10(augment, dataroot, download)
         input_size, num_classes, train_dataset, test_dataset = cifar10
-    if dataset == "svhn":
+    elif dataset == "svhn":
         svhn = get_SVHN(augment, dataroot, download)
         input_size, num_classes, train_dataset, test_dataset = svhn
+    elif dataset == 'imagenet32':
+        input_size, num_classes, train_dataset, test_dataset = get_imagenet32(dataroot)
+    elif dataset == 'celeba':
+        input_size, num_classes, train_dataset, test_dataset = get_celeba(dataroot)
 
     return input_size, num_classes, train_dataset, test_dataset
 
