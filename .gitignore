@@ -1,4 +1,6 @@
-data
+data/CIFAR10
+data/SVHN
+
 output
 .flake8
 __pycache__

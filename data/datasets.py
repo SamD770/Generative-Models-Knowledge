@@ -2,10 +2,11 @@ from pathlib import Path
 
 import torch
 import torch.nn.functional as F
+import pickle
 
 from torchvision import transforms, datasets
 
-n_bits = 8
+n_bits=8
 
 
 def preprocess(x):
@@ -93,6 +94,10 @@ def get_SVHN(augment, dataroot, download):
     test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
 
     path = Path(dataroot) / "data" / "SVHN"
+
+    print(f"dataroot: {dataroot}")
+    print(f"path: {path}")
+
     train_dataset = datasets.SVHN(
         path,
         split="train",
@@ -112,83 +117,99 @@ def get_SVHN(augment, dataroot, download):
     return image_shape, num_classes, train_dataset, test_dataset
 
 
-
 def get_imagenet32(dataroot):
     image_shape = (32, 32, 3)
     num_classes = None  # TODO @Sam
 
     X_train_list = []
     for i in range(1, 11):
-        X_train_batch = load_databatch(os.path.join(dataroot, "imagenet32_regular", 'train_32x32', 'train_data_batch_' + str(i)))
+        X_train_batch = load_databatch(os.path.join(dataroot, "data", "imagenet32_regular", 'train_32x32', 'train_data_batch_' + str(i)))
         X_train_list.append(X_train_batch)
-    X_train = np.concatenate(X_train_list)
-    X_test = load_databatch(os.path.join(dataroot, "imagenet32_regular", "valid_32x32", "val_data"))
 
-    # TODO @Sam: you may want to replace this by another Dataset class. Not that TensorDataset will return a list of tensors for every batch, which contains exactly one element.
-    train_dataset = torch.utils.data.TensorDataset(torch.as_tensor(X_train, dtype=torch.float32))
-    test_dataset = torch.utils.data.TensorDataset(torch.as_tensor(X_test, dtype=torch.float32))
+    X_train = np.concatenate(X_train_list)
+    X_test = load_databatch(os.path.join(dataroot, "data", "imagenet32_regular", "valid_32x32", "val_data"))
+
+    # TODO @Sam: you may want to replace this by another Dataset class.
+    #  Note that TensorDataset will return a list of tensors for every batch, which contains exactly one element.
+    dummy_train_labels = torch.zeros(len(X_train))
+    dummy_test_labels = torch.zeros(len(X_test))
+
+    train_dataset = torch.utils.data.TensorDataset(torch.as_tensor(X_train, dtype=torch.float32), dummy_train_labels)
+    test_dataset = torch.utils.data.TensorDataset(torch.as_tensor(X_test, dtype=torch.float32), dummy_test_labels)
 
     return image_shape, num_classes, train_dataset, test_dataset
 
 
 def get_celeba(dataroot):
+    class CelebA_LMBD_Wrapper:
+        def __init__(self, lmdb_dataset):
+            self.lmdb_dataset = lmdb_dataset
+
+        def __len__(self):
+            return self.lmdb_dataset.__len__()
+
+        def __getitem__(self, item):
+            sample = self.lmdb_dataset.__getitem__(item)
+            sample = sample - 0.5
+            return sample, torch.zeros(1)
+
+
     image_shape = (32, 32, 3)
     resize = 32
 
     num_classes = None  # TODO @Sam
 
     train_transform, valid_transform = _data_transforms_celeba64(resize)
-    train_data = LMDBDataset(root='data/celeba64_lmdb', name='celeba64', split="train", transform=train_transform,
+    train_data = LMDBDataset(root=dataroot+'data/celeba64_lmdb', name='celeba64', split="train", transform=train_transform,
                              is_encoded=True)
-    valid_data = LMDBDataset(root='data/celeba64_lmdb', name='celeba64', split="validation", transform=valid_transform,
+    valid_data = LMDBDataset(root=dataroot+'data/celeba64_lmdb', name='celeba64', split="validation", transform=valid_transform,
                              is_encoded=True)
-    test_data = LMDBDataset(root='data/celeba64_lmdb', name='celeba64', split="test", transform=valid_transform,
+    test_data = LMDBDataset(root=dataroot+'data/celeba64_lmdb', name='celeba64', split="test", transform=valid_transform,
                             is_encoded=True)
 
-    X_train = np.zeros((len(train_data), resize, resize, 3))
-    for i in range(len(train_data)):
-        X_train[i, :, :, :] = np.einsum('ijk -> jki', train_data[i])
 
-    X_val = np.zeros((len(valid_data), resize, resize, 3))
-    for i in range(len(valid_data)):
-        X_val[i, :, :, :] = np.einsum('ijk -> jki', valid_data[i])
+    # X_train = np.zeros((len(train_data), resize, resize, 3))
+    # for i in range(len(train_data)):
+    #     X_train[i, :, :, :] = np.einsum('ijk -> jki', train_data[i])
+    #
+    # X_val = np.zeros((len(valid_data), resize, resize, 3))
+    # for i in range(len(valid_data)):
+    #     X_val[i, :, :, :] = np.einsum('ijk -> jki', valid_data[i])
+    #
+    # X_test = np.zeros((len(test_data), resize, resize, 3))
+    # for i in range(len(test_data)):
+    #     X_test[i, :, :, :] = np.einsum('ijk -> jki', test_data[i])
 
-    X_test = np.zeros((len(test_data), resize, resize, 3))
-    for i in range(len(test_data)):
-        X_test[i, :, :, :] = np.einsum('ijk -> jki', test_data[i])
-
-    # scale to [0, 255] as expected
-    X_train = X_train * 255.
-    X_val = X_val * 255.
-    X_test = X_test * 255.
-
-    # round to nearest integer
-    X_train = np.round(X_train, decimals=0)
-    X_val = np.round(X_val, decimals=0)
-    X_test = np.round(X_test, decimals=0)
-
-    # convert to uint8
-    X_train = X_train.astype('uint8')
-    X_val = X_val.astype('uint8')
-    X_test = X_test.astype('uint8')
-
-
+    # # scale to [0, 255] as expected
+    # X_train = X_train * 255.
+    # X_val = X_val * 255.
+    # X_test = X_test * 255.
+    #
+    # # round to nearest integer
+    # X_train = np.round(X_train, decimals=0)
+    # X_val = np.round(X_val, decimals=0)
+    # X_test = np.round(X_test, decimals=0)
+    #
+    # # convert to uint8
+    # X_train = X_train.astype('uint8')
+    # X_val = X_val.astype('uint8')
+    # X_test = X_test.astype('uint8')
 
     # print(trX, vaX, teX)
     # print("celeba64 A: ", np.min(X_train.flatten()), np.max(X_train.flatten()), np.min(X_val.flatten()), np.max(X_val.flatten()), np.min(X_test.flatten()), np.max(X_test.flatten()))
     # print("celeba64 B: ", X_train.dtype, X_val.dtype, X_test.dtype)
 
-    # TODO @Sam: you may want to replace this by another Dataset class. Not that TensorDataset will return a list of tensors for every batch, which contains exactly one element.
-    train_dataset = torch.utils.data.TensorDataset(torch.as_tensor(X_train, dtype=torch.float32))
-    test_dataset = torch.utils.data.TensorDataset(torch.as_tensor(X_test, dtype=torch.float32))
+    # TODO @Sam: you may want to replace this by another Dataset class.
+    #  Note that TensorDataset will return a list of tensors for every batch, which contains exactly one element.
+    # train_dataset = torch.utils.data.TensorDataset(torch.as_tensor(X_train, dtype=torch.float32))
+    # test_dataset = torch.utils.data.TensorDataset(torch.as_tensor(X_test, dtype=torch.float32))
 
-    return image_shape, num_classes, train_dataset, test_dataset
+    return image_shape, num_classes, CelebA_LMBD_Wrapper(train_data), CelebA_LMBD_Wrapper(test_data)
 
 
 
 
 # --------------
-
 
 
 def flatten(outer):
@@ -204,9 +225,12 @@ def load_databatch(path, img_size=32):
 
     img_size2 = img_size * img_size
     x = np.dstack((x[:, :img_size2], x[:, img_size2:2*img_size2], x[:, 2*img_size2:]))
-    x = x.reshape((x.shape[0], img_size, img_size, 3))   # .transpose(0, 3, 1, 2) (do not transpose, since we want (samples, 32, 32, 3))
+    x = x.reshape((x.shape[0], img_size, img_size, 3)).transpose(0, 3, 1, 2)     # (do not transpose, since we want (samples, 32, 32, 3))
+
+    x = x/256 - 0.5
 
     return x
+
 
 def unpickle_imagenet32(file):
     """

@@ -24,6 +24,7 @@ print(f"using model: {output_folder + model_name}")
 image_shape, num_classes, _, test_cifar = get_CIFAR10(hparams['augment'], hparams['dataroot'], True)
 image_shape, num_classes, _, test_svhn = get_SVHN(hparams['augment'], hparams['dataroot'], True)
 
+
 model = Glow(image_shape, hparams['hidden_channels'], hparams['K'], hparams['L'], hparams['actnorm_scale'],
              hparams['flow_permutation'], hparams['flow_coupling'], hparams['LU_decomposed'], num_classes,
              hparams['learn_top'], hparams['y_condition'])

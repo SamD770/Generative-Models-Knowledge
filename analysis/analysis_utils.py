@@ -1,5 +1,5 @@
 
-from data.datasets import get_CIFAR10, get_SVHN
+from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32
 
 from glow_model.model import Glow
 import json
@@ -23,6 +23,25 @@ def vanilla_test_cifar():
 def vanilla_test_svhn():
     _, _, _, test_svhn = get_SVHN(False, "../", True)
     return test_svhn
+
+
+def vanilla_test_celeba():
+    _, _, _, test_celeba = get_celeba("../")
+    return test_celeba
+
+
+def vanilla_test_imagenet32():
+    _, _, _, test_imagenet32 = get_imagenet32("../")
+    return test_imagenet32
+
+
+def get_vanilla_test_dataset(dataset_name):
+    return {
+        "cifar": vanilla_test_cifar,
+        "svhn": vanilla_test_svhn,
+        "celeba": vanilla_test_celeba,
+        "imagenet32": vanilla_test_imagenet32,
+    }[dataset_name]()
 
 
 class SampleDataset:
