@@ -6,8 +6,13 @@ from copy import copy
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import OneClassSVM
+from sklearn.ensemble import IsolationForest
+from sklearn.covariance import EllipticEnvelope
+from sklearn.neighbors import LocalOutlierFactor
+
 
 from gradient_serialisation import GRADIENTS_DIR, get_save_file_name
+
 
 
 # def norm_dict(grad_dict):
@@ -20,9 +25,9 @@ from gradient_serialisation import GRADIENTS_DIR, get_save_file_name
 
 
 BATCH_SIZE = 32
-MODEL_NAME = "cifar_glow"
-ID_DATASET = "cifar"
-OOD_DATASETS = ["svhn", "celeba", "imagenet32"]
+MODEL_NAME = "svhn_working"
+ID_DATASET = "svhn"
+OOD_DATASETS = ["cifar", "celeba", "imagenet32"]
 
 
 id_norm_file = get_save_file_name(MODEL_NAME, ID_DATASET, BATCH_SIZE)
@@ -42,6 +47,9 @@ ood_norms_list = [
 all_norms = copy(ood_norms_list)
 all_norms.append(id_norms)
 
+all_names = copy(OOD_DATASETS)
+all_names.append(ID_DATASET)
+
 #
 # cifar_norm_file = f"svhn_od_norms_{BATCH_SIZE}.pt"
 # svhn_norm_file = f"svhn_id_norms_{BATCH_SIZE}.pt"
@@ -51,17 +59,23 @@ all_norms.append(id_norms)
 
 zero_keys = set()
 
-for norms in all_norms:
+for norms, name in zip(all_norms, all_names):
+    zero_count = 0
     for key, value in norms.items():
         zeroes = torch.zeros(len(value))
         if torch.any(value == zeroes):
             zero_keys.add(key)
+            zero_count += 1
+    print(f"({name}) number of zero gradients: {zero_count}")
 
 
 print(f"removing {len(zero_keys)} gradients due to zero values")
 for key in zero_keys:
     for norms in all_norms:
         norms.pop(key)
+
+
+print()
 
 
 # def get_correlations():
@@ -254,112 +268,266 @@ def gaussian_fit_plot():
 #     principle_evecs = evecs[:evec_cutoff]
 
 
-def fit_gradient_models():
+def get_sklearn_norms(fit_samples):
+    """Returns tensors of norms ready for analysis using sklearn."""
     stacked_id_norms = get_stacked(id_norms)
     stacked_id_norms = torch.transpose(stacked_id_norms, 0, 1)
 
     id_samples, layer_count = stacked_id_norms.shape
-
-    fit_samples = 600
     test_samples = id_samples - fit_samples
 
-    print(f"total samples: {id_samples} fit samples: {fit_samples} layer count: {layer_count}")
+    # print(f"total samples: {id_samples} fit samples: {fit_samples} layer count: {layer_count}")
 
     id_mu = torch.mean(stacked_id_norms, 0)
     id_sigmas = torch.std(stacked_id_norms, 0)
 
     normed_id_norms = (stacked_id_norms - id_mu)/id_sigmas
-    id_fit = normed_id_norms[:fit_samples]
-    id_test = normed_id_norms[fit_samples:]
 
     stacked_ood_norms_list = [
+        torch.nan_to_num( # Sometimes Nans appear in the input so this replaces them.
         torch.transpose(
             get_stacked(ood_norms),
             0, 1
-        ) for ood_norms in ood_norms_list
-    ]
-
-    ood_samples_list = [
-        stacked_ood_norms.shape[0] for stacked_ood_norms in stacked_ood_norms_list
+        )) for ood_norms in ood_norms_list
     ]
 
     normed_ood_norms_list = [
         (stacked_ood_norms - id_mu) / id_sigmas for stacked_ood_norms in stacked_ood_norms_list
     ]
 
-    # ood_fit = normed_ood_norms[:fit_samples]
-    # ood_test = normed_ood_norms[fit_samples:]
-    #
-    # X_train = torch.cat([
-    #     id_fit, ood_fit
-    # ])
-    #
-    # y_train = torch.cat([
-    #     torch.zeros(fit_samples), torch.ones(fit_samples)
-    # ])
-    #
-    # X_test = torch.cat([
-    #     id_test, ood_test
-    # ])
-    #
-    # y_test = torch.cat([
-    #     torch.zeros(test_samples), torch.ones(ood_samples - fit_samples)
-    # ])
+    ood_samples_list = [
+        stacked_ood_norms.shape[0] for stacked_ood_norms in stacked_ood_norms_list
+    ]
 
-    # logistic_model = LogisticRegression(max_iter=1000).fit(X_train, y_train)
-    #
-    # print(f"train id score: {logistic_model.score(X_train, y_train)}")
-    # print(f"test ood score: {logistic_model.score(X_test, y_test)}")
-    #
-    # print(f"test id predictions: {logistic_model.predict(id_test[:10])}")
-    # print(f"test ood predictions: {logistic_model.predict(ood_test[:10])}")
+    return normed_id_norms, id_samples, normed_ood_norms_list, ood_samples_list
+
+
+def fit_logistic_regression_model(fit_samples):
+    normed_id_norms, id_samples, normed_ood_norms_list, ood_samples_list = get_sklearn_norms(fit_samples)
+    id_fit = normed_id_norms[:fit_samples]
+    id_test = normed_id_norms[fit_samples:]
+
+    ood_fit = torch.cat([
+        data[:fit_samples] for data in normed_ood_norms_list
+    ])
+
+    ood_test = torch.cat([
+        data[fit_samples:] for data in normed_ood_norms_list
+    ])
+
+    X_fit = torch.cat([
+        id_fit, ood_fit
+    ])
+
+    y_fit = torch.cat([
+        torch.ones(len(id_fit)), torch.zeros(len(ood_fit))
+    ])
+
+    X_test = torch.cat([
+        id_test, ood_test
+    ])
+
+    y_test = torch.cat([
+        torch.ones(len(id_test)), torch.zeros(len(ood_test))
+    ])
+
+    logistic_model = LogisticRegression(max_iter=1000).fit(X_fit, y_fit)
+
+    print(f"train score: {logistic_model.score(X_fit, y_fit)}")
+    print(f"test score: {logistic_model.score(X_test, y_test)}")
+
+    print(f"test id predictions: {logistic_model.predict(id_test[:20])}")
+    print(f"test ood predictions: {logistic_model.predict(ood_test[:20])}")
+
+
+#
+# def fit_svm(fit_samples, nu=0.1):
+#     normed_id_norms, id_samples, normed_ood_norms_list, ood_samples_list = get_sklearn_norms(fit_samples)
+#
+#     id_fit = normed_id_norms[:fit_samples]
+#     id_test = normed_id_norms[fit_samples:]
+#
+#     print()
+#     print("support vector machine results")
+#
+#     svm_model = OneClassSVM(nu=nu).fit(id_fit)
+#     in_dist_train_prediction = svm_model.predict(id_fit)
+#     in_dist_test_prediction = svm_model.predict(id_test)
+#
+#     print(f"svm train prediction for {ID_DATASET}: {in_dist_train_prediction[:10]} mean: {np.mean(in_dist_train_prediction)}")
+#     print(f"svm test prediction for {ID_DATASET}:{in_dist_train_prediction[:10]} mean: {np.mean(in_dist_test_prediction)}")
+#
+#     for normed_ood_norms, ood_dataset_name in zip(normed_ood_norms_list, OOD_DATASETS):
+#         # nan_count = np.count_nonzero(np.isnan(normed_ood_norms))
+#         # non_nan_count = np.count_nonzero(~np.isnan(normed_ood_norms))
+#         # print(f"{ood_dataset_name}  Clean count: {non_nan_count}  NaN count: {nan_count}")
+#
+#         out_dist_prediction = svm_model.predict(normed_ood_norms)
+#         print(f"svm ood prediction for {ood_dataset_name}: {out_dist_prediction[:10]} mean: {np.mean(out_dist_prediction)}")
+#
+#
+# # def fit_gradient_models():
+# #     stacked_id_norms = get_stacked(id_norms)
+# #     stacked_id_norms = torch.transpose(stacked_id_norms, 0, 1)
+# #
+# #     id_samples, layer_count = stacked_id_norms.shape
+# #
+# #     fit_samples = 600
+# #     test_samples = id_samples - fit_samples
+# #
+# #     print(f"total samples: {id_samples} fit samples: {fit_samples} layer count: {layer_count}")
+# #
+# #     id_mu = torch.mean(stacked_id_norms, 0)
+# #     id_sigmas = torch.std(stacked_id_norms, 0)
+# #
+# #     normed_id_norms = (stacked_id_norms - id_mu)/id_sigmas
+# #     id_fit = normed_id_norms[:fit_samples]
+# #     id_test = normed_id_norms[fit_samples:]
+# #
+# #     stacked_ood_norms_list = [
+# #         torch.transpose(
+# #             get_stacked(ood_norms),
+# #             0, 1
+# #         ) for ood_norms in ood_norms_list
+# #     ]
+# #
+# #     ood_samples_list = [
+# #         stacked_ood_norms.shape[0] for stacked_ood_norms in stacked_ood_norms_list
+# #     ]
+# #
+# #     normed_ood_norms_list = [
+# #         (stacked_ood_norms - id_mu) / id_sigmas for stacked_ood_norms in stacked_ood_norms_list
+# #     ]
+# #
+# #     # ood_fit = normed_ood_norms[:fit_samples]
+# #     # ood_test = normed_ood_norms[fit_samples:]
+# #     #
+# #     # X_train = torch.cat([
+# #     #     id_fit, ood_fit
+# #     # ])
+# #     #
+# #     # y_train = torch.cat([
+# #     #     torch.zeros(fit_samples), torch.ones(fit_samples)
+# #     # ])
+# #     #
+# #     # X_test = torch.cat([
+# #     #     id_test, ood_test
+# #     # ])
+# #     #
+# #     # y_test = torch.cat([
+# #     #     torch.zeros(test_samples), torch.ones(ood_samples - fit_samples)
+# #     # ])
+# #
+# #     # logistic_model = LogisticRegression(max_iter=1000).fit(X_train, y_train)
+# #     #
+# #     # print(f"train id score: {logistic_model.score(X_train, y_train)}")
+# #     # print(f"test ood score: {logistic_model.score(X_test, y_test)}")
+# #     #
+# #     # print(f"test id predictions: {logistic_model.predict(id_test[:10])}")
+# #     # print(f"test ood predictions: {logistic_model.predict(ood_test[:10])}")
+# #
+# #     print()
+# #     print("support vector machine results")
+# #
+# #     svm_model = OneClassSVM().fit(id_fit)
+# #     in_dist_train_prediction = svm_model.predict(id_fit)
+# #     in_dist_test_prediction = svm_model.predict(id_test)
+# #
+# #     print(f"svm train prediction for {ID_DATASET}: {in_dist_train_prediction[:10]} mean: {np.mean(in_dist_train_prediction)}")
+# #     print(f"svm test prediction for {ID_DATASET}:{in_dist_train_prediction[:10]} mean: {np.mean(in_dist_test_prediction)}")
+# #
+# #     for normed_ood_norms, ood_dataset_name in zip(normed_ood_norms_list, OOD_DATASETS):
+# #         nan_count = np.count_nonzero(np.isnan(normed_ood_norms))
+# #         non_nan_count = np.count_nonzero(~np.isnan(normed_ood_norms))
+# #         print(f"{ood_dataset_name}  Clean count: {non_nan_count}  NaN count: {nan_count}")
+# #
+# #         out_dist_prediction = svm_model.predict(normed_ood_norms)
+# #         print(f"svm ood prediction for {ood_dataset_name}: {out_dist_prediction[:10]} mean: {np.mean(out_dist_prediction)}")
+# #
+# #     # print(type(svm_model.predict(svhn_test)))
+# #     # print(type(svm_model.predict(id_test)))
+# #     #
+# #     # print("svm fit done")
+# #     #
+# #     # return svm_model, ood_test, id_test
+# #
+# #
+# #     # print(f"model coeffs: {logistic_model.coef_}")
+# #     #
+# #     # model_coeffs_tensor = torch.tensor(logistic_model.coef_)
+# #     # model_coeffs_tensor = torch.squeeze(model_coeffs_tensor)
+# #
+# #     # plt.figure(figsize=(20, 10))
+# #     # plt.title(f"Gradient histogram: normalised over the layers using weighting from logistic regression (no log)")
+# #     # plt.xlabel("weighted $L^2$ norm")
+# #     #
+# #     # for normalised_norms, label in zip([normed_id_norms, normed_ood_norms],
+# #     #                                    ["cifar (in distribution)", "svhn (ood)"]):
+# #     #     scores = torch.sum(normalised_norms*model_coeffs_tensor, 1)
+# #     #     log_scores = torch.log(scores)
+# #     #
+# #     #     plt.hist(scores.numpy(),
+# #     #              label=label, density=True, alpha=0.6, bins=40)
+# #     #
+# #     # plt.legend()
+# #     # plt.savefig("plots/normalised_using_logistic_regression.png")
+# #
+#
+# def fit_isolation_forest(fit_samples, n_estimators=100):
+#     normed_id_norms, id_samples, normed_ood_norms_list, ood_samples_list = get_sklearn_norms(fit_samples)
+#     id_fit = normed_id_norms[:fit_samples]
+#     id_test = normed_id_norms[fit_samples:]
+#
+#     print()
+#     print("fitting isolation forest for n_estimators = ", n_estimators)
+#     iso_forest = IsolationForest(n_estimators=n_estimators).fit(id_fit)
+#     in_dist_train_prediction = iso_forest.predict(id_fit)
+#     in_dist_test_prediction = iso_forest.predict(id_test)
+#
+#     print(f"svm train prediction for {ID_DATASET}: {in_dist_train_prediction[:10]} mean: {np.mean(in_dist_train_prediction)}")
+#     print(f"svm test prediction for {ID_DATASET}:{in_dist_train_prediction[:10]} mean: {np.mean(in_dist_test_prediction)}")
+#
+#     for normed_ood_norms, ood_dataset_name in zip(normed_ood_norms_list, OOD_DATASETS):
+#         # nan_count = np.count_nonzero(np.isnan(normed_ood_norms))
+#         # non_nan_count = np.count_nonzero(~np.isnan(normed_ood_norms))
+#         # print(f"{ood_dataset_name}  Clean count: {non_nan_count}  NaN count: {nan_count}")
+#
+#         out_dist_prediction = iso_forest.predict(normed_ood_norms)
+#         print(f"svm ood prediction for {ood_dataset_name}: {out_dist_prediction[:10]} mean: {np.mean(out_dist_prediction)}")
+
+
+def fit_sklearn_unsupervised(fit_samples, ModelClass, **params):
+    def get_rejection_rate(data, model):
+        prediction = model.predict(data)
+        rejection_rate = (1 - np.mean(prediction))/ 2 # as the prediction is +1 for accept and -1 for reject
+        return round(rejection_rate, 3)
+
+    normed_id_norms, id_samples, normed_ood_norms_list, ood_samples_list = get_sklearn_norms(fit_samples)
+    id_fit = normed_id_norms[:fit_samples]
+    id_test = normed_id_norms[fit_samples:]
 
     print()
-    print("support vector machine results")
+    print(f"fitting {ModelClass} with {params}")
 
-    svm_model = OneClassSVM().fit(id_fit)
-    in_dist_train_prediction = svm_model.predict(id_fit)
-    in_dist_test_prediction = svm_model.predict(id_test)
+    model = ModelClass(**params).fit(id_fit)
 
-    print(f"svm train prediction for {ID_DATASET}: {in_dist_train_prediction[:10]} mean: {np.mean(in_dist_train_prediction)}")
-    print(f"svm test prediction for {ID_DATASET}:{in_dist_train_prediction[:10]} mean: {np.mean(in_dist_test_prediction)}")
+    print()
+    print(f"rejection rate for in-distribution {ID_DATASET} fit: {get_rejection_rate(id_fit, model)}")
+    print(f"rejection rate for in-distribution {ID_DATASET} test: {get_rejection_rate(id_test, model)}")
 
     for normed_ood_norms, ood_dataset_name in zip(normed_ood_norms_list, OOD_DATASETS):
-        nan_count = np.count_nonzero(np.isnan(normed_ood_norms))
-        non_nan_count = np.count_nonzero(~np.isnan(normed_ood_norms))
-        print(f"{ood_dataset_name}  Clean count: {non_nan_count}  NaN count: {nan_count}")
+        # nan_count = np.count_nonzero(np.isnan(normed_ood_norms))
+        # non_nan_count = np.count_nonzero(~np.isnan(normed_ood_norms))
+        # print(f"{ood_dataset_name}  Clean count: {non_nan_count}  NaN count: {nan_count}")
 
-        out_dist_prediction = svm_model.predict(normed_ood_norms)
-        print(f"svm ood prediction for {ood_dataset_name}: {out_dist_prediction[:10]} mean: {np.mean(out_dist_prediction)}")
-
-    # print(type(svm_model.predict(svhn_test)))
-    # print(type(svm_model.predict(id_test)))
-    #
-    # print("svm fit done")
-    #
-    # return svm_model, ood_test, id_test
-
-
-    # print(f"model coeffs: {logistic_model.coef_}")
-    #
-    # model_coeffs_tensor = torch.tensor(logistic_model.coef_)
-    # model_coeffs_tensor = torch.squeeze(model_coeffs_tensor)
-
-    # plt.figure(figsize=(20, 10))
-    # plt.title(f"Gradient histogram: normalised over the layers using weighting from logistic regression (no log)")
-    # plt.xlabel("weighted $L^2$ norm")
-    #
-    # for normalised_norms, label in zip([normed_id_norms, normed_ood_norms],
-    #                                    ["cifar (in distribution)", "svhn (ood)"]):
-    #     scores = torch.sum(normalised_norms*model_coeffs_tensor, 1)
-    #     log_scores = torch.log(scores)
-    #
-    #     plt.hist(scores.numpy(),
-    #              label=label, density=True, alpha=0.6, bins=40)
-    #
-    # plt.legend()
-    # plt.savefig("plots/normalised_using_logistic_regression.png")
+        print(f"rejection rate for ood {ood_dataset_name}: {get_rejection_rate(normed_ood_norms, model)}")
+    print()
+    print()
 
 
 if __name__ == "__main__":
-    layer_histograms()
+    fit_sklearn_unsupervised(200, OneClassSVM, nu=0.1)
+    fit_sklearn_unsupervised(200, EllipticEnvelope)
+    fit_sklearn_unsupervised(200, IsolationForest, n_estimators=10000)
+
+

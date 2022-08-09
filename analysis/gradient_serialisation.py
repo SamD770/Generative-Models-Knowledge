@@ -12,7 +12,7 @@ MODEL_FILE = "glow_checkpoint_585750.pt"
 GRADIENTS_DIR = "serialised_gradients/"
 
 
-BATCH_SIZE = 32
+BATCH_SIZE = 1
 
 
 def backprop_nll(batch):
