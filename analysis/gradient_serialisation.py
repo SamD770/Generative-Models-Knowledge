@@ -4,10 +4,10 @@ from torch.utils.data import DataLoader
 from analysis.analysis_utils import load_glow_model, device, get_vanilla_test_dataset
 
 
-MODEL_NAME = "svhn_working"
+MODEL_NAME = "cifar_long"
 
 MODEL_DIR = f"../glow_model/{MODEL_NAME}/"
-MODEL_FILE = "glow_checkpoint_280280.pt"
+MODEL_FILE = "glow_checkpoint_585750.pt"
 
 GRADIENTS_DIR = "serialised_gradients/"
 
@@ -67,7 +67,7 @@ def get_save_file_name(model_name, dataset_name, batch_size):
 if __name__ == "__main__":
     model, hparams = load_glow_model(MODEL_DIR, MODEL_FILE)
 
-    for dataset_name in ["celeba", "imagenet32"]:
+    for dataset_name in ["cifar", "svhn", "celeba", "imagenet32"]:
         dataset = get_vanilla_test_dataset(dataset_name)
         save_file = get_save_file_name(MODEL_NAME, dataset_name, BATCH_SIZE)
         serialise_gradients(dataset, save_file)

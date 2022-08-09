@@ -16,8 +16,8 @@ from ignite.handlers import ModelCheckpoint, Timer
 from ignite.metrics import RunningAverage, Loss
 
 # TODO Fabian: I needed this
-from VAE_model.datasets import get_CIFAR10, get_SVHN, get_imagenet32, get_celeba
-# from data.datasets import get_CIFAR10, get_SVHN
+# from VAE_model.datasets import get_CIFAR10, get_SVHN, get_imagenet32, get_celeba
+from data.datasets import get_CIFAR10, get_SVHN, get_imagenet32, get_celeba
 
 from glow_model.model import Glow
 
@@ -315,7 +315,7 @@ if __name__ == "__main__":
         "--dataset",
         type=str,
         default="cifar10",
-        choices=["cifar10", "svhn"],
+        choices=["cifar10", "svhn", "celeba", "imagenet32"],
         help="Type of the dataset to be used.",
     )
 

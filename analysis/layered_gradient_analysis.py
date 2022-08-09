@@ -20,9 +20,9 @@ from gradient_serialisation import GRADIENTS_DIR, get_save_file_name
 
 
 BATCH_SIZE = 32
-MODEL_NAME = "svhn_working"
-ID_DATASET = "svhn"
-OOD_DATASETS = ["cifar", "celeba", "imagenet32"]
+MODEL_NAME = "cifar_glow"
+ID_DATASET = "cifar"
+OOD_DATASETS = ["svhn", "celeba", "imagenet32"]
 
 
 id_norm_file = get_save_file_name(MODEL_NAME, ID_DATASET, BATCH_SIZE)
@@ -362,4 +362,4 @@ def fit_gradient_models():
 
 
 if __name__ == "__main__":
-    fit_gradient_models()
+    layer_histograms()
