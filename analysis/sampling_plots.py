@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 temp = 1
 
 
-model_name_list = ["svhn_working", "cifar_glow", "cifar_long"]
-file_list = ["glow_checkpoint_280280.pt", "glow_checkpoint_195250.pt", "glow_checkpoint_585750.pt"]
+model_name_list = ["svhn_long"]
+file_list = ["glow_checkpoint_858000.pt"]
 
 for model_name, file in zip(model_name_list, file_list):
 

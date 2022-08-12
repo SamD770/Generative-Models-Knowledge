@@ -89,7 +89,7 @@ class _ActNorm(nn.Module):
             vars = torch.mean((input.clone() + bias) ** 2, dim=[0, 2, 3], keepdim=True)
             logs = torch.log(self.scale / (torch.sqrt(vars) + 1e-6))
 
-            self.bias.data.copy_(bias.data)
+            self.bias.data.copy_(bias.rejection_table)
             self.logs.data.copy_(logs.data)
 
             self.inited = True
@@ -159,7 +159,7 @@ class LinearZeros(nn.Module):
 
         self.linear = nn.Linear(in_channels, out_channels)
         self.linear.weight.data.zero_()
-        self.linear.bias.data.zero_()
+        self.linear.bias.rejection_table.zero_()
 
         self.logscale_factor = logscale_factor
 
