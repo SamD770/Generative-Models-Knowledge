@@ -5,6 +5,7 @@ from glow_model.model import Glow
 import json
 
 import torch
+from torch.utils.data import IterableDataset
 
 
 device = torch.device("cuda")

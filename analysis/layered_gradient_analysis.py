@@ -10,7 +10,13 @@ from sklearn.ensemble import IsolationForest
 from sklearn.covariance import EllipticEnvelope
 from sklearn.neighbors import LocalOutlierFactor
 
+from scipy.stats import kstest
+
 from pandas import DataFrame
+
+from torch.utils.data import DataLoader
+
+from analysis.analysis_utils import get_vanilla_test_dataset
 
 
 from gradient_serialisation import GRADIENTS_DIR, get_save_file_name
@@ -31,7 +37,30 @@ from gradient_serialisation import GRADIENTS_DIR, get_save_file_name
 # OOD_DATASETS = ["cifar", "svhn"]
 
 
-def get_norms(batch_size, model_name, id_dataset, ood_datasets):
+def get_single_gradients(batch_size, model_name, id_dataset, ood_datasets):
+    id_grads = torch.load(GRADIENTS_DIR +
+        get_save_file_name(model_name, id_dataset, batch_size, method="single_grad"))
+
+    ood_grads_list = [
+        torch.load(GRADIENTS_DIR +
+            get_save_file_name(model_name, ood_dataset, batch_size, method="single_grad"))
+        for ood_dataset in ood_datasets
+    ]
+
+    return id_grads, ood_grads_list
+
+
+def get_raw_image_data(batch_size, dataset_name):
+
+    dataset = get_vanilla_test_dataset(dataset_name)
+    dl = DataLoader(dataset, batch_size=batch_size)
+
+    return torch.stack([
+        x.mean(0).flatten() for x, y in dl
+    ])
+
+
+def get_norms(batch_size, model_name, id_dataset, ood_datasets, printout=False):
     id_norm_file = get_save_file_name(model_name, id_dataset, batch_size)
 
     ood_norm_files = [
@@ -60,10 +89,11 @@ def get_norms(batch_size, model_name, id_dataset, ood_datasets):
             if torch.any(value == zeroes):
                 zero_keys.add(key)
                 zero_count += 1
-        print(f"({name}) number of zero gradients: {zero_count}")
+        if printout:
+            print(f"({name}) number of zero gradients: {zero_count}")
 
-
-    print(f"removing {len(zero_keys)} gradients due to zero values")
+    if printout:
+        print(f"removing {len(zero_keys)} gradients due to zero values")
     for key in zero_keys:
         for norms in all_norms:
             norms.pop(key)
@@ -86,15 +116,9 @@ def log_normalise_gradients(gradient_norms):
         mu = torch.mean(t)
         sigma = torch.std(t)
 
-        # print(layer)
-        # print(f"mu {mu}")
-        # print(f"sigma {sigma}")
-
         for norm_tensor, log_normed in zip(gradient_norms, log_normed_gradient_norms):
             t = torch.log(norm_tensor[layer])
             log_normed[layer] = (t - mu)/sigma
-            # print(f"individual mu: {torch.mean(t)}")
-            # print(f"individual sigma: {torch.std(t)}")
 
     return log_normed_gradient_norms
 
@@ -123,12 +147,13 @@ def log_normalise_gradients(gradient_norms):
 #     plt.savefig(f"plots/Gradient scatter plot (trained {ID_DATASET}, batch size {BATCH_SIZE}).png")
 
 
-def layer_histograms():
+def layer_histograms(batch_size, model_name, id_dataset, ood_datasets):
+    id_norms, ood_norms_list = get_norms(batch_size, model_name, id_dataset, ood_datasets)
     for n in [1, 10, 40, 80, 100]:
         plt.figure(figsize=(20, 10))
         layer_name = f"flow.layers.{n}.actnorm.bias"
 
-        title = f"Gradient histogram ({MODEL_NAME}, batch size {BATCH_SIZE}, {layer_name})"
+        title = f"Gradient histogram ({model_name}, batch size {batch_size}, {layer_name})"
 
         plt.title(title)
         plt.xlabel("$\log L^2$ norm")
@@ -136,9 +161,9 @@ def layer_histograms():
         log_id_gradients = torch.log(id_norms[layer_name])
 
         plt.hist(log_id_gradients.numpy(),
-                 label=f"in distribution {ID_DATASET}", density=True, alpha=0.6, bins=40)
+                 label=f"in distribution {id_dataset}", density=True, alpha=0.6, bins=40)
 
-        for ood_norms, ood_dataset_name in zip(ood_norms_list, OOD_DATASETS):
+        for ood_norms, ood_dataset_name in zip(ood_norms_list, ood_datasets):
             log_ood_gradients = torch.log(ood_norms[layer_name])
             plt.hist(log_ood_gradients.numpy(),
                      label=f"out-of-distribution {ood_dataset_name}", density=True, alpha=0.6, bins=40)
@@ -177,62 +202,10 @@ def get_stacked(norm_dict):
     )
 
 
-# def gaussian_fit_plot():
-#     stacked_cifar_norms = get_stacked(cifar_norms)
-#     stacked_cifar_norms = stacked_cifar_norms
-#
-#     train_samples = 1500
-#
-#     train_cifar_norms = stacked_cifar_norms[:, :train_samples]
-#     test_cifar_norms = stacked_cifar_norms[:, train_samples:]
-#
-#     print(f"train cifar shape: {train_cifar_norms.shape}")
-#
-#     mu = torch.mean(stacked_cifar_norms, 1)
-#     cov = torch.cov(stacked_cifar_norms)
-#     L, V = torch.linalg.eig(cov)
-#
-#     print(L[:180])
-#     print(f"eigenval sum: {sum(L)}")
-#
-#     # fitted_gaussian = torch.distributions.MultivariateNormal(mu, covariance_matrix=cov)
-#     #
-#     # def get_log_probs(stacked_norms):
-#     #     transposed_stack = torch.transpose(stacked_norms, 0, 1)
-#     #     return fitted_gaussian.log_prob(transposed_stack)
-#     #
-#     # stacked_svhn_norms = get_stacked(svhn_norms)
-#     # stacked_svhn_norms = torch.log(stacked_svhn_norms)
-#     #
-#     # cifar_log_probs = get_log_probs(test_cifar_norms)
-#     # svhn_log_probs = get_log_probs(stacked_svhn_norms)
-#     #
-#     # print(svhn_log_probs.shape)
-#     # print(cifar_log_probs.shape)
-#     #
-#     # plt.figure(figsize=(20, 10))
-#     # plt.title(f"Gradient histogram: fitted Gaussian")
-#     # plt.xlabel("log likelihood")
-#     #
-#     # plt.hist(cifar_log_probs.numpy(),
-#     #          label="in distribution (cifar)", density=True, alpha=0.6, bins=40)
-#     # plt.hist(svhn_log_probs.numpy(),
-#     #          label="in distribution (svhn)", density=True, alpha=0.6, bins=40)
-#     #
-#     # plt.legend()
-#     #
-#     # plt.savefig("plots/gradients_fitted_Gaussian(2).png")
-
-
 def get_sklearn_norms(id_norms, ood_norms_list):
     """Returns tensors of norms ready for analysis using sklearn."""
     stacked_id_norms = get_stacked(id_norms)
     stacked_id_norms = torch.transpose(stacked_id_norms, 0, 1)
-
-    # id_samples, layer_count = stacked_id_norms.shape
-    # test_samples = id_samples - fit_samples
-
-    # print(f"total samples: {id_samples} fit samples: {fit_samples} layer count: {layer_count}")
 
     id_mu = torch.mean(stacked_id_norms, 0)
     id_sigmas = torch.std(stacked_id_norms, 0)
@@ -250,10 +223,6 @@ def get_sklearn_norms(id_norms, ood_norms_list):
     normed_ood_norms_list = [
         (stacked_ood_norms - id_mu) / id_sigmas for stacked_ood_norms in stacked_ood_norms_list
     ]
-    #
-    # ood_samples_list = [
-    #     stacked_ood_norms.shape[0] for stacked_ood_norms in stacked_ood_norms_list
-    # ]
 
     return normed_id_norms, normed_ood_norms_list
 
@@ -308,18 +277,26 @@ def fit_logistic_regression_model(id_norms, ood_norms_list, fit_sample_proportio
     print(f"test ood predictions: {logistic_model.predict(ood_test[:20])}")
 
 
-def fit_sklearn_unsupervised(id_norms, ood_norms_list, ModelClass, fit_sample_proportion=0.8, **params):
+def do_ks_test(id_data, ood_data_list, fit_sample_proportion=0.8):
+    id_fit_rejection_rate, id_test_rejection_rate, ood_rejection_rates = None, None, None
+
+    ood_rejection_rates = []
+    for ood_data in ood_data_list:
+        ks_stat, p_val = kstest(id_data, ood_data)
+        ood_rejection_rates.append(p_val)
+
+    return id_fit_rejection_rate, id_test_rejection_rate, ood_rejection_rates
+
+
+def fit_sklearn_unsupervised(normed_id_data, normed_ood_data_list, ModelClass, fit_sample_proportion=0.8, **params):
     def get_rejection_rate(data, model):
         prediction = model.predict(data)
         rejection_rate = (1 - np.mean(prediction))/ 2 # as the prediction is +1 for accept and -1 for reject
         return round(rejection_rate, 3)
 
-    normed_id_norms, normed_ood_norms_list = get_sklearn_norms(id_norms, ood_norms_list)
+    # normed_id_data, normed_ood_data_list = get_sklearn_norms(id_norms, ood_norms_list)
 
-    id_fit, id_test, fit_samples = split_id_data(normed_id_norms, fit_sample_proportion)
-
-    # print()
-    # print(f"fitting {ModelClass} with {params} and fit samples {fit_samples}")
+    id_fit, id_test, fit_samples = split_id_data(normed_id_data, fit_sample_proportion)
 
     model = ModelClass(**params).fit(id_fit)
 
@@ -327,34 +304,21 @@ def fit_sklearn_unsupervised(id_norms, ood_norms_list, ModelClass, fit_sample_pr
     id_test_rejection_rate = get_rejection_rate(id_test, model)
 
     ood_rejection_rates = [
-        get_rejection_rate(ood_norms, model) for ood_norms in normed_ood_norms_list
+        get_rejection_rate(ood_norms, model) for ood_norms in normed_ood_data_list
     ]
 
     return id_fit_rejection_rate, id_test_rejection_rate, ood_rejection_rates
 
 
-    # print()
-    # print(f"rejection rate for in-distribution {ID_DATASET} fit: {get_rejection_rate(id_fit, model)}")
-    # print(f"rejection rate for in-distribution {ID_DATASET} test: {get_rejection_rate(id_test, model)}")
-    #
-    # for normed_ood_norms, ood_dataset_name in zip(normed_ood_norms_list, OOD_DATASETS):
-    #
-    #     print(f"rejection rate for ood {ood_dataset_name}: {get_rejection_rate(normed_ood_norms, model)}")
-    # print()
-    # print()
-
-
-def rejection_rate_table(batch_size, model_names, dataset_names, ModelClass, **params):
+def rejection_rate_table(model_names, dataset_names, get_data, ModelClass, **params):
     rejection_table = {}
 
     for model_name, id_dataset in zip(model_names, dataset_names):
 
-        print("getting rejection rates for:", model_name, id_dataset)
-
-        id_norms, all_norms_list = get_norms(batch_size, model_name, id_dataset, dataset_names)
+        id_data, all_data_list = get_data(model_name, id_dataset)
 
         id_fit_rejection_rate, id_test_rejection_rate, ood_rejection_rates = fit_sklearn_unsupervised(
-            id_norms, all_norms_list, ModelClass, **params)
+            id_data, all_data_list, ModelClass, **params)
 
         rejection_table[model_name] = [id_fit_rejection_rate, id_test_rejection_rate] + ood_rejection_rates
 
@@ -362,20 +326,65 @@ def rejection_rate_table(batch_size, model_names, dataset_names, ModelClass, **p
     return DataFrame(rejection_table, index=table_index)
 
 
+def norm_rejection_rate_table(batch_size, model_names, dataset_names, ModelClass, **params):
+
+    def get_norm_data(model_name, id_dataset):
+        id_norms, all_norms_list = get_norms(batch_size, model_name, id_dataset, dataset_names)
+
+        return get_sklearn_norms(id_norms, all_norms_list)
+
+    return rejection_rate_table(model_names, dataset_names, get_norm_data, ModelClass, **params)
+
+
+def raw_image_rejection_rate_table(batch_size, dataset_names, ModelClass, **params):
+    def get_image_data(model_name, id_dataset):
+        all_image_data = []
+        for dataset_name in dataset_names:
+            raw_image_data = get_raw_image_data(batch_size, dataset_name)
+            all_image_data.append(raw_image_data)
+            if dataset_name == id_dataset:
+                id_image_data = raw_image_data
+
+        return id_image_data, all_image_data
+
+    return rejection_rate_table(dataset_names, dataset_names, get_image_data, ModelClass, **params)
+
+
 if __name__ == "__main__":
 
-    model_names = ["cifar_long", "svhn_working", "celeba", "imagenet32"]
-    dataset_names = ["cifar", "svhn", "celeba", "imagenet32"]
+    model_name = "cifar_long"
+    id_dataset = "cifar"
+    dataset_names = ["svhn", "celeba", "imagenet32"]
 
-    table_index = ["fit", "test"] + dataset_names
+    id_grads, ood_grads_list = get_single_gradients(1, model_name, id_dataset, dataset_names)
+    _, _, p_vals = do_ks_test(id_grads, ood_grads_list)
 
-    for batch_size in [32]:
-        print()
-        print("batch size", batch_size)
-        print()
+    for dataset_name, p_val in zip(dataset_names, p_vals):
+        print("dataset name:", dataset_name)
+        print("p value:", p_val)
 
-        print(rejection_rate_table(batch_size, model_names, dataset_names,
-                                   IsolationForest, fit_sample_proportion=0.6, n_estimators=10000))
+    # model_names = ["cifar_long", "svhn_working", "celeba", "imagenet32"]
+
+    # table_index = ["fit", "test"] + dataset_names
+    #
+    # for batch_size in [32, 10, 5, 1]:
+    #     print()
+    #     print("batch size", batch_size)
+    #     print()
+    #     print("creating rejection table for gradients")
+    #
+    #     rrt = norm_rejection_rate_table(batch_size, model_names, dataset_names,
+    #                                     IsolationForest, fit_sample_proportion=0.6, n_estimators=10000)
+    #
+    #     print(rrt)
+    #
+    #     rrt = raw_image_rejection_rate_table(batch_size, dataset_names, IsolationForest, fit_sample_proportion=0.6, n_estimators=10000)
+    #     print()
+    #     print("creating rejection table for raw images")
+    #     print(rrt)
+    #     print("\n"*5)
+
+
 
     # fit_logistic_regression_model()
     # fit_sklearn_unsupervised(OneClassSVM, nu=0.1)
