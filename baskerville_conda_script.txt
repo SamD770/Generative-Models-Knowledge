@@ -1,0 +1,10 @@
+module restore system
+module load bask-apps/test
+module load Miniconda3/4.10.3
+eval "$(${EBROOTMINICONDA3}/bin/conda shell.bash hook)"
+
+
+CONDA_ENV_PATH="/bask/projects/v/vjgo8416-dl-for-hc/Anomaly/sam_conda_env"
+conda activate "${CONDA_ENV_PATH}"
+
+cd /bask/projects/v/vjgo8416-dl-for-hc/Anomaly/sync-Glow-PyTorch
