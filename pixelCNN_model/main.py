@@ -11,6 +11,9 @@ from torch import nn, optim, cuda, backends
 from torch.autograd import Variable
 from torch.utils import data
 from torchvision import datasets, transforms, utils
+
+from data.datasets import get_FashionMNIST
+
 backends.cudnn.benchmark = True
 
 
@@ -44,6 +47,9 @@ net = nn.Sequential(
 print(net)
 net.cuda()
 
+
+_, _, train_dataset, test_dataset = get_FashionMNIST("../")
+
 tr = data.DataLoader(datasets.FashionMNIST('../data', train=True, download=True, transform=transforms.ToTensor()),
                      batch_size=128, shuffle=True, num_workers=1, pin_memory=True)
 te = data.DataLoader(datasets.FashionMNIST('../data', train=False, download=True, transform=transforms.ToTensor()),
@@ -51,7 +57,7 @@ te = data.DataLoader(datasets.FashionMNIST('../data', train=False, download=True
 sample = torch.Tensor(144, 1, 28, 28).cuda()
 optimizer = optim.Adam(net.parameters())
 
-for epoch in range(25):
+for epoch in range(50):
     # train
     err_tr = []
     cuda.synchronize()
@@ -89,10 +95,15 @@ for epoch in range(25):
             out = net(Variable(sample, volatile=True))
             probs = F.softmax(out[:, :, i, j]).data
             sample[:, :, i, j] = torch.multinomial(probs, 1).float() / 255.
+
+    # sample += 0.5 # As the training set is scaled to [-0.5, 0.5]
+
     utils.save_image(sample, 'sample_{:02d}.png'.format(epoch), nrow=12, padding=0)
-    print(f"epoch={epoch}; "
-          f"nll_tr={np.mean(err_tr):.7f}; "
-          f"nll_te={np.mean(err_te):.7f}; "
-          f"time_tr={time_tr:.1f}s; "
+    print(f"epoch={epoch}      "
+          f"nll_tr={np.mean(err_tr):.7f}       "
+          f"nll_te={np.mean(err_te):.7f}       "
+          f"time_tr={time_tr:.1f}s         "
           f"time_te={time_te:.1f}s")
-    torch.save()
+
+    torch.save(net.state_dict(), f"PixelCNN_checkpoint.pt")
+    torch.save(optimizer.state_dict(), f"optimizer_checkpoint.pt")
