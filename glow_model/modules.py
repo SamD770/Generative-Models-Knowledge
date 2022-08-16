@@ -35,7 +35,7 @@ def squeeze2d(input, factor):
 
     B, C, H, W = input.size()
 
-    assert H % factor == 0 and W % factor == 0, "H or W modulo factor is not 0"
+    assert H % factor == 0 and W % factor == 0, f"H or W modulo factor is not 0: H={H}, W={W}, factor={factor}"
 
     x = input.view(B, C, H // factor, factor, W // factor, factor)
     x = x.permute(0, 1, 3, 5, 2, 4).contiguous()
@@ -89,7 +89,7 @@ class _ActNorm(nn.Module):
             vars = torch.mean((input.clone() + bias) ** 2, dim=[0, 2, 3], keepdim=True)
             logs = torch.log(self.scale / (torch.sqrt(vars) + 1e-6))
 
-            self.bias.data.copy_(bias.rejection_table)
+            self.bias.data.copy_(bias.data)
             self.logs.data.copy_(logs.data)
 
             self.inited = True
@@ -159,7 +159,7 @@ class LinearZeros(nn.Module):
 
         self.linear = nn.Linear(in_channels, out_channels)
         self.linear.weight.data.zero_()
-        self.linear.bias.rejection_table.zero_()
+        self.linear.bias.data.zero_()
 
         self.logscale_factor = logscale_factor
 

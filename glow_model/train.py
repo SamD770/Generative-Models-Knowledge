@@ -17,7 +17,7 @@ from ignite.metrics import RunningAverage, Loss
 
 # TODO Fabian: I needed this
 # from VAE_model.datasets import get_CIFAR10, get_SVHN, get_imagenet32, get_celeba
-from data.datasets import get_CIFAR10, get_SVHN, get_imagenet32, get_celeba
+from data.datasets import get_CIFAR10, get_SVHN, get_imagenet32, get_celeba, get_MNIST, get_FashionMNIST
 
 from glow_model.model import Glow
 
@@ -41,6 +41,10 @@ def check_dataset(dataset, dataroot, augment, download):
         input_size, num_classes, train_dataset, test_dataset = get_imagenet32(dataroot)
     elif dataset == 'celeba':
         input_size, num_classes, train_dataset, test_dataset = get_celeba(dataroot)
+    elif dataset == 'MNIST':
+        input_size, num_classes, train_dataset, test_dataset = get_MNIST(dataroot)
+    elif dataset == 'FashionMNIST':
+        input_size, num_classes, train_dataset, test_dataset = get_FashionMNIST(dataroot)
 
     return input_size, num_classes, train_dataset, test_dataset
 
@@ -315,7 +319,7 @@ if __name__ == "__main__":
         "--dataset",
         type=str,
         default="cifar10",
-        choices=["cifar10", "svhn", "celeba", "imagenet32"],
+        choices=["cifar10", "svhn", "celeba", "imagenet32", "MNIST", "FashionMNIST"],
         help="Type of the dataset to be used.",
     )
 

@@ -59,7 +59,7 @@ for epoch in range(25):
     net.train(True)
     for input, _ in tr:
         input = Variable(input.cuda())
-        target = Variable((input.data[:,0] * 255).long())
+        target = Variable((input.data[:, 0] * 255).long())
         loss = F.cross_entropy(net(input), target)
         err_tr.append(loss.data.item())
         optimizer.zero_grad()
@@ -95,3 +95,4 @@ for epoch in range(25):
           f"nll_te={np.mean(err_te):.7f}; "
           f"time_tr={time_tr:.1f}s; "
           f"time_te={time_te:.1f}s")
+    torch.save()

@@ -3,26 +3,34 @@ import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 from random import randint
 
-from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32
+from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32, get_MNIST, get_FashionMNIST
 
 print("getting cifar")
 _, _, _, test_cifar = get_CIFAR10(False, "../", True)
+#
+# print("getting svhn")
+# _, _, _, test_svhn = get_SVHN(False, "../", True)
+#
+# print("getting celeba")
+# _, _, _, test_celeba = get_celeba("../")
+#
+# print("getting imagenet")
+# _, _, _, test_imagenet = get_imagenet32("../")
 
-print("getting svhn")
-_, _, _, test_svhn = get_SVHN(False, "../", True)
 
-print("getting celeba")
-_, _, _, test_celeba = get_celeba("../")
+print("getting MNIST")
+_, _, _, test_mnist = get_MNIST("../")
 
-print("getting imagenet")
-_, _, _, test_imagenet = get_imagenet32("../")
+print("getting fashionMNIST")
+_, _, _, test_fashion_mnist = get_FashionMNIST("../")
+
 
 SAMPLE_COUNT = 32
 
 
 for dataset, name in zip(
-        [test_cifar, test_svhn, test_celeba, test_imagenet],
-        ["cifar", "svhn", "celeba", "imagenet"]):
+        [test_cifar, test_mnist, test_fashion_mnist],
+        ["test_cifar", "MNIST", "FashionMNIST"]):
     print()
     print(f"statistics for {name}:")
     sample, label = dataset[69]
@@ -32,7 +40,6 @@ for dataset, name in zip(
     print(f"shape: {sample.shape}")
     print(f"mean: {torch.mean(sample)}")
     print(f"range {(torch.min(sample), torch.max(sample))}")
-    sample = torch.permute(sample, (1, 2, 0)) + 0.5
 
     samples = []
 

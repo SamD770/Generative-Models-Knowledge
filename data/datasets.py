@@ -6,6 +6,42 @@ import pickle
 
 from torchvision import transforms, datasets
 
+
+# All datasets are scaled from [0, 255] to [-0.5, 0.5]
+
+def MNIST_scaling(x):
+    return x - 0.5
+
+
+def get_MNIST(dataroot):
+    image_shape = (28, 28, 1)
+
+    num_classes = 10
+
+    train_dataset = datasets.MNIST(dataroot + 'data', train=True, download=True,
+                                          transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
+
+    test_dataset = datasets.MNIST(dataroot + 'data', train=False, download=True,
+                                         transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
+
+    return image_shape, num_classes, train_dataset, test_dataset
+
+
+def get_FashionMNIST(dataroot):
+    image_shape = (28, 28, 1)
+
+    num_classes = 10
+
+    train_dataset = datasets.FashionMNIST(dataroot + 'data', train=True, download=True,
+                                          transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
+
+    test_dataset = datasets.FashionMNIST(dataroot + 'data', train=False, download=True,
+                                         transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
+
+    return image_shape, num_classes, train_dataset, test_dataset
+
+
+
 n_bits=8
 
 
@@ -166,43 +202,6 @@ def get_celeba(dataroot):
                              is_encoded=True)
     test_data = LMDBDataset(root=dataroot+'data/celeba64_lmdb', name='celeba64', split="test", transform=valid_transform,
                             is_encoded=True)
-
-
-    # X_train = np.zeros((len(train_data), resize, resize, 3))
-    # for i in range(len(train_data)):
-    #     X_train[i, :, :, :] = np.einsum('ijk -> jki', train_data[i])
-    #
-    # X_val = np.zeros((len(valid_data), resize, resize, 3))
-    # for i in range(len(valid_data)):
-    #     X_val[i, :, :, :] = np.einsum('ijk -> jki', valid_data[i])
-    #
-    # X_test = np.zeros((len(test_data), resize, resize, 3))
-    # for i in range(len(test_data)):
-    #     X_test[i, :, :, :] = np.einsum('ijk -> jki', test_data[i])
-
-    # # scale to [0, 255] as expected
-    # X_train = X_train * 255.
-    # X_val = X_val * 255.
-    # X_test = X_test * 255.
-    #
-    # # round to nearest integer
-    # X_train = np.round(X_train, decimals=0)
-    # X_val = np.round(X_val, decimals=0)
-    # X_test = np.round(X_test, decimals=0)
-    #
-    # # convert to uint8
-    # X_train = X_train.astype('uint8')
-    # X_val = X_val.astype('uint8')
-    # X_test = X_test.astype('uint8')
-
-    # print(trX, vaX, teX)
-    # print("celeba64 A: ", np.min(X_train.flatten()), np.max(X_train.flatten()), np.min(X_val.flatten()), np.max(X_val.flatten()), np.min(X_test.flatten()), np.max(X_test.flatten()))
-    # print("celeba64 B: ", X_train.dtype, X_val.dtype, X_test.dtype)
-
-    # TODO @Sam: you may want to replace this by another Dataset class.
-    #  Note that TensorDataset will return a list of tensors for every batch, which contains exactly one element.
-    # train_dataset = torch.utils.data.TensorDataset(torch.as_tensor(X_train, dtype=torch.float32))
-    # test_dataset = torch.utils.data.TensorDataset(torch.as_tensor(X_test, dtype=torch.float32))
 
     return image_shape, num_classes, CelebA_LMBD_Wrapper(train_data), CelebA_LMBD_Wrapper(test_data)
 
