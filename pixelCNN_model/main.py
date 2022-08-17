@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 
 import os
 import time
@@ -16,6 +15,8 @@ from data.datasets import get_FashionMNIST
 
 backends.cudnn.benchmark = True
 
+from generative_model import GenerativeModel
+
 
 class MaskedConv2d(nn.Conv2d):
     def __init__(self, mask_type, *args, **kwargs):
@@ -32,78 +33,105 @@ class MaskedConv2d(nn.Conv2d):
         return super(MaskedConv2d, self).forward(x)
 
 
-fm = 64
-net = nn.Sequential(
-    MaskedConv2d('A', 1,  fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
-    MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
-    MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
-    MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
-    MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
-    MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
-    MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
-    MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
-    nn.Conv2d(fm, 256, 1))
+class PixelCNN(nn.Module, GenerativeModel):
+    def __init__(self, fm=64):
+        super().__init__()
+        self.fm = fm
+        self.net = nn.Sequential(
+            MaskedConv2d('A', 1,  fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
+            MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
+            MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
+            MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
+            MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
+            MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
+            MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
+            MaskedConv2d('B', fm, fm, 7, 1, 3, bias=False), nn.BatchNorm2d(fm), nn.ReLU(True),
+            nn.Conv2d(fm, 256, 1))
 
-print(net)
-net.cuda()
+        self.net.cuda()
+
+    def eval_nll(self, x):
+
+        x = Variable(x.cuda())
+        target = Variable((x.data[:, 0] * 255).long())
+        output = self.net(x)
+        nll = F.cross_entropy(output, target)
+
+        return nll
+
+    def generate_sample(self, batch_size):
+        sample = torch.Tensor(batch_size, 1, 28, 28).cuda()
+        sample.fill_(0)
+        self.net.train(False)
+        with torch.no_grad():
+            for i in range(28):
+                for j in range(28):
+                    out = self.net(Variable(sample))
+                    probs = F.softmax(out[:, :, i, j]).data
+                    sample[:, :, i, j] = torch.multinomial(probs, 1).float() / 255
+        return sample
+
+    @staticmethod
+    def load_serialised(save_dir, save_file):
+
+        model = PixelCNN()
+        state_dict = torch.load(save_dir + save_file)
+        model.net.load_state_dict(state_dict)
+
+        return model
 
 
-_, _, train_dataset, test_dataset = get_FashionMNIST("../")
+if __name__ == "__main__":
 
-tr = data.DataLoader(datasets.FashionMNIST('../data', train=True, download=True, transform=transforms.ToTensor()),
-                     batch_size=128, shuffle=True, num_workers=1, pin_memory=True)
-te = data.DataLoader(datasets.FashionMNIST('../data', train=False, download=True, transform=transforms.ToTensor()),
-                     batch_size=128, shuffle=False, num_workers=1, pin_memory=True)
-sample = torch.Tensor(144, 1, 28, 28).cuda()
-optimizer = optim.Adam(net.parameters())
+    fm = 64
 
-for epoch in range(50):
-    # train
-    err_tr = []
-    cuda.synchronize()
-    time_tr = time.time()
-    net.train(True)
-    for input, _ in tr:
-        input = Variable(input.cuda())
-        target = Variable((input.data[:, 0] * 255).long())
-        loss = F.cross_entropy(net(input), target)
-        err_tr.append(loss.data.item())
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-    cuda.synchronize()
-    time_tr = time.time() - time_tr
+    model = PixelCNN()
 
-    # compute error on test set
-    err_te = []
-    cuda.synchronize()
-    time_te = time.time()
-    net.train(False)
-    for input, _ in te:
-        input = Variable(input.cuda(), volatile=True)
-        target = Variable((input.data[:,0] * 255).long())
-        loss = F.cross_entropy(net(input), target)
-        err_te.append(loss.data.item())
-    cuda.synchronize()
-    time_te = time.time() - time_te
+    _, _, train_dataset, test_dataset = get_FashionMNIST("../")
 
-    # sample
-    sample.fill_(0)
-    net.train(False)
-    for i in range(28):
-        for j in range(28):
-            out = net(Variable(sample, volatile=True))
-            probs = F.softmax(out[:, :, i, j]).data
-            sample[:, :, i, j] = torch.multinomial(probs, 1).float() / 255.
+    tr = data.DataLoader(train_dataset,
+                         batch_size=128, shuffle=True, num_workers=1, pin_memory=True)
+    te = data.DataLoader(test_dataset,
+                         batch_size=128, shuffle=False, num_workers=1, pin_memory=True)
+    sample = torch.Tensor(144, 1, 28, 28).cuda()
+    optimizer = optim.Adam(model.parameters())
 
-    # sample += 0.5 # As the training set is scaled to [-0.5, 0.5]
+    for epoch in range(50):
+        # train
+        err_tr = []
+        cuda.synchronize()
+        time_tr = time.time()
+        model.train(True)
+        for input, _ in tr:
+            loss = model.eval_nll(input)
+            err_tr.append(loss.data.item())
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        cuda.synchronize()
+        time_tr = time.time() - time_tr
 
-    utils.save_image(sample, 'sample_{:02d}.png'.format(epoch), nrow=12, padding=0)
-    print(f"epoch={epoch}      "
-          f"nll_tr={np.mean(err_tr):.7f}       "
-          f"nll_te={np.mean(err_te):.7f}       "
-          f"time_tr={time_tr:.1f}s         "
-          f"time_te={time_te:.1f}s")
+        # compute error on test set
+        err_te = []
+        cuda.synchronize()
+        time_te = time.time()
+        model.net.train(False)
+        for input, _ in te:
+            with torch.no_grad():
+                loss = model.eval_nll(input)
+                err_te.append(loss.data.item())
+        cuda.synchronize()
+        time_te = time.time() - time_te
 
-    torch.save(net.state_dict(), f"PixelCNN_checkpoint.pt")
-    torch.save(optimizer.state_dict(), f"optimizer_checkpoint.pt")
+        # sample
+        sample = model.generate_sample(32).cpu()
+
+        utils.save_image(sample, 'sample_{:02d}.png'.format(epoch), nrow=12, padding=0)
+        print(f"epoch={epoch}      "
+              f"nll_tr={np.mean(err_tr):.7f}       "
+              f"nll_te={np.mean(err_te):.7f}       "
+              f"time_tr={time_tr:.1f}s         "
+              f"time_te={time_te:.1f}s")
+
+        torch.save(model.net.state_dict(), f"PixelCNN_new_checkpoint.pt")
+        torch.save(optimizer.state_dict(), f"optimizer_checkpoint.pt")

@@ -1,7 +1,12 @@
+from generative_model import GenerativeModel
+
 import math
 
 import torch
 import torch.nn as nn
+
+import json
+
 
 from glow_model.modules import (
     Conv2d,
@@ -191,7 +196,7 @@ class FlowNet(nn.Module):
         return z
 
 
-class Glow(nn.Module):
+class Glow(nn.Module, GenerativeModel):
     def __init__(
         self,
         image_shape,
@@ -301,3 +306,43 @@ class Glow(nn.Module):
         for name, m in self.named_modules():
             if isinstance(m, ActNorm2d):
                 m.inited = True
+
+    def eval_nll(self, x):
+        _, nll, _ = self.forward(x)
+        return nll
+
+    def generate_sample(self, batch_size):
+        # Batch size is fixed at 32
+        return self.forward(temperature=1, reverse=True)
+
+    @staticmethod
+    def load_serialised(save_dir, save_file):
+
+        # TODO : Remove hard-coding of these constants
+        num_classes = 10
+        image_shape = (28, 28, 1)
+        device = "cuda"
+
+        output_folder, model_name = save_dir, save_file
+        print(f"loading model from: {output_folder + model_name}")
+
+        with open(output_folder + 'hparams.json') as json_file:
+            hparams = json.load(json_file)
+
+        model = Glow(image_shape, hparams['hidden_channels'], hparams['K'], hparams['L'], hparams['actnorm_scale'],
+                     hparams['flow_permutation'], hparams['flow_coupling'], hparams['LU_decomposed'], num_classes,
+                     hparams['learn_top'], hparams['y_condition'])
+
+        state_dicts = torch.load(
+            output_folder + model_name, map_location=device)
+        print(f"stored information: {state_dicts.keys()}")
+
+        model.load_state_dict(state_dicts["model"])  # You need to direct it "model" part of the file
+
+        model.set_actnorm_init()
+
+        model = model.to(device)
+
+        model = model.eval()
+
+        return model

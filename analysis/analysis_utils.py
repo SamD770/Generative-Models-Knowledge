@@ -1,7 +1,9 @@
 
-from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32
+from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32, get_MNIST, get_FashionMNIST
 
 from glow_model.model import Glow
+from pixelCNN_model.main import PixelCNN
+
 import json
 
 import torch
@@ -36,13 +38,32 @@ def vanilla_test_imagenet32():
     return test_imagenet32
 
 
+def vanilla_test_FashionMNIST():
+    _, _, _, test_FashionMNIST = get_FashionMNIST("../")
+    return test_FashionMNIST
+
+
+def vanilla_test_MNIST():
+    _, _, _, test_MNIST = get_MNIST("../")
+    return test_MNIST
+
+
 def get_vanilla_test_dataset(dataset_name):
     return {
         "cifar": vanilla_test_cifar,
         "svhn": vanilla_test_svhn,
         "celeba": vanilla_test_celeba,
         "imagenet32": vanilla_test_imagenet32,
+        "FashionMNIST": vanilla_test_FashionMNIST,
+        "MNIST": vanilla_test_MNIST
     }[dataset_name]()
+
+
+def load_generative_model(model_type, save_dir, save_file):
+    return {
+        "glow": Glow,
+        "PixelCNN": PixelCNN
+    }[model_type].load_serialised(save_dir, save_file)
 
 
 class SampleDataset:
@@ -105,9 +126,12 @@ def compute_nll(dataset, model, hparams):
             y = None
 
         with torch.no_grad():
-            _, nll, _ = model(x, y_onehot=y)
+            nll = model.eval_nll(x)
             nlls.append(nll)
 
     return torch.cat(nlls).cpu()
+
+
+
 
 

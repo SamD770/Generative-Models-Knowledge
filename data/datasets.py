@@ -6,8 +6,8 @@ import pickle
 
 from torchvision import transforms, datasets
 
-
-# All datasets are scaled from [0, 255] to [-0.5, 0.5]
+# All greyscale datasets are scaled from [0, 255] to [0, 1]
+# All color datasets are scaled from [0, 255] to [-0.5, 0.5]
 
 def MNIST_scaling(x):
     return x - 0.5
@@ -18,11 +18,11 @@ def get_MNIST(dataroot):
 
     num_classes = 10
 
-    train_dataset = datasets.MNIST(dataroot + 'data', train=True, download=True,
-                                          transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
+    train_dataset = datasets.MNIST(dataroot + 'data', train=True, download=True, transform=transforms.ToTensor())
+                                         # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
 
-    test_dataset = datasets.MNIST(dataroot + 'data', train=False, download=True,
-                                         transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
+    test_dataset = datasets.MNIST(dataroot + 'data', train=False, download=True, transform=transforms.ToTensor())
+                                         # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
 
     return image_shape, num_classes, train_dataset, test_dataset
 
@@ -32,11 +32,11 @@ def get_FashionMNIST(dataroot):
 
     num_classes = 10
 
-    train_dataset = datasets.FashionMNIST(dataroot + 'data', train=True, download=True,
-                                          transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
+    train_dataset = datasets.FashionMNIST(dataroot + 'data', train=True, download=True, transform=transforms.ToTensor())
+                                         # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
 
-    test_dataset = datasets.FashionMNIST(dataroot + 'data', train=False, download=True,
-                                         transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
+    test_dataset = datasets.FashionMNIST(dataroot + 'data', train=False, download=True, transform=transforms.ToTensor())
+                                         # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
 
     return image_shape, num_classes, train_dataset, test_dataset
 

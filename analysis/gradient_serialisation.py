@@ -4,7 +4,7 @@ from datetime import datetime
 
 import random
 
-from analysis.analysis_utils import load_glow_model, device, get_vanilla_test_dataset, SampleDataset
+from analysis.analysis_utils import load_generative_model, device, get_vanilla_test_dataset, SampleDataset
 
 GRADIENTS_DIR = "serialised_gradients/"
 
@@ -67,7 +67,7 @@ class SingleGradStore(GradientStore):
 
 
 def backprop_nll(batch):
-    _, nll, _ = model(batch)
+    nll = model.eval_nll(batch)
     model.zero_grad()
     nll.sum().backward()
 
@@ -78,7 +78,7 @@ def serialise_gradients(dataset, save_file, grad_store):
     #     name: [] for name, _ in model.named_parameters()
     # }
 
-    dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=False)
+    dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=True)
     print_update_every = len(dataset) // (20 * BATCH_SIZE)
 
     for i, batch in enumerate(dataloader):
@@ -157,45 +157,57 @@ def get_save_file_name(model_name, dataset_name, batch_size, method="norms"):
 
 if __name__ == "__main__":
 
-    MODEL_NAME = "cifar_long"
+    model = load_generative_model("PixelCNN", "../pixelCNN_model/", "PixelCNN_checkpoint.pt")
 
-    MODEL_DIR = f"../glow_model/{MODEL_NAME}/"
-    MODEL_FILE = "glow_checkpoint_585750.pt"
-
-    model, hparams = load_glow_model(MODEL_DIR, MODEL_FILE)
-
-    NUM_SAMPLES = 1000
-
-
-    param_list = [
-        (name, p.shape, len(p.flatten())) for name, p in model.named_parameters()
-    ]
-
-    # select a random layer
-    param_size = 0
-    while param_size < 100:
-        my_param_name, my_param_shape, param_size = random.choice(param_list)
-
-    # select a random parameter from this layer
-    my_index = tuple(
-        random.randrange(i) for i in my_param_shape
-    )
-
-    my_param_name = "flow.layers.98.invconv.lower"
-    my_index = (31, 7)
-
-    print("chosen:", my_param_name, my_index)
-
-    for BATCH_SIZE in [1]:
-        for dataset_name in ["cifar", "svhn", "celeba", "imagenet32"]:
+    for BATCH_SIZE in [32, 10, 5, 1]:
+        for dataset_name in ["FashionMNIST", "MNIST"]:
             dataset = get_vanilla_test_dataset(dataset_name)
+            model_name = "PixelCNN_FashionMNIST"
+            save_file_name = get_save_file_name(model_name, dataset_name, BATCH_SIZE)
 
-            if NUM_SAMPLES is not None:
-                dataset = Subset(dataset, range(NUM_SAMPLES))
+            grad_store = L2NormStore(model)
 
-            save_file = get_save_file_name(MODEL_NAME, dataset_name, BATCH_SIZE, method="single_grad")
+            serialise_gradients(dataset, save_file_name, grad_store)
 
-            grad_store = SingleGradStore(model, my_param_name, my_index)
+    # MODEL_NAME = "cifar_long"
+    #
+    # MODEL_DIR = f"../glow_model/{MODEL_NAME}/"
+    # MODEL_FILE = "glow_checkpoint_585750.pt"
 
-            serialise_gradients(dataset, save_file, grad_store)
+    # model, hparams = load_glow_model(MODEL_DIR, MODEL_FILE)
+    #
+    # NUM_SAMPLES = 1000
+    #
+    #
+    # param_list = [
+    #     (name, p.shape, len(p.flatten())) for name, p in model.named_parameters()
+    # ]
+    #
+    # # select a random layer
+    # param_size = 0
+    # while param_size < 100:
+    #     my_param_name, my_param_shape, param_size = random.choice(param_list)
+    #
+    # # select a random parameter from this layer
+    # my_index = tuple(
+    #     random.randrange(i) for i in my_param_shape
+    # )
+    #
+    # my_param_name = "flow.layers.98.invconv.lower"
+    # my_index = (31, 7)
+    #
+    # print("chosen:", my_param_name, my_index)
+    #
+    # for BATCH_SIZE in [1]:
+    #     for dataset_name in ["cifar", "svhn", "celeba", "imagenet32"]:
+    #         dataset = get_vanilla_test_dataset(dataset_name)
+    #
+    #         if NUM_SAMPLES is not None:
+    #             dataset = Subset(dataset, range(NUM_SAMPLES))
+    #
+    #         save_file = get_save_file_name(MODEL_NAME, dataset_name, BATCH_SIZE, method="single_grad")
+    #
+    #         grad_store = SingleGradStore(model, my_param_name, my_index)
+    #
+    #         serialise_gradients(dataset, save_file, grad_store)
 
