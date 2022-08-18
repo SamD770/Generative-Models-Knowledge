@@ -87,6 +87,22 @@ class SampleDataset:
         return self.samples[item], torch.zeros(10)
 
 
+class RandomNoiseDataset:
+    def __init__(self, image_shape):
+        super().__init__()
+        self.image_shape = image_shape
+        print(f"image_shape: {self.image_shape}")
+
+    def __len__(self):
+        return 512
+
+    def __getitem__(self, item):
+        means = torch.zeros(self.image_shape)
+        stds = torch.ones(self.image_shape)/5
+        return torch.normal(means, stds), torch.zeros(10)
+
+
+
 def load_glow_model(output_folder, model_name, image_shape=(32, 32, 3), num_classes=10):
 
     print(f"loading model from: {output_folder + model_name}")

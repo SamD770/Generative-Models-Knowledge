@@ -320,7 +320,7 @@ class Glow(nn.Module, GenerativeModel):
 
         # TODO : Remove hard-coding of these constants
         num_classes = 10
-        image_shape = (28, 28, 1)
+        image_shape = (32, 32, 3)
         device = "cuda"
 
         output_folder, model_name = save_dir, save_file

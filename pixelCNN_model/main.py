@@ -11,7 +11,7 @@ from torch.autograd import Variable
 from torch.utils import data
 from torchvision import datasets, transforms, utils
 
-from data.datasets import get_FashionMNIST
+from data.datasets import get_MNIST, get_FashionMNIST
 
 backends.cudnn.benchmark = True
 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     model = PixelCNN()
 
-    _, _, train_dataset, test_dataset = get_FashionMNIST("../")
+    _, _, train_dataset, test_dataset = get_MNIST("../")
 
     tr = data.DataLoader(train_dataset,
                          batch_size=128, shuffle=True, num_workers=1, pin_memory=True)
@@ -133,5 +133,5 @@ if __name__ == "__main__":
               f"time_tr={time_tr:.1f}s         "
               f"time_te={time_te:.1f}s")
 
-        torch.save(model.net.state_dict(), f"PixelCNN_new_checkpoint.pt")
+        torch.save(model.net.state_dict(), f"PixelCNN_MNIST_checkpoint.pt")
         torch.save(optimizer.state_dict(), f"optimizer_checkpoint.pt")

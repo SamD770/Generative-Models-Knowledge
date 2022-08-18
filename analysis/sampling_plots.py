@@ -11,7 +11,7 @@ temp = 1
 
 
 model_name_list = ["FashionMNIST PixelCNN"]
-file_list = ["PixelCNN_checkpoint.pt"]
+file_list = ["PixelCNN_FashionMNIST_checkpoint.pt"]
 
 for model_name, file in zip(model_name_list, file_list):
 
@@ -28,7 +28,7 @@ for model_name, file in zip(model_name_list, file_list):
 
     title = f"samples from {model_name} model"
     grid = make_grid(samples, nrow=8).permute(1, 2, 0)
-    plt.title(title)
+    # plt.title(title)
     plt.imshow(grid)
     plt.axis('off')
     plt.savefig("plots/sample_plots/" + title + ".png")

@@ -352,37 +352,46 @@ def raw_image_rejection_rate_table(batch_size, dataset_names, ModelClass, **para
 
 if __name__ == "__main__":
 
-    model_name = "cifar_long"
-    id_dataset = "cifar"
-    dataset_names = ["svhn", "celeba", "imagenet32"]
-
-    id_grads, ood_grads_list = get_single_gradients(1, model_name, id_dataset, dataset_names)
-    _, _, p_vals = do_ks_test(id_grads, ood_grads_list)
-
-    for dataset_name, p_val in zip(dataset_names, p_vals):
-        print("dataset name:", dataset_name)
-        print("p value:", p_val)
-
-    # model_names = ["cifar_long", "svhn_working", "celeba", "imagenet32"]
-
-    # table_index = ["fit", "test"] + dataset_names
+    # model_name = "cifar_long"
+    # id_dataset = "cifar"
+    # dataset_names = ["svhn", "celeba", "imagenet32"]
     #
-    # for batch_size in [32, 10, 5, 1]:
-    #     print()
-    #     print("batch size", batch_size)
-    #     print()
-    #     print("creating rejection table for gradients")
+    # id_grads, ood_grads_list = get_single_gradients(1, model_name, id_dataset, dataset_names)
+    # _, _, p_vals = do_ks_test(id_grads, ood_grads_list)
     #
-    #     rrt = norm_rejection_rate_table(batch_size, model_names, dataset_names,
-    #                                     IsolationForest, fit_sample_proportion=0.6, n_estimators=10000)
-    #
-    #     print(rrt)
-    #
-    #     rrt = raw_image_rejection_rate_table(batch_size, dataset_names, IsolationForest, fit_sample_proportion=0.6, n_estimators=10000)
-    #     print()
-    #     print("creating rejection table for raw images")
-    #     print(rrt)
-    #     print("\n"*5)
+    # for dataset_name, p_val in zip(dataset_names, p_vals):
+    #     print("dataset name:", dataset_name)
+    #     print("p value:", p_val)
+
+    dataset_names = ["FashionMNIST", "MNIST"]
+
+    model_names = ["PixelCNN_FashionMNIST", "PixelCNN_MNIST"]
+
+    table_index = ["fit", "test"] + dataset_names
+
+    print("Rejection tables for gradients:")
+
+    for batch_size in [32, 10, 5, 1]:
+        print()
+        print("batch size", batch_size)
+        print()
+
+        rrt = norm_rejection_rate_table(batch_size, model_names, dataset_names,
+                                        IsolationForest, fit_sample_proportion=0.6, n_estimators=1000)
+
+        print(rrt)
+
+    print("\n" * 10)
+    print("Rejection table for raw images:")
+
+    for batch_size in [32, 10, 5, 1]:
+        print()
+        print("batch size", batch_size)
+        print()
+
+        rrt = raw_image_rejection_rate_table(batch_size, dataset_names, IsolationForest, fit_sample_proportion=0.6, n_estimators=1000)
+        print()
+        print(rrt)
 
 
 

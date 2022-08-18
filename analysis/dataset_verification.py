@@ -5,15 +5,15 @@ from random import randint
 
 from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32, get_MNIST, get_FashionMNIST
 
-print("getting cifar")
-_, _, _, test_cifar = get_CIFAR10(False, "../", True)
+# print("getting cifar")
+# _, _, _, test_cifar = get_CIFAR10(False, "../", True)
 #
 # print("getting svhn")
 # _, _, _, test_svhn = get_SVHN(False, "../", True)
 #
-# print("getting celeba")
-# _, _, _, test_celeba = get_celeba("../")
-#
+print("getting celeba")
+_, _, _, test_celeba = get_celeba("../")
+
 # print("getting imagenet")
 # _, _, _, test_imagenet = get_imagenet32("../")
 
@@ -29,8 +29,8 @@ SAMPLE_COUNT = 32
 
 
 for dataset, name in zip(
-        [test_cifar, test_mnist, test_fashion_mnist],
-        ["test_cifar", "MNIST", "FashionMNIST"]):
+        [test_mnist, test_fashion_mnist],
+        ["MNIST", "FashionMNIST"]):
     print()
     print(f"statistics for {name}:")
     sample, label = dataset[69]
@@ -50,11 +50,11 @@ for dataset, name in zip(
 
     grid = make_grid(samples, nrow=8)
 
-    grid = grid.permute(1, 2, 0) + 0.5
+    grid = grid.permute(1, 2, 0)
 
     title = f"samples from {name} dataset"
 
-    plt.title(title)
+    # plt.title(title)
     plt.imshow(grid)
     plt.axis("off")
     plt.savefig("plots/sample_plots/" + title + ".png")
