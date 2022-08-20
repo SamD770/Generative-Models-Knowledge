@@ -128,16 +128,6 @@ class Decoder(nn.Module):
         x = torch.sigmoid(x)
         return x
 
-#
-# N = torch.distributions.Normal(0, 1)
-# # N.loc = N.loc.cuda()  # hack to get sampling on the GPU
-# # N.scale = N.scale.cuda()
-
-#
-# def get_sample(means, stds):
-#     n = means.shape
-#     return means + stds * N.sample(n)
-
 
 def training_loop(n_epochs, optimizer, vae, train_loader, checkpoint_path, device, starting_epoch=1):
     for n in range(starting_epoch, n_epochs + 1):
@@ -146,20 +136,6 @@ def training_loop(n_epochs, optimizer, vae, train_loader, checkpoint_path, devic
             imgs = imgs.to(device=device)
 
             loss = vae.eval_nll(imgs)
-
-            # mu, sigma = encoder(imgs)
-            #
-            # kl_divergence = (mu ** 2 + sigma ** 2 - 1) / 2 - torch.log(sigma)
-            # kl_divergence = kl_divergence.sum()
-            #
-            # latents = get_sample(mu, sigma)
-            #
-            # reconstructions = decoder(latents)
-
-            # reconstruction_loss = (imgs - reconstructions) ** 2
-            # reconstruction_loss = reconstruction_loss.sum()
-            #
-            # loss = reconstruction_loss + kl_divergence
 
             optimizer.zero_grad()
             loss.backward()
@@ -206,18 +182,6 @@ if __name__ == "__main__":
         checkpoint_path="VAE_FashionMNIST_checkpoint.pt",
         device=device
     )
-
-#
-#
-#
-# my_encoder = Encoder().to(device=device)
-# my_decoder = Decoder().to(device=device)
-#
-#
-# print(my_encoder)
-# print(my_decoder)
-
-#
 
 
 
