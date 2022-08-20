@@ -7,6 +7,6 @@ class GenerativeModel:
         raise NotImplementedError()
 
     @staticmethod
-    def load_serialised(save_dir, save_file):
+    def load_serialised(save_dir, save_file, **params):
         raise NotImplementedError()
 
