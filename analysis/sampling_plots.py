@@ -10,20 +10,22 @@ import matplotlib.pyplot as plt
 temp = 1
 
 
-model_name_list = ["FashionMNIST PixelCNN"]
-file_list = ["PixelCNN_FashionMNIST_checkpoint.pt"]
+model_name_list = ["FashionMNIST_stable"]
+file_list = ["glow_checkpoint_18740.pt"]
 
 for model_name, file in zip(model_name_list, file_list):
 
     print("sampling from", model_name)
-    # model_dir = f"../glow_model/{model_name}/"
+    model_dir = f"../glow_model/{model_name}/"
 
-    model_dir = "../pixelCNN_model/"
+    # model_dir = "../pixelCNN_model/"
 
-    model = PixelCNN.load_serialised(model_dir, file)
+    # model = PixelCNN.load_serialised(model_dir, file)
+
+    model, hparams = load_glow_model(model_dir, file, image_shape=(28, 28, 1))
+
     samples = model.generate_sample(32).cpu()
 
-    # model = load_glow_model(model_dir, file)
     # samples = postprocess(model(temperature=1, reverse=True)).cpu()
 
     title = f"samples from {model_name} model"

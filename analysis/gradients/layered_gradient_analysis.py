@@ -237,25 +237,36 @@ def split_id_data(id_data, fit_sample_proportion):
     return id_fit, id_test, fit_samples
 
 
-def fit_logistic_regression_model(id_norms, ood_norms_list, fit_sample_proportion=0.8):
+def fit_logistic_regression_model(logistic_model, id_norms, ood_norms_list, fit_sample_proportion=0.8, **params):
     normed_id_norms, normed_ood_norms_list = get_sklearn_norms(id_norms, ood_norms_list)
 
     id_fit, id_test, fit_samples = split_id_data(normed_id_norms, fit_sample_proportion)
 
-    ood_fit = torch.cat([
-        data[:fit_samples] for data in normed_ood_norms_list
-    ])
+    # ood_fit = torch.cat([
+    #     data[:fit_samples] for data in normed_ood_norms_list
+    # ])
+    #
+    # ood_test = torch.cat([
+    #     data[fit_samples:] for data in normed_ood_norms_list
+    # ])
 
-    ood_test = torch.cat([
-        data[fit_samples:] for data in normed_ood_norms_list
-    ])
+    ood_fit = []
+    ood_test = []
+
+    for ood_norms in normed_ood_norms_list:
+        fit, test, samples = split_id_data(ood_norms, fit_sample_proportion)
+        ood_fit.append(fit)
+        ood_test.append(test)
+
+    ood_fit = torch.cat(ood_fit)
+    ood_test = torch.cat(ood_test)
 
     X_fit = torch.cat([
         id_fit, ood_fit
     ])
 
     y_fit = torch.cat([
-        torch.ones(len(id_fit)), torch.zeros(len(ood_fit))
+        torch.zeros(len(id_fit)), torch.ones(len(ood_fit))
     ])
 
     X_test = torch.cat([
@@ -263,18 +274,20 @@ def fit_logistic_regression_model(id_norms, ood_norms_list, fit_sample_proportio
     ])
 
     y_test = torch.cat([
-        torch.ones(len(id_test)), torch.zeros(len(ood_test))
+        torch.zeros(len(id_test)), torch.ones(len(ood_test))
     ])
 
-    print(f"Fitting logistic regression with fit samples: {fit_samples}")
+    # print(f"Fitting logistic regression with fit samples: {fit_samples}")
 
-    logistic_model = LogisticRegression(max_iter=1000).fit(X_fit, y_fit)
+    logistic_model.fit(X_fit, y_fit)
+    print(f"train score: {logistic_model.score(X_fit, y_fit):1f}")
+    print(f"test score: {logistic_model.score(X_test, y_test):1f}")
 
-    print(f"train score: {logistic_model.score(X_fit, y_fit)}")
-    print(f"test score: {logistic_model.score(X_test, y_test)}")
+    print(f"test id rejection: {logistic_model.predict(id_test).mean():1f}")
+    print(f"test ood rejection: {logistic_model.predict(ood_test).mean():1f}")
 
-    print(f"test id predictions: {logistic_model.predict(id_test[:20])}")
-    print(f"test ood predictions: {logistic_model.predict(ood_test[:20])}")
+    # print(f"test id predictions: {logistic_model.predict(id_test[:20])}")
+    # print(f"test ood predictions: {logistic_model.predict(ood_test[:20])}")
 
 
 def do_ks_test(id_data, ood_data_list, fit_sample_proportion=0.8):
@@ -352,6 +365,34 @@ def raw_image_rejection_rate_table(batch_size, dataset_names, ModelClass, **para
 
 if __name__ == "__main__":
 
+    batch_size = 1
+    model_name = "cifar_long"
+    id_dataset = "cifar"
+    ood_dataset_names = ["svhn", "celeba", "imagenet32"]
+
+    id_norms, ood_norms_list = get_norms(batch_size, model_name, id_dataset, ood_dataset_names)
+
+    for C in [1e-2]:
+
+        layer_names = list(id_norms.keys())
+
+        print(f'fitting logistic regression with: penalty="l1", C={C}, solver="saga"')
+
+        logistic_model = LogisticRegression(penalty="l1", C=C, solver="saga", max_iter=1000)
+        fit_logistic_regression_model(logistic_model, id_norms, ood_norms_list)
+
+        coeffs = logistic_model.coef_
+        coeffs = coeffs.squeeze()
+        zero_params = (coeffs == 0).sum()
+
+        print(f"number of params: {coeffs.size}, number of zero params: {zero_params}, non-zero: {coeffs.size - zero_params}")
+
+        # for i, coeff in enumerate(coeffs):
+        #     if coeff != 0:
+        #         print(i, coeff, layer_names[i])
+
+        print("\n" * 2)
+
     # model_name = "cifar_long"
     # id_dataset = "cifar"
     # dataset_names = ["svhn", "celeba", "imagenet32"]
@@ -363,35 +404,35 @@ if __name__ == "__main__":
     #     print("dataset name:", dataset_name)
     #     print("p value:", p_val)
 
-    dataset_names = ["FashionMNIST", "MNIST"]
-
-    model_names = ["PixelCNN_FashionMNIST", "PixelCNN_MNIST"]
-
-    table_index = ["fit", "test"] + dataset_names
-
-    print("Rejection tables for gradients:")
-
-    for batch_size in [32, 10, 5, 1]:
-        print()
-        print("batch size", batch_size)
-        print()
-
-        rrt = norm_rejection_rate_table(batch_size, model_names, dataset_names,
-                                        IsolationForest, fit_sample_proportion=0.6, n_estimators=1000)
-
-        print(rrt)
-
-    print("\n" * 10)
-    print("Rejection table for raw images:")
-
-    for batch_size in [32, 10, 5, 1]:
-        print()
-        print("batch size", batch_size)
-        print()
-
-        rrt = raw_image_rejection_rate_table(batch_size, dataset_names, IsolationForest, fit_sample_proportion=0.6, n_estimators=1000)
-        print()
-        print(rrt)
+    # dataset_names = ["FashionMNIST", "MNIST"]
+    #
+    # model_names = ["PixelCNN_FashionMNIST", "PixelCNN_MNIST"]
+    #
+    # table_index = ["fit", "test"] + dataset_names
+    #
+    # print("Rejection tables for gradients:")
+    #
+    # for batch_size in [32, 10, 5, 1]:
+    #     print()
+    #     print("batch size", batch_size)
+    #     print()
+    #
+    #     rrt = norm_rejection_rate_table(batch_size, model_names, dataset_names,
+    #                                     IsolationForest, fit_sample_proportion=0.6, n_estimators=1000)
+    #
+    #     print(rrt)
+    #
+    # print("\n" * 10)
+    # print("Rejection table for raw images:")
+    #
+    # for batch_size in [32, 10, 5, 1]:
+    #     print()
+    #     print("batch size", batch_size)
+    #     print()
+    #
+    #     rrt = raw_image_rejection_rate_table(batch_size, dataset_names, IsolationForest, fit_sample_proportion=0.6, n_estimators=1000)
+    #     print()
+    #     print(rrt)
 
 
 

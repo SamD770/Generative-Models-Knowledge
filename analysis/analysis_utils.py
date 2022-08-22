@@ -59,11 +59,11 @@ def get_vanilla_test_dataset(dataset_name):
     }[dataset_name]()
 
 
-def load_generative_model(model_type, save_dir, save_file):
+def load_generative_model(model_type, save_dir, save_file, **params):
     return {
         "glow": Glow,
         "PixelCNN": PixelCNN
-    }[model_type].load_serialised(save_dir, save_file)
+    }[model_type].load_serialised(save_dir, save_file, **params)
 
 
 class SampleDataset:

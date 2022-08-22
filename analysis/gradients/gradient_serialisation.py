@@ -157,12 +157,13 @@ def get_save_file_name(model_name, dataset_name, batch_size, method="norms"):
 
 if __name__ == "__main__":
 
-    model = load_generative_model("PixelCNN", "../pixelCNN_model/", "PixelCNN_MNIST_checkpoint.pt")
+    model = load_generative_model("glow", "../glow_model/FashionMNIST_stable/",
+                                  "glow_checkpoint_18740.pt", image_shape=(28, 28, 1))
 
     for BATCH_SIZE in [32, 10, 5, 1]:
         for dataset_name in ["FashionMNIST", "MNIST"]:
             dataset = get_vanilla_test_dataset(dataset_name)
-            model_name = "PixelCNN_MNIST"
+            model_name = "FashionMNIST_stable"
             save_file_name = get_save_file_name(model_name, dataset_name, BATCH_SIZE)
 
             grad_store = L2NormStore(model)

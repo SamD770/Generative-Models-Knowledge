@@ -316,11 +316,13 @@ class Glow(nn.Module, GenerativeModel):
         return self.forward(temperature=1, reverse=True)
 
     @staticmethod
-    def load_serialised(save_dir, save_file):
+    def load_serialised(save_dir, save_file, image_shape = (32, 32, 3), num_classes=10):
 
-        # TODO : Remove hard-coding of these constants
-        num_classes = 10
-        image_shape = (32, 32, 3)
+        # if "num_classes" not in params:
+        #     num_classes = 10
+        # elif "image_shape" not in params:
+        #     image_shape = (32, 32, 3)
+
         device = "cuda"
 
         output_folder, model_name = save_dir, save_file
