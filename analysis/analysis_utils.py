@@ -75,7 +75,7 @@ class SampleDataset:
 
         for _ in range(self.batch_count):
 
-            imgs = model(temperature=temp, reverse=True).cpu()
+            imgs = model.generate_sample(32).cpu()
 
             for img in imgs:
                 self.samples.append(img)
@@ -129,17 +129,17 @@ def load_glow_model(output_folder, model_name, image_shape=(32, 32, 3), num_clas
     return model, hparams
 
 
-def compute_nll(dataset, model, hparams):
+def compute_nll(dataset, model):
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=512, num_workers=1)
 
     nlls = []
     for x, y in dataloader:
         x = x.to(device)
 
-        if hparams['y_condition']:
-            y = y.to(device)
-        else:
-            y = None
+        # if hparams['y_condition']:
+        #     y = y.to(device)
+        # else:
+        #     y = None
 
         with torch.no_grad():
             nll = model.eval_nll(x)
