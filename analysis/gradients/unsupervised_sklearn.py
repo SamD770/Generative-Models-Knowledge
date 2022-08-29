@@ -2,6 +2,7 @@ from gradient_utils import *
 
 import numpy as np
 
+from pandas import DataFrame
 
 from sklearn.svm import OneClassSVM
 from sklearn.ensemble import IsolationForest
@@ -9,22 +10,21 @@ from sklearn.covariance import EllipticEnvelope
 from sklearn.neighbors import LocalOutlierFactor
 
 
-def fit_sklearn_unsupervised(normed_id_data, normed_ood_data_list, ModelClass, fit_sample_proportion=0.8, **params):
+def fit_sklearn_unsupervised(normed_id_data, normed_ood_data_list, sklearn_model, fit_sample_proportion=0.8):
     def get_rejection_rate(data, model):
         prediction = model.predict(data)
         rejection_rate = (1 - np.mean(prediction))/ 2 # as the prediction is +1 for accept and -1 for reject
         return round(rejection_rate, 3)
 
-
     id_fit, id_test, fit_samples = split_id_data(normed_id_data, fit_sample_proportion)
 
-    model = ModelClass(**params).fit(id_fit)
+    sklearn_model.fit(id_fit)
 
-    id_fit_rejection_rate = get_rejection_rate(id_fit, model)
-    id_test_rejection_rate = get_rejection_rate(id_test, model)
+    id_fit_rejection_rate = get_rejection_rate(id_fit, sklearn_model)
+    id_test_rejection_rate = get_rejection_rate(id_test, sklearn_model)
 
     ood_rejection_rates = [
-        get_rejection_rate(ood_norms, model) for ood_norms in normed_ood_data_list
+        get_rejection_rate(ood_norms, sklearn_model) for ood_norms in normed_ood_data_list
     ]
 
     return id_fit_rejection_rate, id_test_rejection_rate, ood_rejection_rates
@@ -37,8 +37,10 @@ def rejection_rate_table(model_names, dataset_names, get_data, ModelClass, **par
 
         id_data, all_data_list = get_data(model_name, id_dataset)
 
+        sklearn_model = ModelClass(**params)
+
         id_fit_rejection_rate, id_test_rejection_rate, ood_rejection_rates = fit_sklearn_unsupervised(
-            id_data, all_data_list, ModelClass, **params)
+            id_data, all_data_list, sklearn_model, **params)
 
         rejection_table[model_name] = [id_fit_rejection_rate, id_test_rejection_rate] + ood_rejection_rates
 

@@ -3,6 +3,7 @@ from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32, get
 
 from glow_model.model import Glow
 from pixelCNN_model.main import PixelCNN
+from VAE_model.model import SimpleVAE
 
 import json
 
@@ -18,37 +19,37 @@ svhn_path = "../data/SVHN"
 cifar_path = "../data/CIFAR10"
 
 
-def vanilla_test_cifar():
-    _, _, _, test_cifar = get_CIFAR10(False, "../", True)
+def vanilla_test_cifar(dataroot="../"):
+    _, _, _, test_cifar = get_CIFAR10(False, dataroot, True)
     return test_cifar
 
 
-def vanilla_test_svhn():
-    _, _, _, test_svhn = get_SVHN(False, "../", True)
+def vanilla_test_svhn(dataroot="../"):
+    _, _, _, test_svhn = get_SVHN(False, dataroot, True)
     return test_svhn
 
 
-def vanilla_test_celeba():
-    _, _, _, test_celeba = get_celeba("../")
+def vanilla_test_celeba(dataroot="../"):
+    _, _, _, test_celeba = get_celeba(dataroot)
     return test_celeba
 
 
-def vanilla_test_imagenet32():
-    _, _, _, test_imagenet32 = get_imagenet32("../")
+def vanilla_test_imagenet32(dataroot="../"):
+    _, _, _, test_imagenet32 = get_imagenet32(dataroot)
     return test_imagenet32
 
 
-def vanilla_test_FashionMNIST():
-    _, _, _, test_FashionMNIST = get_FashionMNIST("../")
+def vanilla_test_FashionMNIST(dataroot="../"):
+    _, _, _, test_FashionMNIST = get_FashionMNIST(dataroot)
     return test_FashionMNIST
 
 
-def vanilla_test_MNIST():
-    _, _, _, test_MNIST = get_MNIST("../")
+def vanilla_test_MNIST(dataroot="../"):
+    _, _, _, test_MNIST = get_MNIST(dataroot)
     return test_MNIST
 
 
-def get_vanilla_test_dataset(dataset_name):
+def get_vanilla_test_dataset(dataset_name, dataroot="../"):
     return {
         "cifar": vanilla_test_cifar,
         "svhn": vanilla_test_svhn,
@@ -56,13 +57,14 @@ def get_vanilla_test_dataset(dataset_name):
         "imagenet32": vanilla_test_imagenet32,
         "FashionMNIST": vanilla_test_FashionMNIST,
         "MNIST": vanilla_test_MNIST
-    }[dataset_name]()
+    }[dataset_name](dataroot=dataroot)
 
 
 def load_generative_model(model_type, save_dir, save_file, **params):
     return {
         "glow": Glow,
-        "PixelCNN": PixelCNN
+        "PixelCNN": PixelCNN,
+        "vae": SimpleVAE
     }[model_type].load_serialised(save_dir, save_file, **params)
 
 
