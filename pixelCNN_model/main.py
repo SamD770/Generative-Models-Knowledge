@@ -72,7 +72,7 @@ class PixelCNN(nn.Module, GenerativeModel):
         return sample
 
     @staticmethod
-    def load_serialised(save_dir, save_file):
+    def load_serialised(save_dir, save_file, **params):
 
         model = PixelCNN()
         state_dict = torch.load(save_dir + save_file)

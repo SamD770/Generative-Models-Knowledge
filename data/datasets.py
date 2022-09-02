@@ -59,11 +59,6 @@ def preprocess(x):
     return x
 
 
-def postprocess(x):
-    x = torch.clamp(x, -0.5, 0.5)
-    x += 0.5
-    x = x * 2 ** n_bits
-    return torch.clamp(x, 0, 255).byte()
 
 
 def one_hot_encode(target):

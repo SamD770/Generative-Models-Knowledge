@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from analysis.analysis_utils import get_vanilla_test_dataset
 
 
-from gradient_serialisation import GRADIENTS_DIR, get_save_file_name
+from .gradient_serialisation import GRADIENTS_DIR, get_save_file_name
 
 
 def get_single_gradients(batch_size, model_name, id_dataset, ood_datasets):

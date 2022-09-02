@@ -7,6 +7,16 @@ import torch.nn as nn
 
 import json
 
+n_bits = 8
+
+
+def postprocess(x):
+    x = torch.clamp(x, -0.5, 0.5)
+    x += 0.5
+    x = x * 2 ** n_bits
+    return torch.clamp(x, 0, 255).byte()
+
+
 
 from glow_model.modules import (
     Conv2d,
@@ -313,7 +323,11 @@ class Glow(nn.Module, GenerativeModel):
 
     def generate_sample(self, batch_size):
         # Batch size is fixed at 32
-        return self.forward(temperature=1, reverse=True)
+        if batch_size != 32:
+            raise NotImplementedError("currently glow only supports batch sizes of 32.")
+        imgs = self.forward(temperature=1, reverse=True)
+        return postprocess(imgs)
+
 
     @staticmethod
     def load_serialised(save_dir, save_file, image_shape = (32, 32, 3), num_classes=10):
@@ -326,6 +340,7 @@ class Glow(nn.Module, GenerativeModel):
         device = "cuda"
 
         output_folder, model_name = save_dir, save_file
+
         print(f"loading model from: {output_folder + model_name}")
 
         with open(output_folder + 'hparams.json') as json_file:
