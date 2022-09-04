@@ -41,6 +41,22 @@ def get_FashionMNIST(dataroot):
     return image_shape, num_classes, train_dataset, test_dataset
 
 
+def get_Omniglot(dataroot):
+    image_shape = (28, 28, 1)
+
+    num_classes = 10
+
+    train_dataset = datasets.Omniglot(dataroot + 'data', background=True, download=True,
+                                      transform=transforms.ToTensor())
+    # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
+
+    test_dataset = datasets.Omniglot(dataroot + 'data', background=False, download=True,
+                                     transform=transforms.ToTensor())
+    # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
+
+    return image_shape, num_classes, train_dataset, test_dataset
+
+
 
 n_bits=8
 

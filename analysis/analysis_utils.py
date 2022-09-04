@@ -1,5 +1,5 @@
 
-from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32, get_MNIST, get_FashionMNIST
+from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32, get_MNIST, get_FashionMNIST, get_Omniglot
 
 from glow_model.model import Glow
 from pixelCNN_model.main import PixelCNN
@@ -49,6 +49,10 @@ def vanilla_test_MNIST(dataroot="../"):
     return test_MNIST
 
 
+def vanilla_test_Omniglot(dataroot="../"):
+    _, _, _, test_Omniglot = get_Omniglot(dataroot)
+
+
 def get_vanilla_test_dataset(dataset_name, dataroot="../"):
     return {
         "cifar": vanilla_test_cifar,
@@ -56,7 +60,8 @@ def get_vanilla_test_dataset(dataset_name, dataroot="../"):
         "celeba": vanilla_test_celeba,
         "imagenet32": vanilla_test_imagenet32,
         "FashionMNIST": vanilla_test_FashionMNIST,
-        "MNIST": vanilla_test_MNIST
+        "MNIST": vanilla_test_MNIST,
+        "Omniglot": vanilla_test_Omniglot
     }[dataset_name](dataroot=dataroot)
 
 

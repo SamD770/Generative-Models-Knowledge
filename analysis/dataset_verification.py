@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 from random import randint
 
-from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32, get_MNIST, get_FashionMNIST
+from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32, get_MNIST, get_FashionMNIST, get_Omniglot
 
 # print("getting cifar")
 # _, _, _, test_cifar = get_CIFAR10(False, "../", True)
@@ -11,26 +11,29 @@ from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32, get
 # print("getting svhn")
 # _, _, _, test_svhn = get_SVHN(False, "../", True)
 #
-print("getting celeba")
-_, _, _, test_celeba = get_celeba("../")
+# print("getting celeba")
+# _, _, _, test_celeba = get_celeba("../")
 
 # print("getting imagenet")
 # _, _, _, test_imagenet = get_imagenet32("../")
-
-
+#
+#
 print("getting MNIST")
-_, _, _, test_mnist = get_MNIST("../")
+_, _, _, test_mnist = get_MNIST("./")
 
 print("getting fashionMNIST")
-_, _, _, test_fashion_mnist = get_FashionMNIST("../")
+_, _, _, test_fashion_mnist = get_FashionMNIST("./")
+
+print("getting Omniglot")
+_, _, _, test_Omniglot = get_Omniglot("./")
 
 
 SAMPLE_COUNT = 32
 
 
 for dataset, name in zip(
-        [test_mnist, test_fashion_mnist],
-        ["MNIST", "FashionMNIST"]):
+        [test_mnist, test_fashion_mnist, test_Omniglot],
+        ["MNIST", "FashionMNIST", "Omniglot"]):
     print()
     print(f"statistics for {name}:")
     sample, label = dataset[69]
@@ -57,6 +60,6 @@ for dataset, name in zip(
     # plt.title(title)
     plt.imshow(grid)
     plt.axis("off")
-    plt.savefig("plots/sample_plots/" + title + ".png")
+    plt.savefig("analysis/plots/sample_plots/" + title + ".png")
 
 print("done")
