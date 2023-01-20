@@ -1,4 +1,4 @@
-from gradient_utils import *
+from .gradient_utils import *
 
 import numpy as np
 

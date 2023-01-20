@@ -48,11 +48,27 @@ def get_Omniglot(dataroot):
 
     train_dataset = datasets.Omniglot(dataroot + 'data', background=True, download=True,
                                       transform=transforms.ToTensor())
-    # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
 
     test_dataset = datasets.Omniglot(dataroot + 'data', background=False, download=True,
                                      transform=transforms.ToTensor())
-    # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
+
+    return image_shape, num_classes, train_dataset, test_dataset
+
+def get_flipped_Omniglot(dataroot):
+    def flip(x):
+        return 1 - x
+
+    image_shape = (28, 28, 1)
+
+    num_classes = 10
+
+    transform=transforms.Compose([transforms.ToTensor(), flip])
+
+    train_dataset = datasets.Omniglot(dataroot + 'data', background=True, download=True,
+                                      transform=transform)
+
+    test_dataset = datasets.Omniglot(dataroot + 'data', background=False, download=True,
+                                     transform=transform)
 
     return image_shape, num_classes, train_dataset, test_dataset
 

@@ -1,18 +1,18 @@
-from unsupervised_sklearn import *
+from .unsupervised_sklearn import *
 
 from sklearn.metrics import roc_curve, auc, RocCurveDisplay
 
 import matplotlib.pyplot as plt
 
 
-def get_unsupervised_roc_curve(normed_id_data, normed_ood_data_list, sklearn_model, fit_sample_proportion=0.8):
+def get_unsupervised_roc_curve(id_test_data, id_train_data, ood_data_list, sklearn_model, fit_sample_proportion=0.8):
 
     def fit_roc_curve(data):
 
         scores = sklearn_model.score_samples(data)
 
         y_true = torch.cat([
-            torch.ones(len(id_test)), torch.zeros(len(data))
+            torch.ones(len(id_test_data)), torch.zeros(len(data))
         ])
 
         y_scores = torch.cat([
@@ -23,36 +23,34 @@ def get_unsupervised_roc_curve(normed_id_data, normed_ood_data_list, sklearn_mod
 
         return fpr, tpr, auc(fpr, tpr)
 
-    id_fit, id_test, fit_samples = split_id_data(normed_id_data, fit_sample_proportion)
+    # id_fit, id_test, fit_samples = split_id_data(normed_id_data, fit_sample_proportion)
 
-    sklearn_model.fit(id_fit)
+    sklearn_model.fit(id_train_data)
 
-    id_test_scores = sklearn_model.score_samples(id_test)
+    id_test_scores = sklearn_model.score_samples(id_test_data)
 
     ood_fpr = []
     ood_tpr = []
     ood_auc = []
 
-    for ood_data in normed_ood_data_list:
+    for ood_data in ood_data_list:
         fpr, tpr, roc_auc = fit_roc_curve(ood_data)
 
         ood_fpr.append(fpr)
         ood_tpr.append(tpr)
         ood_auc.append(roc_auc)
 
-    test_fpr, test_tpr, test_auc = fit_roc_curve(id_test)
-
-    return ood_fpr, ood_tpr, ood_auc, test_fpr, test_tpr, test_auc
+    return ood_fpr, ood_tpr, ood_auc
 
 
 if __name__ == "__main__":
-    id_dataset = "celeba"
-    dataset_names = ["imagenet32", "cifar", "svhn"]
+    id_dataset = "FashionMNIST"
+    dataset_names = ["FashionMNIST", "MNIST"]
 
-    model_name = "celeba"
+    model_name = "PixelCNN_FashionMNIST"
 
-    for method in ["OneClassSVM", "Iso Forest"]:
-        for batch_size in [5, 1]:
+    for method in ["OneClassSVM"]:
+        for batch_size in [1]:
 
             title = f"Norms ROC plot ({method}, {model_name}, Batch size {batch_size})"
 
@@ -65,13 +63,18 @@ if __name__ == "__main__":
             else:
                 my_model = None
 
-            id_norms, all_norms_list = get_norms(batch_size, model_name, id_dataset, dataset_names)
-            normed_id_norms, normed_all_norms_list = get_sklearn_norms(id_norms, all_norms_list)
+            # Want: id_train_norms, id_test_norms, all_norms_list
+            # Then fit to all of these things and win
 
-            fpr_list, tpr_list, auc_list, test_fpr, test_tpr, test_auc \
-                = get_unsupervised_roc_curve(normed_id_norms, normed_all_norms_list, my_model)
+            # id_norms, all_norms_list = get_norms(batch_size, model_name, id_dataset, dataset_names, printout=True)
+            # normed_id_norms, normed_all_norms_list = get_sklearn_norms(id_norms, all_norms_list)
 
-            print(auc_list, test_auc)
+            id_test_data, id_train_data, ood_data_list \
+                = load_sklearn_norms(batch_size, model_name, id_dataset, dataset_names, printout=True)
+
+            fpr_list, tpr_list, auc_list = get_unsupervised_roc_curve(id_test_data, id_train_data, ood_data_list, my_model)
+
+            print(auc_list)
 
             fig, ax = plt.subplots()
 
@@ -84,9 +87,11 @@ if __name__ == "__main__":
 
                 display.plot(ax=ax)
 
-            RocCurveDisplay(fpr=test_fpr, tpr=test_tpr, roc_auc=test_auc,
-                            estimator_name=f"{id_dataset}").plot(ax=ax)
+            ax.plot([0, 1], [0, 1], "--")
 
-            plt.savefig(f"../plots/ROC_plots/{title}.png")
+            # RocCurveDisplay(fpr=test_fpr, tpr=test_tpr, roc_auc=test_auc,
+            #                 estimator_name=f"{id_dataset}").plot(ax=ax)
+
+            plt.savefig(f"analysis/plots/ROC_plots/{title}.png")
 
 

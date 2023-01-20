@@ -1,5 +1,6 @@
 
-from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32, get_MNIST, get_FashionMNIST, get_Omniglot
+from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32, \
+    get_MNIST, get_FashionMNIST, get_Omniglot, get_flipped_Omniglot
 
 from glow_model.model import Glow
 from pixelCNN_model.main import PixelCNN
@@ -18,6 +19,34 @@ print(f"using device: {device}")
 svhn_path = "../data/SVHN"
 cifar_path = "../data/CIFAR10"
 
+
+def get_vanilla_dataset(dataset_name, return_test=True, dataroot="../"):
+
+    dataset_getter = {
+        "cifar": get_CIFAR10,
+        "svhn": get_SVHN,
+        "celeba": get_celeba,
+        "imagenet32": get_imagenet32,
+        "FashionMNIST": get_FashionMNIST,
+        "MNIST": get_MNIST,
+        "Omniglot": get_Omniglot,
+        "flipped_Omniglot": get_flipped_Omniglot
+    }[dataset_name]
+
+    if dataset_name in ["cifar", "svhn"]:
+        _, _, train, test = dataset_getter(False, dataroot, True)
+    else:
+        _, _, train, test = dataset_getter(dataroot)
+
+    if return_test:
+        return test
+    else:
+        return train
+
+
+
+
+# TODO: depricated functions here
 
 def vanilla_test_cifar(dataroot="../"):
     _, _, _, test_cifar = get_CIFAR10(False, dataroot, True)
@@ -51,9 +80,15 @@ def vanilla_test_MNIST(dataroot="../"):
 
 def vanilla_test_Omniglot(dataroot="../"):
     _, _, _, test_Omniglot = get_Omniglot(dataroot)
+    return test_Omniglot
 
 
-def get_vanilla_test_dataset(dataset_name, dataroot="../"):
+def vanilla_test_flipped_Omniglot(dataroot="../"):
+    _, _, _, test_flipped_Omniglot = get_flipped_Omniglot(dataroot)
+    return test_flipped_Omniglot
+
+
+def get_vanilla_dataset_depreciated(dataset_name, dataroot="../"):
     return {
         "cifar": vanilla_test_cifar,
         "svhn": vanilla_test_svhn,
@@ -61,7 +96,8 @@ def get_vanilla_test_dataset(dataset_name, dataroot="../"):
         "imagenet32": vanilla_test_imagenet32,
         "FashionMNIST": vanilla_test_FashionMNIST,
         "MNIST": vanilla_test_MNIST,
-        "Omniglot": vanilla_test_Omniglot
+        "Omniglot": vanilla_test_Omniglot,
+        "flipped_Omniglot": vanilla_test_flipped_Omniglot
     }[dataset_name](dataroot=dataroot)
 
 
@@ -107,7 +143,6 @@ class RandomNoiseDataset:
         means = torch.zeros(self.image_shape)
         stds = torch.ones(self.image_shape)/5
         return torch.normal(means, stds), torch.zeros(10)
-
 
 
 def load_glow_model(output_folder, model_name, image_shape=(32, 32, 3), num_classes=10):

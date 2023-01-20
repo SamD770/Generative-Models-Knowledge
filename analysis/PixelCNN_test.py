@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 from torch.utils.data import DataLoader
 
-from analysis_utils import get_vanilla_test_dataset
+from analysis_utils import get_vanilla_dataset
 
 file = "PixelCNN_checkpoint.pt"
 
@@ -13,7 +13,7 @@ model_dir = "../pixelCNN_model/"
 model = PixelCNN.load_serialised(model_dir, file)
 
 
-dl = DataLoader(get_vanilla_test_dataset("FashionMNIST"), batch_size=5)
+dl = DataLoader(get_vanilla_dataset("FashionMNIST"), batch_size=5)
 
 for x, _ in dl:
     nll = model.eval_nll(x)

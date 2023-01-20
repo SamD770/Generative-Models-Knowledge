@@ -9,7 +9,7 @@ sns.set()
 from data.datasets import get_CIFAR10, get_SVHN
 from glow_model.model import Glow
 
-from analysis_utils import load_generative_model, get_vanilla_test_dataset
+from analysis_utils import load_generative_model, get_vanilla_dataset
 
 
 class RandomNoiseDataset:
@@ -51,8 +51,8 @@ model_name = 'glow_checkpoint_585750.pt'
 # print(f"using model: {output_folder + model_name}")
 
 
-test_cifar = get_vanilla_test_dataset("cifar")
-test_svhn = get_vanilla_test_dataset("svhn")
+test_cifar = get_vanilla_dataset("cifar")
+test_svhn = get_vanilla_dataset("svhn")
 
 model = load_generative_model("glow", "../glow_model/cifar_long/", model_name)
 #

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 import random
 
-from analysis.analysis_utils import load_generative_model, device, get_vanilla_test_dataset, SampleDataset
+from analysis.analysis_utils import load_generative_model, device, get_vanilla_dataset, SampleDataset
 from torch.nn.functional import normalize
 
 GRADIENTS_DIR = "./analysis/gradients/serialised_gradients/"
@@ -131,9 +131,6 @@ class FIMStore(GradientStore):
         plt.title(save_file_dir)
         # plt.axes("off")
         plt.savefig(save_file_dir)
-
-
-
         # torch.save(self.grad_store, save_file_dir)
 
     def get_grad_vec(self, target_model):
@@ -195,26 +192,16 @@ def serialise_gradients(model, dataset, save_file, grad_store, batch_size, save_
 #     serialise_gradients(sample_dataset, save_file, FIMStore)
 
 
-def get_save_file_name(model_name, dataset_name, batch_size, method="norms", filetype="pt"):
-    return f"trained_{model_name}_{method}_{dataset_name}_{batch_size}.{filetype}"
+def get_save_file_name(model_name, dataset_name, batch_size, method="norms", test_dataset=True, filetype="pt"):
+    if test_dataset:
+        file_name = f"trained_{model_name}_{method}_{dataset_name}_{batch_size}.{filetype}"
+    else:
+        file_name = f"trained_{model_name}_{method}_{dataset_name}-train_{batch_size}.{filetype}"
+    return file_name
 
 
 if __name__ == "__main__":
 
-    # model = load_generative_model("glow", ".../glow_model/FashionMNIST_stable/",
-    #                               "glow_checkpoint_18740.pt", image_shape=(28, 28, 1))
-
-    # model = load_generative_model("PixelCNN", "../../pixelCNN_model/", "PixelCNN_new_checkpoint.pt") # PixelCNN_FashionMNIST_checkpoint.pt")
-
-    for BATCH_SIZE in [2]:
-        for dataset_name in ["FashionMNIST", "MNIST"]:
-            dataset = get_vanilla_test_dataset(dataset_name, dataroot="../../")
-            model_name = "PixelCNN_FashionMNIST"
-            save_file_name = get_save_file_name(model_name, dataset_name, BATCH_SIZE)
-
-            grad_store = L2NormStore(model)
-
-            serialise_gradients(dataset, save_file_name, grad_store)
 
     # MODEL_NAME = "cifar_long"
     #
@@ -222,6 +209,29 @@ if __name__ == "__main__":
     # MODEL_FILE = "glow_checkpoint_585750.pt"
 
     # model, hparams = load_glow_model(MODEL_DIR, MODEL_FILE)
+
+    model = load_generative_model("glow", "./glow_model/celeba/",
+                                  "glow_checkpoint_419595.pt", image_shape=(32, 32, 3))
+
+    # model = load_generative_model("glow", "./glow_model/FashionMNIST_stable/",
+    #                              "glow_checkpoint_18740.pt", image_shape=(28, 28, 1))
+
+    # model = load_generative_model("PixelCNN", "./pixelCNN_model/", "PixelCNN_FashionMNIST_checkpoint.pt") # PixelCNN_FashionMNIST_checkpoint.pt")
+
+    for BATCH_SIZE in [1, 2, 5, 10]:
+        for dataset_name in ["celeba"]:
+
+            dataset = get_vanilla_dataset(dataset_name, return_test=False, dataroot="./", )
+
+            model_name = "celeba"
+
+            save_file_name = get_save_file_name(model_name, dataset_name, BATCH_SIZE, test_dataset=False)
+
+            grad_store = L2NormStore(model)
+
+            serialise_gradients(model, dataset, save_file_name, grad_store, BATCH_SIZE)
+
+
     #
     # NUM_SAMPLES = 1000
     #

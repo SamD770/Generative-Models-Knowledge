@@ -1,5 +1,5 @@
 import torch
-from analysis_utils import get_vanilla_test_dataset
+from analysis_utils import get_vanilla_dataset
 
 from matplotlib import pyplot as plt
 
@@ -61,7 +61,7 @@ def rgb_to_hsv(r, g, b):
 # print(rgb_to_hsv(31, 52, 29))
 
 
-dataset = get_vanilla_test_dataset("cifar")
+dataset = get_vanilla_dataset("cifar")
 
 
 for img_index in range(2):
