@@ -19,8 +19,9 @@ plt.xlabel("Negative bits per dimension")
 
 
 for dataset, name in zip(
-        [vanilla_test_cifar, cifar_samples, vanilla_test_svhn],
-        ["cifar data", "cifar samples", "svhn data"]):
+    [vanilla_test_cifar, cifar_samples, vanilla_test_svhn],
+    ["cifar data", "cifar samples", "svhn data"],
+):
     nll = compute_nll(dataset, cifar_model, cifar_hparams)
     print(nll[:10])
     print(f"{name} NLL:", torch.mean(nll))

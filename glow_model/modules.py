@@ -35,7 +35,9 @@ def squeeze2d(input, factor):
 
     B, C, H, W = input.size()
 
-    assert H % factor == 0 and W % factor == 0, f"H or W modulo factor is not 0: H={H}, W={W}, factor={factor}"
+    assert (
+        H % factor == 0 and W % factor == 0
+    ), f"H or W modulo factor is not 0: H={H}, W={W}, factor={factor}"
 
     x = input.view(B, C, H // factor, factor, W // factor, factor)
     x = x.permute(0, 1, 3, 5, 2, 4).contiguous()
@@ -48,7 +50,7 @@ def unsqueeze2d(input, factor):
     if factor == 1:
         return input
 
-    factor2 = factor ** 2
+    factor2 = factor**2
 
     B, C, H, W = input.size()
 
@@ -101,7 +103,6 @@ class _ActNorm(nn.Module):
             return input + self.bias
 
     def _scale(self, input, logdet=None, reverse=False):
-
         if reverse:
             input = input * torch.exp(-self.logs)
         else:

@@ -17,7 +17,14 @@ from ignite.metrics import RunningAverage, Loss
 
 # TODO Fabian: I needed this
 # from VAE_model.datasets import get_CIFAR10, get_SVHN, get_imagenet32, get_celeba
-from data.datasets import get_CIFAR10, get_SVHN, get_imagenet32, get_celeba, get_MNIST, get_FashionMNIST
+from data.datasets import (
+    get_CIFAR10,
+    get_SVHN,
+    get_imagenet32,
+    get_celeba,
+    get_MNIST,
+    get_FashionMNIST,
+)
 
 from glow_model.model import Glow
 
@@ -37,14 +44,16 @@ def check_dataset(dataset, dataroot, augment, download):
     elif dataset == "svhn":
         svhn = get_SVHN(augment, dataroot, download)
         input_size, num_classes, train_dataset, test_dataset = svhn
-    elif dataset == 'imagenet32':
+    elif dataset == "imagenet32":
         input_size, num_classes, train_dataset, test_dataset = get_imagenet32(dataroot)
-    elif dataset == 'celeba':
+    elif dataset == "celeba":
         input_size, num_classes, train_dataset, test_dataset = get_celeba(dataroot)
-    elif dataset == 'MNIST':
+    elif dataset == "MNIST":
         input_size, num_classes, train_dataset, test_dataset = get_MNIST(dataroot)
-    elif dataset == 'FashionMNIST':
-        input_size, num_classes, train_dataset, test_dataset = get_FashionMNIST(dataroot)
+    elif dataset == "FashionMNIST":
+        input_size, num_classes, train_dataset, test_dataset = get_FashionMNIST(
+            dataroot
+        )
 
     return input_size, num_classes, train_dataset, test_dataset
 
@@ -112,7 +121,6 @@ def main(
     saved_optimizer,
     warmup,
 ):
-
     device = "cpu" if (not torch.cuda.is_available() or not cuda) else "cuda:0"
 
     check_manual_seed(seed)

@@ -28,7 +28,9 @@ SVHN_test = datasets.SVHN(
 def wavelet_strip(channel, wavelet="bior1.3", low_scale=0):
     """Takes out the bottom three quadrants of the wavelet transform of the image."""
     cA, (cH, cV, cD) = pywt.dwt2(channel, wavelet)
-    high_level = pywt.idwt2((cA, (cH*low_scale, cV*low_scale, cD*low_scale)), wavelet)
+    high_level = pywt.idwt2(
+        (cA, (cH * low_scale, cV * low_scale, cD * low_scale)), wavelet
+    )
     return high_level
 
 
@@ -40,7 +42,7 @@ def image_wavelet_treatment(img, wavelet="bior1.3", low_scale=0):
         wavelet_strip(chan, wavelet=wavelet, low_scale=low_scale) for chan in channels
     ]
     high_level = np.stack(high_level, 2)
-    high_level = high_level/255
+    high_level = high_level / 255
     high_level = high_level.astype(float)
     return high_level
 
@@ -48,7 +50,9 @@ def image_wavelet_treatment(img, wavelet="bior1.3", low_scale=0):
 img, _ = SVHN_test[3]
 
 test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
-wavelet_preprocess = transforms.Compose([image_wavelet_treatment, transforms.ToTensor(), preprocess])
+wavelet_preprocess = transforms.Compose(
+    [image_wavelet_treatment, transforms.ToTensor(), preprocess]
+)
 
 # print(test_transform(img))
 #
@@ -65,7 +69,7 @@ wavelet_svhn = datasets.SVHN(
     download=True,
 )
 
-normal_svhn =  datasets.SVHN(
+normal_svhn = datasets.SVHN(
     path,
     split="test",
     transform=test_transform,
@@ -95,15 +99,26 @@ device = torch.device("cuda")
 
 
 def load_glow_model(output_folder, model_name, image_shape=(32, 32, 3), num_classes=10):
-    with open(output_folder + 'hparams.json') as json_file:
+    with open(output_folder + "hparams.json") as json_file:
         hparams = json.load(json_file)
 
-    model = Glow(image_shape, hparams['hidden_channels'], hparams['K'], hparams['L'], hparams['actnorm_scale'],
-                 hparams['flow_permutation'], hparams['flow_coupling'], hparams['LU_decomposed'], num_classes,
-                 hparams['learn_top'], hparams['y_condition'])
+    model = Glow(
+        image_shape,
+        hparams["hidden_channels"],
+        hparams["K"],
+        hparams["L"],
+        hparams["actnorm_scale"],
+        hparams["flow_permutation"],
+        hparams["flow_coupling"],
+        hparams["LU_decomposed"],
+        num_classes,
+        hparams["learn_top"],
+        hparams["y_condition"],
+    )
 
-    model.load_state_dict(torch.load(
-        output_folder + model_name, map_location=device)["model"]) # You need to direct it "model" part of the file
+    model.load_state_dict(
+        torch.load(output_folder + model_name, map_location=device)["model"]
+    )  # You need to direct it "model" part of the file
 
     model.set_actnorm_init()
 
@@ -122,7 +137,7 @@ def compute_nll(dataset, model, hparams):
         x = x.to(device)
         x = x.float()
 
-        if hparams['y_condition']:
+        if hparams["y_condition"]:
             y = y.to(device)
         else:
             y = None
@@ -135,11 +150,10 @@ def compute_nll(dataset, model, hparams):
 
 
 output_folder = "cifar_glow/"
-model_name = 'glow_checkpoint_194469.pt'
+model_name = "glow_checkpoint_194469.pt"
 
 
 def make_likelihood_histogram(datasets, names, plot_file_name):
-
     model, hparams = load_glow_model(output_folder, model_name)
     plt.figure(figsize=(20, 10))
     plt.title("Histogram Glow - trained on CIFAR10")
@@ -154,9 +168,11 @@ def make_likelihood_histogram(datasets, names, plot_file_name):
     plt.savefig(plot_file_name, dpi=300)
 
 
-make_likelihood_histogram([wavelet_cifar, wavelet_svhn],
-                          ["wavelet cifar", "wavelet svhn"],
-                          "plots/seminal_paper_recreations/glow_nll_only_wavelets.png")
+make_likelihood_histogram(
+    [wavelet_cifar, wavelet_svhn],
+    ["wavelet cifar", "wavelet svhn"],
+    "plots/seminal_paper_recreations/glow_nll_only_wavelets.png",
+)
 
 #
 # high_level = np.stack(high_level, -1)

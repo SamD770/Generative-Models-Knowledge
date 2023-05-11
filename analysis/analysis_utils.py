@@ -1,6 +1,13 @@
-
-from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32, \
-    get_MNIST, get_FashionMNIST, get_Omniglot, get_flipped_Omniglot
+from data.datasets import (
+    get_CIFAR10,
+    get_SVHN,
+    get_celeba,
+    get_imagenet32,
+    get_MNIST,
+    get_FashionMNIST,
+    get_Omniglot,
+    get_flipped_Omniglot,
+)
 
 from glow_model.model import Glow
 from pixelCNN_model.main import PixelCNN
@@ -20,8 +27,7 @@ svhn_path = "../data/SVHN"
 cifar_path = "../data/CIFAR10"
 
 
-def get_vanilla_dataset(dataset_name, return_test=True, dataroot="../"):
-
+def get_vanilla_dataset(dataset_name, return_test=True, dataroot="./"):
     dataset_getter = {
         "cifar": get_CIFAR10,
         "svhn": get_SVHN,
@@ -30,7 +36,7 @@ def get_vanilla_dataset(dataset_name, return_test=True, dataroot="../"):
         "FashionMNIST": get_FashionMNIST,
         "MNIST": get_MNIST,
         "Omniglot": get_Omniglot,
-        "flipped_Omniglot": get_flipped_Omniglot
+        "flipped_Omniglot": get_flipped_Omniglot,
     }[dataset_name]
 
     if dataset_name in ["cifar", "svhn"]:
@@ -44,9 +50,8 @@ def get_vanilla_dataset(dataset_name, return_test=True, dataroot="../"):
         return train
 
 
-
-
 # TODO: depricated functions here
+
 
 def vanilla_test_cifar(dataroot="../"):
     _, _, _, test_cifar = get_CIFAR10(False, dataroot, True)
@@ -97,16 +102,14 @@ def get_vanilla_dataset_depreciated(dataset_name, dataroot="../"):
         "FashionMNIST": vanilla_test_FashionMNIST,
         "MNIST": vanilla_test_MNIST,
         "Omniglot": vanilla_test_Omniglot,
-        "flipped_Omniglot": vanilla_test_flipped_Omniglot
+        "flipped_Omniglot": vanilla_test_flipped_Omniglot,
     }[dataset_name](dataroot=dataroot)
 
 
-def load_generative_model(model_type, save_dir, save_file, **params):
-    return {
-        "glow": Glow,
-        "PixelCNN": PixelCNN,
-        "vae": SimpleVAE
-    }[model_type].load_serialised(save_dir, save_file, **params)
+def load_generative_model(model_type, save_file, save_dir, **params):
+    return {"glow": Glow, "PixelCNN": PixelCNN, "vae": SimpleVAE}[
+        model_type
+    ].load_serialised(save_file, save_dir, **params)
 
 
 class SampleDataset:
@@ -117,7 +120,6 @@ class SampleDataset:
         self.samples = []
 
         for _ in range(self.batch_count):
-
             imgs = model.generate_sample(32).cpu()
 
             for img in imgs:
@@ -141,26 +143,36 @@ class RandomNoiseDataset:
 
     def __getitem__(self, item):
         means = torch.zeros(self.image_shape)
-        stds = torch.ones(self.image_shape)/5
+        stds = torch.ones(self.image_shape) / 5
         return torch.normal(means, stds), torch.zeros(10)
 
 
 def load_glow_model(output_folder, model_name, image_shape=(32, 32, 3), num_classes=10):
-
     print(f"loading model from: {output_folder + model_name}")
 
-    with open(output_folder + 'hparams.json') as json_file:
+    with open(output_folder + "hparams.json") as json_file:
         hparams = json.load(json_file)
 
-    model = Glow(image_shape, hparams['hidden_channels'], hparams['K'], hparams['L'], hparams['actnorm_scale'],
-                 hparams['flow_permutation'], hparams['flow_coupling'], hparams['LU_decomposed'], num_classes,
-                 hparams['learn_top'], hparams['y_condition'])
+    model = Glow(
+        image_shape,
+        hparams["hidden_channels"],
+        hparams["K"],
+        hparams["L"],
+        hparams["actnorm_scale"],
+        hparams["flow_permutation"],
+        hparams["flow_coupling"],
+        hparams["LU_decomposed"],
+        num_classes,
+        hparams["learn_top"],
+        hparams["y_condition"],
+    )
 
-    state_dicts = torch.load(
-        output_folder + model_name, map_location=device)
+    state_dicts = torch.load(output_folder + model_name, map_location=device)
     print(f"stored information: {state_dicts.keys()}")
 
-    model.load_state_dict(state_dicts["model"]) # You need to direct it "model" part of the file
+    model.load_state_dict(
+        state_dicts["model"]
+    )  # You need to direct it "model" part of the file
 
     model.set_actnorm_init()
 
@@ -188,8 +200,3 @@ def compute_nll(dataset, model):
             nlls.append(nll)
 
     return torch.cat(nlls).cpu()
-
-
-
-
-

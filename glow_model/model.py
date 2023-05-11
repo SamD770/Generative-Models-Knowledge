@@ -1,4 +1,5 @@
 from generative_model import GenerativeModel
+from path_definitions import GLOW_ROOT
 
 import math
 
@@ -13,9 +14,8 @@ n_bits = 8
 def postprocess(x):
     x = torch.clamp(x, -0.5, 0.5)
     x += 0.5
-    x = x * 2 ** n_bits
+    x = x * 2**n_bits
     return torch.clamp(x, 0, 255).byte()
-
 
 
 from glow_model.modules import (
@@ -328,10 +328,8 @@ class Glow(nn.Module, GenerativeModel):
         imgs = self.forward(temperature=1, reverse=True)
         return postprocess(imgs)
 
-
     @staticmethod
-    def load_serialised(save_dir, save_file, image_shape = (32, 32, 3), num_classes=10):
-
+    def load_serialised(save_file, save_dir=GLOW_ROOT, **params):
         # if "num_classes" not in params:
         #     num_classes = 10
         # elif "image_shape" not in params:
@@ -343,18 +341,29 @@ class Glow(nn.Module, GenerativeModel):
 
         print(f"loading model from: {output_folder + model_name}")
 
-        with open(output_folder + 'hparams.json') as json_file:
+        with open(output_folder + "hparams.json") as json_file:
             hparams = json.load(json_file)
 
-        model = Glow(image_shape, hparams['hidden_channels'], hparams['K'], hparams['L'], hparams['actnorm_scale'],
-                     hparams['flow_permutation'], hparams['flow_coupling'], hparams['LU_decomposed'], num_classes,
-                     hparams['learn_top'], hparams['y_condition'])
+        model = Glow(
+            image_shape,
+            hparams["hidden_channels"],
+            hparams["K"],
+            hparams["L"],
+            hparams["actnorm_scale"],
+            hparams["flow_permutation"],
+            hparams["flow_coupling"],
+            hparams["LU_decomposed"],
+            num_classes,
+            hparams["learn_top"],
+            hparams["y_condition"],
+        )
 
-        state_dicts = torch.load(
-            output_folder + model_name, map_location=device)
+        state_dicts = torch.load(output_folder + model_name, map_location=device)
         print(f"stored information: {state_dicts.keys()}")
 
-        model.load_state_dict(state_dicts["model"])  # You need to direct it "model" part of the file
+        model.load_state_dict(
+            state_dicts["model"]
+        )  # You need to direct it "model" part of the file
 
         model.set_actnorm_init()
 

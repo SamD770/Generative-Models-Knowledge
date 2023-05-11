@@ -2,11 +2,18 @@ import torch
 from torch.utils.data import DataLoader, Subset
 from datetime import datetime
 
+import matplotlib
+
 import matplotlib.pyplot as plt
 
 import random
 
-from analysis.analysis_utils import load_generative_model, device, get_vanilla_dataset, SampleDataset
+from analysis.analysis_utils import (
+    load_generative_model,
+    device,
+    get_vanilla_dataset,
+    SampleDataset,
+)
 from torch.nn.functional import normalize
 
 GRADIENTS_DIR = "./analysis/gradients/serialised_gradients/"
@@ -28,16 +35,13 @@ class GradientStore:
 
 class NormStore(GradientStore):
     """Stores a mapping from the layer name to norm of the gradient vector for some norm."""
+
     def setup_grad_store(self, target_model):
-        return {
-            name: [] for name, _ in target_model.named_parameters()
-        }
+        return {name: [] for name, _ in target_model.named_parameters()}
 
     def extract_gradient_stats(self, target_model):
         for name, p in target_model.named_parameters():
-            self.grad_store[name].append(
-                self.take_norm(p.grad, name)
-            )
+            self.grad_store[name].append(self.take_norm(p.grad, name))
 
     def serialise_gradient_stats(self, save_file_dir):
         for key, value in self.grad_store.items():
@@ -51,23 +55,28 @@ class NormStore(GradientStore):
 
 class L2NormStore(NormStore):
     """Stores a mapping from the layer name to L^2 norm of the gradient vector."""
+
     def take_norm(self, gradient_vector, layer):
         return (gradient_vector**2).sum()
 
 
 class FisherNormStore(NormStore):
     """Stores a mapping from the layer name to u^T (F)^(-1) u where F is the Fisher Information Matrix and
-     u is the gradient vector."""
+    u is the gradient vector."""
+
     def __init__(self, target_model, FIM_inv):
         super().__init__(target_model)
         self.FIM_inv = FIM_inv
 
     def take_norm(self, gradient_vector, layer):
-        gradient_vector * (self.FIM_inv) * gradient_vector # TODO: figure out which of these need to be
+        gradient_vector * (
+            self.FIM_inv
+        ) * gradient_vector  # TODO: figure out which of these need to be
 
 
 class SingleGradStore(GradientStore):
     """Stores the value for one subset of parameters"""
+
     def __init__(self, target_model, param_name, index):
         self.param_name = param_name
         self.index = index
@@ -91,6 +100,7 @@ class SingleGradStore(GradientStore):
 
 class FIMStore(GradientStore):
     """Keeps a stored representation of the FIM of a given model"""
+
     def __init__(self, target_model):
         super().__init__(target_model)
         self.old_FIM = None
@@ -117,19 +127,45 @@ class FIMStore(GradientStore):
     def serialise_gradient_stats(self, save_file_dir):
         self.grad_store = self.grad_store / self.n
 
-        print("FIM:", self.grad_store[:10, :10])
-        print("average size:", self.old_FIM.abs().mean())
+        average = self.old_FIM.abs().mean()
 
-        normed_FIM = normalize(self.grad_store, dim=0, p=1)
+        print("FIM:", self.grad_store[:10, :10])
+        print("shape: ", self.grad_store.shape)
+        print("average size:", average)
+
+        # self.grad_store.abs().sum(dim=1)
+
+        normed_FIM = self.grad_store
+
+        # normed_FIM = abs_FIM/abs_FIM.sum(dim=0)
+
+        # normed_FIM = normalize(self.grad_store, dim=0, p=1)
+
+        # normed_FIM = self.grad_store.abs().clamp(min=average/10).cpu().numpy()
+        # normed_FIM = torch.log(normed_FIM)
 
         print("normed FIM:", normed_FIM)
 
+        for i in range(5):
+            print(
+                f"param {i}, diagonal: {normed_FIM[i, i]}, sum: {normed_FIM[:, i].sum()}"
+            )
+
         print()
 
-        plt.imshow(normed_FIM.cpu())
+        fig, ax = plt.subplots()
 
-        plt.title(save_file_dir)
+        axim = ax.imshow(normed_FIM.cpu())  # , norm=matplotlib.colors.LogNorm())
+
+        # fig.colorbar(axim)
+
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+        # .set_yticklabels()
+        # plt.title(save_file_dir)
         # plt.axes("off")
+
         plt.savefig(save_file_dir)
         # torch.save(self.grad_store, save_file_dir)
 
@@ -159,17 +195,20 @@ def backprop_nll(model, batch):
     nll.sum().backward()
 
 
-def serialise_gradients(model, dataset, save_file, grad_store, batch_size, save_dir=GRADIENTS_DIR):
+def serialise_gradients(
+    model, dataset, save_file, grad_store, batch_size, save_dir=GRADIENTS_DIR
+):
     print(f"creating {save_dir + save_file}:")
     # grad_dict = {
     #     name: [] for name, _ in model.named_parameters()
     # }
 
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, drop_last=True)
+    dataloader = DataLoader(
+        dataset, batch_size=batch_size, shuffle=False, drop_last=True
+    )
     print_update_every = len(dataset) // (20 * batch_size)
 
     for i, batch in enumerate(dataloader):
-
         x, y = batch
 
         x = x.to(device)
@@ -184,6 +223,8 @@ def serialise_gradients(model, dataset, save_file, grad_store, batch_size, save_
     grad_store.serialise_gradient_stats(save_dir + save_file)
 
     print("done")
+
+
 #
 #
 # def serialise_FIM(save_file, layer=None):
@@ -192,17 +233,24 @@ def serialise_gradients(model, dataset, save_file, grad_store, batch_size, save_
 #     serialise_gradients(sample_dataset, save_file, FIMStore)
 
 
-def get_save_file_name(model_name, dataset_name, batch_size, method="norms", test_dataset=True, filetype="pt"):
+def get_save_file_name(
+    model_name,
+    dataset_name,
+    batch_size,
+    method="norms",
+    test_dataset=True,
+    filetype="pt",
+):
     if test_dataset:
-        file_name = f"trained_{model_name}_{method}_{dataset_name}_{batch_size}.{filetype}"
+        file_name = (
+            f"trained_{model_name}_{method}_{dataset_name}_{batch_size}.{filetype}"
+        )
     else:
         file_name = f"trained_{model_name}_{method}_{dataset_name}-train_{batch_size}.{filetype}"
     return file_name
 
 
 if __name__ == "__main__":
-
-
     # MODEL_NAME = "cifar_long"
     #
     # MODEL_DIR = f"../glow_model/{MODEL_NAME}/"
@@ -210,27 +258,31 @@ if __name__ == "__main__":
 
     # model, hparams = load_glow_model(MODEL_DIR, MODEL_FILE)
 
-    model = load_generative_model("glow", "./glow_model/celeba/",
-                                  "glow_checkpoint_419595.pt", image_shape=(32, 32, 3))
+    model = load_generative_model("glow", "glow_checkpoint_18740.pt", "./glow_model/FashionMNIST_stable/",
+                                  image_shape=(28, 28, 1))
 
     # model = load_generative_model("glow", "./glow_model/FashionMNIST_stable/",
     #                              "glow_checkpoint_18740.pt", image_shape=(28, 28, 1))
 
     # model = load_generative_model("PixelCNN", "./pixelCNN_model/", "PixelCNN_FashionMNIST_checkpoint.pt") # PixelCNN_FashionMNIST_checkpoint.pt")
 
-    for BATCH_SIZE in [1, 2, 5, 10]:
-        for dataset_name in ["celeba"]:
+    for BATCH_SIZE in [1, 5]:
+        for dataset_name in ["Omniglot"]:  # "FashionMNIST", "MNIST"
+            dataset = get_vanilla_dataset(
+                dataset_name,
+                return_test=True,
+                dataroot="./",
+            )
 
-            dataset = get_vanilla_dataset(dataset_name, return_test=False, dataroot="./", )
+            model_name = "FashionMNIST_stable"
 
-            model_name = "celeba"
-
-            save_file_name = get_save_file_name(model_name, dataset_name, BATCH_SIZE, test_dataset=False)
+            save_file_name = get_save_file_name(
+                model_name, dataset_name, BATCH_SIZE, test_dataset=True
+            )
 
             grad_store = L2NormStore(model)
 
             serialise_gradients(model, dataset, save_file_name, grad_store, BATCH_SIZE)
-
 
     #
     # NUM_SAMPLES = 1000
@@ -267,4 +319,3 @@ if __name__ == "__main__":
     #         grad_store = SingleGradStore(model, my_param_name, my_index)
     #
     #         serialise_gradients(dataset, save_file, grad_store)
-

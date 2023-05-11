@@ -3,8 +3,16 @@ import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 from random import randint
 
-from data.datasets import get_CIFAR10, get_SVHN, get_celeba, get_imagenet32, \
-    get_MNIST, get_FashionMNIST, get_Omniglot, get_flipped_Omniglot
+from data.datasets import (
+    get_CIFAR10,
+    get_SVHN,
+    get_celeba,
+    get_imagenet32,
+    get_MNIST,
+    get_FashionMNIST,
+    get_Omniglot,
+    get_flipped_Omniglot,
+)
 
 # print("getting cifar")
 # _, _, _, test_cifar = get_CIFAR10(False, "../", True)
@@ -36,8 +44,9 @@ SAMPLE_COUNT = 32
 
 
 for dataset, name in zip(
-        [test_mnist, test_fashion_mnist, test_Omniglot, test_flipped_Omniglot],
-        ["MNIST", "FashionMNIST", "Omniglot", "flipped_Omniglot"]):
+    [test_mnist, test_fashion_mnist, test_Omniglot, test_flipped_Omniglot],
+    ["MNIST", "FashionMNIST", "Omniglot", "flipped_Omniglot"],
+):
     print()
     print(f"statistics for {name}:")
     sample, label = dataset[69]

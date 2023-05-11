@@ -23,8 +23,10 @@ class RandomNoiseDataset:
 
     def __getitem__(self, item):
         means = torch.zeros(self.image_shape)
-        stds = torch.ones(self.image_shape)/7
-        return torch.clamp(torch.normal(means, stds), min=-0.4, max=0.4), torch.zeros(10)
+        stds = torch.ones(self.image_shape) / 7
+        return torch.clamp(torch.normal(means, stds), min=-0.4, max=0.4), torch.zeros(
+            10
+        )
 
 
 class ConstantDataset:
@@ -36,13 +38,13 @@ class ConstantDataset:
         return 512
 
     def __getitem__(self, item):
-        return item*torch.ones(self.image_shape)/300 - 0.5, torch.zeros(10)
+        return item * torch.ones(self.image_shape) / 300 - 0.5, torch.zeros(10)
 
 
 device = torch.device("cuda")
 
 # output_folder = "../data/cifar_long/"
-model_name = 'glow_checkpoint_585750.pt'
+model_name = "glow_checkpoint_585750.pt"
 #
 # with open(output_folder + 'hparams.json') as json_file:
 #     hparams = json.load(json_file)
@@ -54,7 +56,7 @@ model_name = 'glow_checkpoint_585750.pt'
 test_cifar = get_vanilla_dataset("cifar")
 test_svhn = get_vanilla_dataset("svhn")
 
-model = load_generative_model("glow", "../glow_model/cifar_long/", model_name)
+model = load_generative_model("glow", model_name, "../glow_model/cifar_long/")
 #
 # image_shape, num_classes, _, test_cifar = get_CIFAR10(hparams['augment'], hparams['dataroot'], True)
 # image_shape, num_classes, _, test_svhn = get_SVHN(hparams['augment'], hparams['dataroot'], True)
@@ -106,7 +108,7 @@ def compute_nll(dataset, model):
 # print("CIFAR NLL", torch.mean(cifar_nll))
 # print("SVHN NLL", torch.mean(svhn_nll))
 
-plt.figure(figsize=(20,10))
+plt.figure(figsize=(20, 10))
 plt.title("Histogram Glow - trained on CIFAR10")
 plt.xlabel("Log Likelihood")
 # plt.hist(-svhn_nll.numpy(), label="SVHN", density=True, alpha=0.6, bins=30)
@@ -114,15 +116,18 @@ plt.xlabel("Log Likelihood")
 
 
 for dataset, name in zip(
-        [test_cifar, random_data], #, constant_data, test_svhn],
-        ["CIFAR10", "gaussian noise"] #, "constant", "SVHN"]
-    ):
-
+    [test_cifar, random_data],  # , constant_data, test_svhn],
+    ["CIFAR10", "gaussian noise"],  # , "constant", "SVHN"]
+):
     nll = compute_nll(dataset, model)
     print(f"{name} NLL:", torch.mean(nll))
     nll = torch.clamp(nll, max=21)
-    plt.hist(-nll.numpy(), range=(-20, 0), bins=100, label=name, density=True, alpha=0.6)
+    plt.hist(
+        -nll.numpy(), range=(-20, 0), bins=100, label=name, density=True, alpha=0.6
+    )
 
 plt.legend()
 # plt.show()
-plt.savefig("plots/seminal_paper_recreations/glow_nll_with_constant_random_5.png", dpi=300)
+plt.savefig(
+    "plots/seminal_paper_recreations/glow_nll_with_constant_random_5.png", dpi=300
+)

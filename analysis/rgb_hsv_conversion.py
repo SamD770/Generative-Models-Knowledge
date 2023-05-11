@@ -8,19 +8,19 @@ from torch.autograd.functional import jacobian
 
 # function from https://www.geeksforgeeks.org/program-change-rgb-color-model-hsv-color-model/
 
-def rgb_to_hsv(r, g, b):
 
+def rgb_to_hsv(r, g, b):
     # R, G, B values are divided by 255
     # to change the range from 0..255 to 0..1:
     # r, g, b = r / 255.0, g / 255.0, b / 255.0
 
     # h, s, v = hue, saturation, value
     # rgb = torch.cat([r, g, b])
-    cmax = max(r, g, b)    # maximum of r, g, b
-    cmin = min(r, g, b)    # minimum of r, g, b
+    cmax = max(r, g, b)  # maximum of r, g, b
+    cmin = min(r, g, b)  # minimum of r, g, b
     # cmax = cmax.values
     # cmin = cmin.values
-    diff = cmax - cmin       # diff of cmax and cmin.
+    diff = cmax - cmin  # diff of cmax and cmin.
 
     # r_mask = (cmax == r)
     # g_mask = (cmax == g)
@@ -49,14 +49,14 @@ def rgb_to_hsv(r, g, b):
     #  cmax equal zero
     # if cmax == 0:
     #     diff += 0.01
-    s = (diff / cmax)
+    s = diff / cmax
 
     # compute v
     v = cmax
-    return h/360, s, v
+    return h / 360, s, v
 
 
-''' Driver Code '''
+""" Driver Code """
 # print(rgb_to_hsv(45, 215, 0))
 # print(rgb_to_hsv(31, 52, 29))
 
@@ -78,7 +78,7 @@ for img_index in range(2):
             # J = jacobian(rgb_to_hsv, rgb_inputs)
             # J = torch.tensor(J)
             h, s, v = rgb_to_hsv(r, g, b)
-            J_ten[i, j] = v + 0.1 # abs(J.det())
+            J_ten[i, j] = v + 0.1  # abs(J.det())
 
     log_mult = torch.log(J_ten)
     log_mult = log_mult.sum()

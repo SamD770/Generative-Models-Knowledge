@@ -12,22 +12,36 @@ from glow_model.model import Glow
 device = torch.device("cuda")
 
 output_folder = "cifar_glow/"
-model_name = 'glow_checkpoint_194469.pt'
+model_name = "glow_checkpoint_194469.pt"
 
-with open(output_folder + 'hparams.json') as json_file:
+with open(output_folder + "hparams.json") as json_file:
     hparams = json.load(json_file)
 
 print(hparams)
 print(f"using model: {output_folder + model_name}")
 
 
-image_shape, num_classes, _, test_cifar = get_CIFAR10(hparams['augment'], hparams['dataroot'], True)
-image_shape, num_classes, _, test_svhn = get_SVHN(hparams['augment'], hparams['dataroot'], True)
+image_shape, num_classes, _, test_cifar = get_CIFAR10(
+    hparams["augment"], hparams["dataroot"], True
+)
+image_shape, num_classes, _, test_svhn = get_SVHN(
+    hparams["augment"], hparams["dataroot"], True
+)
 
 
-model = Glow(image_shape, hparams['hidden_channels'], hparams['K'], hparams['L'], hparams['actnorm_scale'],
-             hparams['flow_permutation'], hparams['flow_coupling'], hparams['LU_decomposed'], num_classes,
-             hparams['learn_top'], hparams['y_condition'])
+model = Glow(
+    image_shape,
+    hparams["hidden_channels"],
+    hparams["K"],
+    hparams["L"],
+    hparams["actnorm_scale"],
+    hparams["flow_permutation"],
+    hparams["flow_coupling"],
+    hparams["LU_decomposed"],
+    num_classes,
+    hparams["learn_top"],
+    hparams["y_condition"],
+)
 
 
 model.load_state_dict(torch.load(output_folder + model_name)["model"])
@@ -47,7 +61,7 @@ def compute_nll(dataset, model):
     for x, y in dataloader:
         x = x.to(device)
 
-        if hparams['y_condition']:
+        if hparams["y_condition"]:
             y = y.to(device)
         else:
             y = None
@@ -65,7 +79,7 @@ svhn_nll = compute_nll(test_svhn, model)
 print("CIFAR NLL", torch.mean(cifar_nll))
 print("SVHN NLL", torch.mean(svhn_nll))
 
-plt.figure(figsize=(20,10))
+plt.figure(figsize=(20, 10))
 plt.title("Histogram Glow - trained on CIFAR10")
 plt.xlabel("Negative bits per dimension")
 plt.hist(-svhn_nll.numpy(), label="SVHN", density=True, alpha=0.6, bins=30)
