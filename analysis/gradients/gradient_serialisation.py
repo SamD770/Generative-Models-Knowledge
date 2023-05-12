@@ -199,9 +199,9 @@ def serialise_gradients(
     model, dataset, save_file, grad_store, batch_size, save_dir=GRADIENTS_DIR
 ):
     print(f"creating {save_dir + save_file}:")
-    # grad_dict = {
-    #     name: [] for name, _ in model.named_parameters()
-    # }
+
+    model = model.to(device)
+    model.eval()
 
     dataloader = DataLoader(
         dataset, batch_size=batch_size, shuffle=False, drop_last=True
@@ -258,23 +258,22 @@ if __name__ == "__main__":
 
     # model, hparams = load_glow_model(MODEL_DIR, MODEL_FILE)
 
-    model = load_generative_model("glow", "glow_checkpoint_18740.pt", "./glow_model/FashionMNIST_stable/",
-                                  image_shape=(28, 28, 1))
+    # model = load_generative_model("glow", "glow_checkpoint_18740.pt", "./glow_model/FashionMNIST_stable/",
+    #                               image_shape=(28, 28, 1))
+
 
     # model = load_generative_model("glow", "./glow_model/FashionMNIST_stable/",
     #                              "glow_checkpoint_18740.pt", image_shape=(28, 28, 1))
 
     # model = load_generative_model("PixelCNN", "./pixelCNN_model/", "PixelCNN_FashionMNIST_checkpoint.pt") # PixelCNN_FashionMNIST_checkpoint.pt")
 
-    for BATCH_SIZE in [1, 5]:
-        for dataset_name in ["Omniglot"]:  # "FashionMNIST", "MNIST"
-            dataset = get_vanilla_dataset(
-                dataset_name,
-                return_test=True,
-                dataroot="./",
-            )
+    model_name = "VAE_cifar"
 
-            model_name = "FashionMNIST_stable"
+    model = load_generative_model("vae", f"{model_name}.pt")
+
+    for BATCH_SIZE in [1, 5]:
+        for dataset_name in ["cifar", "svhn", "celeba", "imagenet32"]:
+            dataset = get_vanilla_dataset(dataset_name)
 
             save_file_name = get_save_file_name(
                 model_name, dataset_name, BATCH_SIZE, test_dataset=True

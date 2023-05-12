@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 
 class SimpleVAE(nn.Module, GenerativeModel):
-    def __init__(self, input_shape=(32, 32, 3), latent_dims=10, encoder=None, decoder=None):
+    def __init__(self, input_shape=(32, 32, 3), latent_dims=64, encoder=None, decoder=None):
         super().__init__()
 
         self.input_shape = input_shape
