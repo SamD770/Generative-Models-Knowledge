@@ -329,7 +329,7 @@ class Glow(nn.Module, GenerativeModel):
         return postprocess(imgs)
 
     @staticmethod
-    def load_serialised(save_file, save_dir=GLOW_ROOT, **params):
+    def load_serialised(save_file, save_dir=GLOW_ROOT,  image_shape=None, num_classes=None, **params):
         # if "num_classes" not in params:
         #     num_classes = 10
         # elif "image_shape" not in params:

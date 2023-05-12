@@ -9,6 +9,8 @@ from data.datasets import (
     get_flipped_Omniglot,
 )
 
+from path_definitions import PROJECT_ROOT
+
 from glow_model.model import Glow
 from pixelCNN_model.main import PixelCNN
 from VAE_model.model import SimpleVAE
@@ -27,7 +29,7 @@ svhn_path = "../data/SVHN"
 cifar_path = "../data/CIFAR10"
 
 
-def get_vanilla_dataset(dataset_name, return_test=True, dataroot="./"):
+def get_vanilla_dataset(dataset_name, return_test=True, dataroot=PROJECT_ROOT):
     dataset_getter = {
         "cifar": get_CIFAR10,
         "svhn": get_SVHN,
@@ -106,10 +108,15 @@ def get_vanilla_dataset_depreciated(dataset_name, dataroot="../"):
     }[dataset_name](dataroot=dataroot)
 
 
-def load_generative_model(model_type, save_file, save_dir, **params):
-    return {"glow": Glow, "PixelCNN": PixelCNN, "vae": SimpleVAE}[
-        model_type
-    ].load_serialised(save_file, save_dir, **params)
+def load_generative_model(model_type, save_file , **params):
+    model_class = {
+        "glow": Glow,
+        "PixelCNN": PixelCNN,
+        "vae": SimpleVAE
+    }[model_type]
+
+    return model_class.load_serialised(save_file, **params)
+
 
 
 class SampleDataset:

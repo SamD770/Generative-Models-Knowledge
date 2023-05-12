@@ -1,6 +1,8 @@
 from generative_model import GenerativeModel
 from path_definitions import VAE_ROOT
 
+from os import path
+
 import torch
 
 from torch import nn
@@ -59,7 +61,9 @@ class SimpleVAE(nn.Module, GenerativeModel):
 
     @staticmethod
     def load_serialised(save_file, save_dir=VAE_ROOT, **params):
-        checkpoint = torch.load(save_dir + save_file)
+
+        save_path = path.join(save_dir, save_file)
+        checkpoint = torch.load(save_path)
 
         vae = SimpleVAE(encoder=LargeEncoder(), decoder=LargeDecoder(), **params) # TODO: clean this
         vae.load_state_dict(checkpoint["vae_state_dict"])
