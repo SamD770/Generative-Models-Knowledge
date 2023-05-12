@@ -1,5 +1,6 @@
 from generative_model import GenerativeModel
 from path_definitions import GLOW_ROOT
+from os import path
 
 import math
 
@@ -337,11 +338,12 @@ class Glow(nn.Module, GenerativeModel):
 
         device = "cuda"
 
-        output_folder, model_name = save_dir, save_file
+        model_path = path.join(save_dir, save_file)
+        params_path = path.join(save_dir, "hparams.json")
 
-        print(f"loading model from: {output_folder + model_name}")
+        print(f"loading model from: {model_path}")
 
-        with open(output_folder + "hparams.json") as json_file:
+        with open(params_path) as json_file:
             hparams = json.load(json_file)
 
         model = Glow(
@@ -358,7 +360,7 @@ class Glow(nn.Module, GenerativeModel):
             hparams["y_condition"],
         )
 
-        state_dicts = torch.load(output_folder + model_name, map_location=device)
+        state_dicts = torch.load(model_path, map_location=device)
         print(f"stored information: {state_dicts.keys()}")
 
         model.load_state_dict(

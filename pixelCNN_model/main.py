@@ -13,6 +13,7 @@ from torchvision import datasets, transforms, utils
 from data.datasets import get_MNIST, get_FashionMNIST
 
 from path_definitions import PIXEL_CNN_ROOT
+from os import path
 
 backends.cudnn.benchmark = True
 
@@ -90,8 +91,11 @@ class PixelCNN(nn.Module, GenerativeModel):
 
     @staticmethod
     def load_serialised(save_file, save_dir=PIXEL_CNN_ROOT, **params):
+
+        save_path = path.join(save_dir, save_file)
+
         model = PixelCNN()
-        state_dict = torch.load(save_dir + save_file)
+        state_dict = torch.load(save_path)
         model.net.load_state_dict(state_dict)
 
         return model
