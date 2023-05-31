@@ -1,22 +1,16 @@
 import torch
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
 from datetime import datetime
 
-import matplotlib
-
 import matplotlib.pyplot as plt
-
-import random
 
 from analysis.analysis_utils import (
     load_generative_model,
     device,
     get_vanilla_dataset,
-    SampleDataset,
 )
-from torch.nn.functional import normalize
 
-GRADIENTS_DIR = "./analysis/gradients/serialised_gradients/"
+from path_definitions import GRADIENTS_DIR
 
 
 class GradientStore:
