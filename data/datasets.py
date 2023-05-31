@@ -21,12 +21,12 @@ def get_MNIST(dataroot):
     num_classes = 10
 
     train_dataset = datasets.MNIST(
-        dataroot + "data", train=True, download=True, transform=transforms.ToTensor()
+        path.join(dataroot, "data"), train=True, download=True, transform=transforms.ToTensor()
     )
     # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
 
     test_dataset = datasets.MNIST(
-        dataroot + "data", train=False, download=True, transform=transforms.ToTensor()
+        path.join(dataroot, "data"), train=False, download=True, transform=transforms.ToTensor()
     )
     # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
 
@@ -39,12 +39,12 @@ def get_FashionMNIST(dataroot):
     num_classes = 10
 
     train_dataset = datasets.FashionMNIST(
-        dataroot + "data", train=True, download=True, transform=transforms.ToTensor()
+        path.join(dataroot, "data"), train=True, download=True, transform=transforms.ToTensor()
     )
     # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
 
     test_dataset = datasets.FashionMNIST(
-        dataroot + "data", train=False, download=True, transform=transforms.ToTensor()
+        path.join(dataroot, "data"), train=False, download=True, transform=transforms.ToTensor()
     )
     # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
 
@@ -61,11 +61,11 @@ def get_Omniglot(dataroot):
     )
 
     train_dataset = datasets.Omniglot(
-        dataroot + "data", background=True, download=True, transform=scaling_transform
+        path.join(dataroot, "data"), background=True, download=True, transform=scaling_transform
     )
 
     test_dataset = datasets.Omniglot(
-        dataroot + "data", background=False, download=True, transform=scaling_transform
+        path.join(dataroot, "data"), background=False, download=True, transform=scaling_transform
     )
 
     return image_shape, num_classes, train_dataset, test_dataset
@@ -88,11 +88,11 @@ def get_flipped_Omniglot(dataroot):
     )
 
     train_dataset = datasets.Omniglot(
-        dataroot + "data", background=True, download=True, transform=transform
+        path.join(dataroot, "data"), background=True, download=True, transform=transform
     )
 
     test_dataset = datasets.Omniglot(
-        dataroot + "data", background=False, download=True, transform=transform
+        path.join(dataroot, "data"), background=False, download=True, transform=transform
     )
 
     return image_shape, num_classes, train_dataset, test_dataset
