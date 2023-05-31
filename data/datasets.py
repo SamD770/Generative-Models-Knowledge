@@ -1,4 +1,5 @@
 from pathlib import Path
+from os import path
 
 import torch
 import torch.nn.functional as F
@@ -258,21 +259,21 @@ def get_celeba(dataroot):
 
     train_transform, valid_transform = _data_transforms_celeba64(resize)
     train_data = LMDBDataset(
-        root=dataroot + "data/celeba64_lmdb",
+        root=path.join(dataroot, "data/celeba64_lmdb"),
         name="celeba64",
         split="train",
         transform=train_transform,
         is_encoded=True,
     )
     valid_data = LMDBDataset(
-        root=dataroot + "data/celeba64_lmdb",
+        root=path.join(dataroot,"data/celeba64_lmdb"),
         name="celeba64",
         split="validation",
         transform=valid_transform,
         is_encoded=True,
     )
     test_data = LMDBDataset(
-        root=dataroot + "data/celeba64_lmdb",
+        root=path.join(dataroot, "data/celeba64_lmdb"),
         name="celeba64",
         split="test",
         transform=valid_transform,

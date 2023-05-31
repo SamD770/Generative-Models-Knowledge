@@ -267,12 +267,12 @@ if __name__ == "__main__":
 
     # model = load_generative_model("PixelCNN", "./pixelCNN_model/", "PixelCNN_FashionMNIST_checkpoint.pt") # PixelCNN_FashionMNIST_checkpoint.pt")
 
-    model_name = "VAE_cifar"
+    model_name = "VAE_celeba"
 
     model = load_generative_model("vae", f"{model_name}.pt")
 
     for BATCH_SIZE in [1, 5]:
-        for dataset_name in ["cifar", "svhn", "celeba", "imagenet32"]:
+        for dataset_name in ["celeba", "imagenet32"]:
             dataset = get_vanilla_dataset(dataset_name)
 
             save_file_name = get_save_file_name(
