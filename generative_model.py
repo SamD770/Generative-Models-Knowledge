@@ -3,6 +3,7 @@ Provides standard interfaces for performing model-agnostic anomaly detection..
 """
 
 import torch
+import pickle
 
 from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
@@ -74,7 +75,7 @@ class AnomalyDetectionMethod:
                     batch_summary_stats[name]
                 )
 
-    def cache_summary_statistics(self, filename):
+    def cache_summary_statistics(self, filename, save_dir):
         pass
 
 
