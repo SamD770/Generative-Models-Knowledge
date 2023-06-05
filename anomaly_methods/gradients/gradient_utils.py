@@ -5,7 +5,7 @@ from itertools import chain
 
 from torch.utils.data import DataLoader
 
-from analysis.analysis_utils import get_vanilla_dataset
+from anomaly_methods.analysis_utils import get_vanilla_dataset
 
 
 from .gradient_serialisation import get_save_file_name
@@ -186,7 +186,7 @@ def load_sklearn_norms(
 
 def get_sklearn_norms(id_norms, ood_norms_list):
     """DEPRECATED: use load_sklearn_norms
-    Returns tensors of norms ready for analysis using sklearn."""
+    Returns tensors of norms ready for anomaly_methods using sklearn."""
     stacked_id_norms = get_stacked(id_norms)
     stacked_id_norms = torch.transpose(stacked_id_norms, 0, 1)
 

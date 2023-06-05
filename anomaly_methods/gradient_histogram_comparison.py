@@ -46,6 +46,6 @@ last_score_ax.set_xlabel("gradient anomaly score value")
 fig.legend(title="evaluation dataset")
 # fig.tight_layout()
 
-plt.savefig("./analysis/plots/gradient_hisogram_comparison.png")
+plt.savefig("./anomaly_methods/plots/gradient_hisogram_comparison.png")
 
 print("done")

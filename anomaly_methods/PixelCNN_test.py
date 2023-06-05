@@ -1,6 +1,4 @@
-from pixelCNN_model.main import PixelCNN
-
-import torch.nn.functional as F
+from models.pixelCNN_model import PixelCNN
 
 from torch.utils.data import DataLoader
 
@@ -8,7 +6,7 @@ from analysis_utils import get_vanilla_dataset
 
 file = "PixelCNN_checkpoint.pt"
 
-model_dir = "../pixelCNN_model/"
+model_dir = "../models/pixelCNN_model/"
 
 model = PixelCNN.load_serialised(file, model_dir)
 

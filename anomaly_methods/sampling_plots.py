@@ -1,12 +1,8 @@
-from analysis.analysis_utils import load_generative_model
-
-from pixelCNN_model.main import PixelCNN
+from anomaly_methods.analysis_utils import load_generative_model
 
 from torchvision.utils import make_grid
 
 import matplotlib.pyplot as plt
-
-import torch
 
 temp = 1
 
@@ -16,7 +12,7 @@ file_list = ["VAE_cifar.pt"]
 
 for model_name, file in zip(model_name_list, file_list):
     print("sampling from", model_name)
-    model_dir = f"../VAE_model/{model_name}/"
+    model_dir = f"../models/VAE_model/{model_name}/"
 
     # model_dir = "../pixelCNN_model/"
 
@@ -42,6 +38,6 @@ for model_name, file in zip(model_name_list, file_list):
     # plt.title(title)
     plt.imshow(grid)
     plt.axis("off")
-    plt.savefig("analysis/plots/sample_plots/" + title + ".png")
+    plt.savefig("anomaly_methods/plots/sample_plots/" + title + ".png")
 
 print("done")

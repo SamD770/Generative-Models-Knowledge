@@ -19,7 +19,7 @@ def postprocess(x):
     return torch.clamp(x, 0, 255).byte()
 
 
-from glow_model.modules import (
+from models.glow_model.modules import (
     Conv2d,
     Conv2dZeros,
     ActNorm2d,
@@ -32,7 +32,7 @@ from glow_model.modules import (
     gaussian_sample,
 )
 
-from glow_model.utils import split_feature, uniform_binning_correction
+from models.glow_model.utils import split_feature, uniform_binning_correction
 
 
 def get_block(in_channels, out_channels, hidden_channels):

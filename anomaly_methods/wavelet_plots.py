@@ -9,7 +9,7 @@ import seaborn as sns
 sns.set()
 
 from data.datasets import preprocess, one_hot_encode
-from glow_model.model import Glow
+from models.glow_model import Glow
 
 
 from torchvision import transforms, datasets

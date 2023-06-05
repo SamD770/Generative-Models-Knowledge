@@ -1,4 +1,4 @@
-from analysis import *
+from anomaly_methods import *
 
 import matplotlib.pyplot as plt
 

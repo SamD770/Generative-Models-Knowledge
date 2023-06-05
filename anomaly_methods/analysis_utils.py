@@ -11,9 +11,9 @@ from data.datasets import (
 
 from path_definitions import PROJECT_ROOT
 
-from glow_model.model import Glow
-from pixelCNN_model.main import PixelCNN
-from VAE_model.model import SimpleVAE
+from models.glow_model import Glow
+from models.pixelCNN_model import PixelCNN
+from models.VAE_model import SimpleVAE
 
 import json
 

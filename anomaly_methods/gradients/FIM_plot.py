@@ -38,5 +38,5 @@ if __name__ == "__main__":
             save_file,
             FIM_store,
             batch_size,
-            save_dir="./analysis/plots/FIM_plots/",
+            save_dir="./anomaly_methods/plots/FIM_plots/",
         )

@@ -7,7 +7,7 @@ import seaborn as sns
 sns.set()
 
 from data.datasets import get_CIFAR10, get_SVHN
-from glow_model.model import Glow
+from models.glow_model import Glow
 
 device = torch.device("cuda")
 

@@ -26,7 +26,7 @@ from data.datasets import (
     get_FashionMNIST,
 )
 
-from glow_model.model import Glow
+from models.glow_model.model import Glow
 
 
 def check_manual_seed(seed):

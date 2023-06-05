@@ -1,4 +1,4 @@
-from analysis import *
+from anomaly_methods import *
 
 DEFAULT_SAMPLES = 512
 BATCH_SIZE = 32

@@ -97,7 +97,7 @@ fig.legend(title="evaluation dataset")
 # fig.tight_layout()
 
 plt.savefig(
-    "./analysis/plots/seminal_paper_recreations/likelihood_histogram_comparison_refined.png"
+    "./anomaly_methods/plots/seminal_paper_recreations/likelihood_histogram_comparison_refined.png"
 )
 
 print("done")

@@ -4,7 +4,7 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 
-from analysis.analysis_utils import (
+from anomaly_methods.analysis_utils import (
     load_generative_model,
     device,
     get_vanilla_dataset,

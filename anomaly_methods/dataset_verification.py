@@ -73,6 +73,6 @@ for dataset, name in zip(
     # plt.title(title)
     plt.imshow(grid)
     plt.axis("off")
-    plt.savefig("analysis/plots/sample_plots/" + title + ".png")
+    plt.savefig("anomaly_methods/plots/sample_plots/" + title + ".png")
 
 print("done")
