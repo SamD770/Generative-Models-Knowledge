@@ -11,22 +11,16 @@ from data.datasets import (
 
 from path_definitions import PROJECT_ROOT
 
-from models.glow_model import Glow
-from models.pixelCNN_model import PixelCNN
-from models.VAE_model import SimpleVAE
-
 import json
 
 import torch
-from torch.utils.data import IterableDataset
-
 
 device = torch.device("cuda")
 print(f"using device: {device}")
 
 
-svhn_path = "../data/SVHN"
-cifar_path = "../data/CIFAR10"
+svhn_path = "SVHN"
+cifar_path = "CIFAR10"
 
 
 def get_vanilla_dataset(dataset_name, return_test=True, dataroot=PROJECT_ROOT):
@@ -108,17 +102,6 @@ def get_vanilla_dataset_depreciated(dataset_name, dataroot="../"):
     }[dataset_name](dataroot=dataroot)
 
 
-def load_generative_model(model_type, save_file , **params):
-    model_class = {
-        "glow": Glow,
-        "PixelCNN": PixelCNN,
-        "vae": SimpleVAE
-    }[model_type]
-
-    return model_class.load_serialised(save_file, **params)
-
-
-
 class SampleDataset:
     def __init__(self, model, batch_count=128, temp=1):
         """batch_count is the number of 32-length batches to generate"""
@@ -190,20 +173,3 @@ def load_glow_model(output_folder, model_name, image_shape=(32, 32, 3), num_clas
     return model, hparams
 
 
-def compute_nll(dataset, model):
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=512, num_workers=1)
-
-    nlls = []
-    for x, y in dataloader:
-        x = x.to(device)
-
-        # if hparams['y_condition']:
-        #     y = y.to(device)
-        # else:
-        #     y = None
-
-        with torch.no_grad():
-            nll = model.eval_nll(x)
-            nlls.append(nll)
-
-    return torch.cat(nlls).cpu()

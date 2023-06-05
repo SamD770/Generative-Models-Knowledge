@@ -1,10 +1,8 @@
 import torch
-from analysis_utils import get_vanilla_dataset
+from data.utils import get_vanilla_dataset
 
 from matplotlib import pyplot as plt
 
-
-from torch.autograd.functional import jacobian
 
 # function from https://www.geeksforgeeks.org/program-change-rgb-color-model-hsv-color-model/
 

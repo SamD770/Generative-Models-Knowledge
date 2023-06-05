@@ -2,7 +2,7 @@ from models.pixelCNN_model import PixelCNN
 
 from torch.utils.data import DataLoader
 
-from analysis_utils import get_vanilla_dataset
+from data.utils import get_vanilla_dataset
 
 file = "PixelCNN_checkpoint.pt"
 

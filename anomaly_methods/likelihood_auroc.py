@@ -1,15 +1,12 @@
-from analysis_utils import (
+from data.utils import (
     SampleDataset,
-    load_generative_model,
     get_vanilla_dataset,
-    compute_nll,
 )
+from models.utils import load_generative_model, compute_nll
 
-from sklearn.metrics import roc_curve, auc, RocCurveDisplay
+from sklearn.metrics import roc_curve, auc
 
 import matplotlib.pyplot as plt
-
-from torchvision.utils import make_grid
 
 from torch.utils.data import Subset
 

@@ -1,4 +1,4 @@
-from anomaly_methods.analysis_utils import load_generative_model
+from models.utils import load_generative_model
 
 from pandas import DataFrame
 

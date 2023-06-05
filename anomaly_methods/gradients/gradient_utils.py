@@ -1,11 +1,10 @@
 import torch
 
 from copy import copy
-from itertools import chain
 
 from torch.utils.data import DataLoader
 
-from anomaly_methods.analysis_utils import get_vanilla_dataset
+from data.utils import get_vanilla_dataset
 
 
 from .gradient_serialisation import get_save_file_name

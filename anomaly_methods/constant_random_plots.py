@@ -4,7 +4,8 @@ import seaborn as sns
 
 sns.set()
 
-from analysis_utils import load_generative_model, get_vanilla_dataset
+from data.utils import get_vanilla_dataset
+from models.utils import load_generative_model
 
 
 class RandomNoiseDataset:

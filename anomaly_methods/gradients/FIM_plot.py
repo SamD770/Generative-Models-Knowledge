@@ -3,8 +3,8 @@ from .gradient_serialisation import (
     serialise_gradients,
     get_save_file_name,
 )
-from ..analysis_utils import SampleDataset, load_generative_model
-
+from data.utils import SampleDataset
+from models.utils import load_generative_model
 
 if __name__ == "__main__":
     model = load_generative_model("PixelCNN", "PixelCNN_FashionMNIST_checkpoint.pt", "pixelCNN_model/")

@@ -4,11 +4,11 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 
-from anomaly_methods.analysis_utils import (
-    load_generative_model,
+from data.utils import (
     device,
     get_vanilla_dataset,
 )
+from models.utils import load_generative_model
 
 from path_definitions import GRADIENTS_DIR
 
