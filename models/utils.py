@@ -13,7 +13,7 @@ model_class_dict = {
 }
 
 
-def load_generative_model(model_type, save_file , **params):
+def load_generative_model(model_type, save_file, **params):
     model_class = {
         "glow": Glow,
         "PixelCNN": PixelCNN,
