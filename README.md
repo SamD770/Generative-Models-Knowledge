@@ -1,4 +1,4 @@
-This code is that used in 
+This code is that used for 
 [On Gradients of Deep Generative Models for Representation-Invariant Anomaly Detection](https://openreview.net/forum?id=deYF9kVmIX)
 
 - `generative_model.py` provides interfaces for general use of deep generative models for anomaly detection.
