@@ -2,8 +2,6 @@ import argparse
 import plots
 
 
-
-
 def get_plot_argparser(description):
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("--model_class", choices=model_class_dict.keys())
