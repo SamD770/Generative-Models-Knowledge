@@ -2,21 +2,13 @@ from path_definitions import PLOTS_DIR
 from os import path
 import sys
 
+from plots.utils import RUNNING_MODULE_DIR
+
 from models.utils import load_generative_model
 
 from torchvision.utils import make_grid
 
 import matplotlib.pyplot as plt
-
-OWN_DIR = path.join(PLOTS_DIR, "model_samples")
-
-print("attempt 1: ", OWN_DIR)
-
-OWN_DIR = path.realpath(sys.argv[0])
-
-print("attempt 2:", OWN_DIR)
-
-exit()
 
 temp = 1
 
@@ -43,6 +35,6 @@ for name in name_list:
     # plt.title(title)
     plt.imshow(grid)
     plt.axis("off")
-    plt.savefig(str(OWN_DIR) + title + ".png")
+    save_dir = path.join(RUNNING_MODULE_DIR, f"({title}).png")
 
 print("done")
