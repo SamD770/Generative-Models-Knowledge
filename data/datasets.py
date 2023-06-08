@@ -2,6 +2,8 @@
 Defines the Datasets used in the
 """
 
+import warnings
+
 from pathlib import Path
 from os import path
 
@@ -25,61 +27,152 @@ class DatasetWrapper:
     num_classes = NotImplementedError()
 
     @staticmethod
-    def get_train():
+    def get_train(dataroot=DATAROOT):
         raise NotImplementedError()
 
     @staticmethod
-    def get_test():
+    def get_test(dataroot=DATAROOT):
         raise NotImplementedError()
 
     @classmethod
-    def get_all(cls):
+    def get_all(cls, dataroot=DATAROOT):
         """Returns a tuple of data used for the dataset (for backwards compatibility with Glow code)."""
-        return cls.image_shape, cls.num_classes, cls.get_train(), cls.get_test()
-
+        return cls.image_shape, cls.num_classes, cls.get_train(dataroot), cls.get_test(dataroot)
 
 
 def MNIST_scaling(x):
     return x - 0.5
 
+{
+    "cifar": get_CIFAR10,
+    "svhn": get_SVHN,
+    "celeba": get_celeba,
+    "imagenet32": get_imagenet32,
+    "FashionMNIST": get_FashionMNIST,
+    "MNIST": get_MNIST,
+    "Omniglot": get_Omniglot,
+    "flipped_Omniglot": get_flipped_Omniglot,
+}
+
+
+class MNIST_Wrapper(DatasetWrapper):
+
+    name = "MNIST"
+    image_shape = (28, 28, 1)
+    num_classes = 10
+
+    @staticmethod
+    def get_train(dataroot=DATAROOT):
+        return datasets.MNIST(
+            dataroot, train=True, download=True, transform=transforms.ToTensor()
+        )
+
+    @staticmethod
+    def get_test(dataroot=DATAROOT):
+        return datasets.MNIST(
+            dataroot, train=False, download=True, transform=transforms.ToTensor()
+        )   
+    
 
 def get_MNIST(dataroot):
+    warnings.warn("DEPRECATED. Use MNIST_Wrapper.get_all instead.", DeprecationWarning)
     image_shape = (28, 28, 1)
 
     num_classes = 10
 
     train_dataset = datasets.MNIST(
-        path.join(dataroot, "data"), train=True, download=True, transform=transforms.ToTensor()
+        DATAROOT, train=True, download=True, transform=transforms.ToTensor()
     )
     # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
 
     test_dataset = datasets.MNIST(
-        path.join(dataroot, "data"), train=False, download=True, transform=transforms.ToTensor()
+        DATAROOT, train=False, download=True, transform=transforms.ToTensor()
     )
     # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
 
     return image_shape, num_classes, train_dataset, test_dataset
 
 
+class FashionMNIST_Wrapper(DatasetWrapper):
+    name = "FashionMNIST"
+    image_shape = (28, 28, 1)
+    num_classes = 10
+
+    @staticmethod
+    def get_train(dataroot=DATAROOT):
+        return datasets.FashionMNIST(
+            dataroot, train=True, download=True, transform=transforms.ToTensor()
+        )
+
+    @staticmethod
+    def get_test(dataroot=DATAROOT):
+        return datasets.FashionMNIST(
+            dataroot, train=False, download=True, transform=transforms.ToTensor()
+        )
+
+
 def get_FashionMNIST(dataroot):
+    
+    warnings.warn("DEPRECATED. Use FashionMNIST_Wrapper.get_all instead.", DeprecationWarning)
+    
     image_shape = (28, 28, 1)
 
     num_classes = 10
 
     train_dataset = datasets.FashionMNIST(
-        path.join(dataroot, "data"), train=True, download=True, transform=transforms.ToTensor()
+        DATAROOT, train=True, download=True, transform=transforms.ToTensor()
     )
     # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
 
     test_dataset = datasets.FashionMNIST(
-        path.join(dataroot, "data"), train=False, download=True, transform=transforms.ToTensor()
+        DATAROOT, train=False, download=True, transform=transforms.ToTensor()
     )
     # transform=transforms.Compose([transforms.ToTensor(), MNIST_scaling]))
 
     return image_shape, num_classes, train_dataset, test_dataset
 
 
+class Omniglot_Wrapper(DatasetWrapper):
+    name = "Omniglot"
+    image_shape = (28, 28, 1)
+    num_classes = 10
+
+    scaling_transform = transforms.Compose(
+        [transforms.ToTensor(), transforms.Resize((image_shape[0], image_shape[1]))]
+    )
+
+    @staticmethod
+    def get_train(dataroot=DATAROOT):
+        return datasets.Omniglot(
+            dataroot, background=True, download=True, transform=Omniglot_Wrapper.scaling_transform
+        )
+
+    @staticmethod
+    def get_test(dataroot=DATAROOT):
+        return datasets.Omniglot(
+            dataroot, background=False, download=True, transform=Omniglot_Wrapper.scaling_transform
+        )
+
+
+def flip(x):
+    return 1 - x
+
+
+class FlippedOmniglotWrapper(Omniglot_Wrapper):
+    name = "flipped_Omniglot"
+
+    scaling_transform = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            flip,
+            transforms.Resize((Omniglot_Wrapper.image_shape[0], Omniglot_Wrapper.image_shape[1])),
+        ]
+    )
+
+
 def get_Omniglot(dataroot):
+    warnings.warn("DEPRECATED. Use Omniglot_Wrapper.get_all instead.", DeprecationWarning)
+
     image_shape = (28, 28, 1)
 
     num_classes = 10
@@ -89,17 +182,19 @@ def get_Omniglot(dataroot):
     )
 
     train_dataset = datasets.Omniglot(
-        path.join(dataroot, "data"), background=True, download=True, transform=scaling_transform
+        DATAROOT, background=True, download=True, transform=scaling_transform
     )
 
     test_dataset = datasets.Omniglot(
-        path.join(dataroot, "data"), background=False, download=True, transform=scaling_transform
+        DATAROOT, background=False, download=True, transform=scaling_transform
     )
 
     return image_shape, num_classes, train_dataset, test_dataset
 
 
 def get_flipped_Omniglot(dataroot):
+    warnings.warn("DEPRECATED. Use FlippedOmniglotWrapper.get_all instead.", DeprecationWarning)
+
     def flip(x):
         return 1 - x
 
@@ -116,11 +211,11 @@ def get_flipped_Omniglot(dataroot):
     )
 
     train_dataset = datasets.Omniglot(
-        path.join(dataroot, "data"), background=True, download=True, transform=transform
+        DATAROOT, background=True, download=True, transform=transform
     )
 
     test_dataset = datasets.Omniglot(
-        path.join(dataroot, "data"), background=False, download=True, transform=transform
+        DATAROOT, background=False, download=True, transform=transform
     )
 
     return image_shape, num_classes, train_dataset, test_dataset
@@ -155,7 +250,55 @@ def one_hot_encode(target):
     return one_hot_encoding
 
 
+class CIFAR10_Wrapper(DatasetWrapper):
+    name = "cifar10"
+    image_shape = (32, 32, 3)
+    num_classes = 10
+
+    @staticmethod
+    def root(dataroot):
+        return path.join(dataroot, "CIFAR10")
+
+    @staticmethod
+    def get_train(dataroot=DATAROOT, augment=True):
+        if augment:
+            transformations = [
+                transforms.RandomAffine(0, translate=(0.1, 0.1)),
+                transforms.RandomHorizontalFlip(),
+            ]
+        else:
+            transformations = []
+
+        transformations.extend([transforms.ToTensor(), preprocess])
+        train_transform = transforms.Compose(transformations)
+
+        train_dataset = datasets.CIFAR10(
+            CIFAR10_Wrapper.root(dataroot),
+            train=True,
+            transform=train_transform,
+            target_transform=one_hot_encode,
+            download=True,
+        )
+
+        return train_dataset
+
+    @staticmethod
+    def get_test(dataroot=DATAROOT):
+
+        test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
+
+        return datasets.CIFAR10(
+            CIFAR10_Wrapper.root(dataroot),
+            train=False,
+            transform=test_transform,
+            target_transform=one_hot_encode,
+            download=True,
+        )
+
+
 def get_CIFAR10(augment, dataroot, download):
+    warnings.warn("DEPRECATED. Use CIFAR10_Wrapper.get_all instead.", DeprecationWarning)
+
     image_shape = (32, 32, 3)
     num_classes = 10
 
@@ -192,7 +335,50 @@ def get_CIFAR10(augment, dataroot, download):
     return image_shape, num_classes, train_dataset, test_dataset
 
 
+class SVHN_Wrapper(DatasetWrapper):
+    name = "svhn"
+    image_shape = (32, 32, 3)
+    num_classes = 10
+
+    @staticmethod
+    def root(dataroot):
+        return path.join(dataroot, "SVHN")
+
+    @staticmethod
+    def get_train(dataroot=DATAROOT, augment=True):
+        if augment:
+            transformations = [transforms.RandomAffine(0, translate=(0.1, 0.1))]
+        else:
+            transformations = []
+
+        transformations.extend([transforms.ToTensor(), preprocess])
+        train_transform = transforms.Compose(transformations)
+
+        return datasets.SVHN(
+            SVHN_Wrapper.root(dataroot),
+            split="train",
+            transform=train_transform,
+            target_transform=one_hot_encode,
+            download=True,
+        )
+
+    @staticmethod
+    def get_test(dataroot=DATAROOT):
+
+        test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
+
+        return datasets.SVHN(
+            SVHN_Wrapper.root(dataroot),
+            split="test",
+            transform=test_transform,
+            target_transform=one_hot_encode,
+            download=True,
+        )
+
+
 def get_SVHN(augment, dataroot, download):
+    warnings.warn("DEPRECATED. Use SVHN_Wrapper.get_all instead.", DeprecationWarning)
+
     image_shape = (32, 32, 3)
     num_classes = 10
 
@@ -230,7 +416,50 @@ def get_SVHN(augment, dataroot, download):
     return image_shape, num_classes, train_dataset, test_dataset
 
 
+class Imagenet32_Wrapper(DatasetWrapper):
+    name = "imagenet32"
+    image_shape = (32, 32, 3)
+    num_classes = NotImplementedError("currently labels for imagenet32 are unimplemented")
+
+    @staticmethod
+    def get_train(dataroot=DATAROOT):
+        X_train_list = []
+        for i in range(1, 11):
+            X_train_batch = load_databatch(
+                path.join(
+                    dataroot,
+                    "imagenet32_regular",
+                    "train_32x32",
+                    "train_data_batch_" + str(i),
+                )
+            )
+            X_train_list.append(X_train_batch)
+
+        X_train = np.concatenate(X_train_list)
+        dummy_train_labels = torch.zeros(len(X_train))
+
+        return torch.utils.data.TensorDataset(
+            torch.as_tensor(X_train, dtype=torch.float32), dummy_train_labels
+        )
+
+    @staticmethod
+    def get_test(dataroot=DATAROOT):
+        X_test = load_databatch(
+            path.join(
+                dataroot,
+                "imagenet32_regular",
+                "valid_32x32",
+                "val_data")
+        )
+        dummy_test_labels = torch.zeros(len(X_test))
+        torch.utils.data.TensorDataset(
+            torch.as_tensor(X_test, dtype=torch.float32), dummy_test_labels
+        )
+
+
 def get_imagenet32(dataroot):
+    warnings.warn("DEPRECATED. Use Imagenet32_Wrapper.get_all instead.", DeprecationWarning)
+
     image_shape = (32, 32, 3)
     num_classes = None  # TODO @Sam
 
@@ -267,7 +496,75 @@ def get_imagenet32(dataroot):
     return image_shape, num_classes, train_dataset, test_dataset
 
 
+def _data_transforms_celeba64(size):
+    train_transform = transforms.Compose(
+        [
+            CropCelebA64(),
+            transforms.Resize(size),
+            # transforms.RandomHorizontalFlip(),  # taken out compared to NVAE --> we don't want data augmentation
+            transforms.ToTensor(),
+        ]
+    )
+
+    valid_transform = transforms.Compose(
+        [
+            CropCelebA64(),
+            transforms.Resize(size),
+            transforms.ToTensor(),
+        ]
+    )
+
+    return train_transform, valid_transform
+
+
+class CelebaA_Wrapper(DatasetWrapper):
+    name = "celeba"
+    image_shape = (32, 32, 3)
+    num_classes = NotImplementedError("currently labels for CelebaA are unimplemented")
+
+    resize = 32
+    train_transform, valid_transform = _data_transforms_celeba64(resize)
+
+    @staticmethod
+    def root(dataroot):
+        return path.join(dataroot, "celeba64_lmdb")
+
+    class CelebA_LMBD_Wrapper:
+        def __init__(self, lmdb_dataset):
+            self.lmdb_dataset = lmdb_dataset
+
+        def __len__(self):
+            return self.lmdb_dataset.__len__()
+
+        def __getitem__(self, item):
+            sample = self.lmdb_dataset.__getitem__(item)
+            sample = sample - 0.5
+            return sample, torch.zeros(1)
+
+    @staticmethod
+    def get_train(dataroot=DATAROOT):
+        return LMDBDataset(
+            root=CelebaA_Wrapper.root(dataroot),
+            name="celeba64",
+            split="train",
+            transform=CelebaA_Wrapper.train_transform,
+            is_encoded=True,
+        )
+
+    @staticmethod
+    def get_test(dataroot=DATAROOT):
+        return LMDBDataset(
+            root=CelebaA_Wrapper.root(dataroot),
+            name="celeba64",
+            split="test",
+            transform=CelebaA_Wrapper.train_transform,
+            is_encoded=True,
+        )
+
+
 def get_celeba(dataroot):
+    warnings.warn("DEPRECATED. Use Imagenet32_Wrapper.get_all instead.", DeprecationWarning)
+
     class CelebA_LMBD_Wrapper:
         def __init__(self, lmdb_dataset):
             self.lmdb_dataset = lmdb_dataset
@@ -350,27 +647,6 @@ def unpickle_imagenet32(file):
     with open(file, "rb") as fo:
         dict = pickle.load(fo)
     return dict
-
-
-def _data_transforms_celeba64(size):
-    train_transform = transforms.Compose(
-        [
-            CropCelebA64(),
-            transforms.Resize(size),
-            # transforms.RandomHorizontalFlip(),  # taken out compared to NVAE --> we don't want data augmentation
-            transforms.ToTensor(),
-        ]
-    )
-
-    valid_transform = transforms.Compose(
-        [
-            CropCelebA64(),
-            transforms.Resize(size),
-            transforms.ToTensor(),
-        ]
-    )
-
-    return train_transform, valid_transform
 
 
 class CropCelebA64(object):
