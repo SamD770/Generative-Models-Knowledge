@@ -48,6 +48,9 @@ to_dataset_wrapper = {
 }
 
 
+dataset_names = set(to_dataset_wrapper.keys())
+
+
 def get_image_shape(dataset_name):
     return to_dataset_wrapper[dataset_name].image_shape
 
