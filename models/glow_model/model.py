@@ -374,3 +374,16 @@ class Glow(nn.Module, GenerativeModel):
         model = model.eval()
 
         return model
+
+    @staticmethod
+    def get_save_file(name):
+        raise NotImplementedError()
+
+    @staticmethod
+    def get_save_dir(name):
+        raise NotImplementedError()
+
+    @staticmethod
+    def get_params(name):
+        raise NotImplementedError()
+

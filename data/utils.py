@@ -9,6 +9,19 @@ from data.datasets import (
     get_flipped_Omniglot,
 )
 
+import warnings
+
+from data.datasets import (
+    CIFAR10_Wrapper,
+    SVHN_Wrapper,
+    CelebaA_Wrapper,
+    Imagenet32_Wrapper,
+    MNIST_Wrapper,
+    FashionMNIST_Wrapper,
+    Omniglot_Wrapper,
+    FlippedOmniglotWrapper
+)
+
 from path_definitions import PROJECT_ROOT
 
 import json
@@ -18,12 +31,38 @@ import torch
 device = torch.device("cuda")
 print(f"using device: {device}")
 
+# Dict that maps name string -> DataSetWrapper for the given datasets.
+
+to_dataset_wrapper = {
+    DS_Wrapper.name: DS_Wrapper for DS_Wrapper in
+    [
+        CIFAR10_Wrapper,
+        SVHN_Wrapper,
+        CelebaA_Wrapper,
+        Imagenet32_Wrapper,
+        MNIST_Wrapper,
+        FashionMNIST_Wrapper,
+        Omniglot_Wrapper,
+        FlippedOmniglotWrapper
+    ]
+}
+
+
+def get_image_shape(dataset_name):
+    return to_dataset_wrapper[dataset_name].image_shape
+
+
+def get_test_dataset(dataset_name):
+    return to_dataset_wrapper[dataset_name].get_test()
+
 
 svhn_path = "SVHN"
 cifar_path = "CIFAR10"
 
 
 def get_vanilla_dataset(dataset_name, return_test=True, dataroot=PROJECT_ROOT):
+    warnings.warn("DEPRECATED. Use  instead.", DeprecationWarning)
+
     dataset_getter = {
         "cifar": get_CIFAR10,
         "svhn": get_SVHN,
@@ -90,6 +129,7 @@ def vanilla_test_flipped_Omniglot(dataroot="../"):
 
 
 def get_vanilla_dataset_depreciated(dataset_name, dataroot="../"):
+    warnings.warn("DEPRECATED. Use Imagenet32_Wrapper.get_all instead.", DeprecationWarning)
     return {
         "cifar": vanilla_test_cifar,
         "svhn": vanilla_test_svhn,
