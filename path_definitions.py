@@ -5,6 +5,7 @@ import pathlib
 
 PROJECT_ROOT = pathlib.Path(__file__).parent.resolve()
 
+DATAROOT = path.join(PROJECT_ROOT, "data")
 MODELS_DIR = path.join(PROJECT_ROOT, "models")
 
 VAE_ROOT = path.join(MODELS_DIR, "VAE_model")

@@ -1,3 +1,7 @@
+"""
+Defines the Datasets used in the
+"""
+
 from pathlib import Path
 from os import path
 
@@ -6,9 +10,36 @@ import torch.nn.functional as F
 import pickle
 
 from torchvision import transforms, datasets
+from path_definitions import DATAROOT
 
 # All greyscale datasets are scaled from [0, 255] to [0, 1]
 # All color datasets are scaled from [0, 255] to [-0.5, 0.5]
+
+
+class DatasetWrapper:
+    """
+    Provides each dataset with a name and a
+    """
+
+    name = NotImplementedError()
+    image_shape = NotImplementedError()
+
+    @staticmethod
+    def get_train():
+        raise NotImplementedError()
+
+    @staticmethod
+    def get_test():
+        raise NotImplementedError()
+
+
+
+    def get_all(self):
+        pass
+
+
+class MNIST_Wrapper(DatasetWrapper):
+    pass
 
 
 def MNIST_scaling(x):
