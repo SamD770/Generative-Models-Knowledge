@@ -18,11 +18,11 @@ from path_definitions import DATAROOT
 
 class DatasetWrapper:
     """
-    Provides each dataset with a name and a
+    Primarily associates a fixed name with each dataset so that it can be used in the command line.
     """
-
     name = NotImplementedError()
     image_shape = NotImplementedError()
+    num_classes = NotImplementedError()
 
     @staticmethod
     def get_train():
@@ -32,14 +32,11 @@ class DatasetWrapper:
     def get_test():
         raise NotImplementedError()
 
+    @classmethod
+    def get_all(cls):
+        """Returns a tuple of data used for the dataset (for backwards compatibility with Glow code)."""
+        return cls.image_shape, cls.num_classes, cls.get_train(), cls.get_test()
 
-
-    def get_all(self):
-        pass
-
-
-class MNIST_Wrapper(DatasetWrapper):
-    pass
 
 
 def MNIST_scaling(x):
