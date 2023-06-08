@@ -14,6 +14,13 @@ import pickle
 from torchvision import transforms, datasets
 from path_definitions import DATAROOT
 
+
+import torch.utils.data as data
+import numpy as np
+import lmdb
+import io
+from PIL import Image
+
 # All greyscale datasets are scaled from [0, 255] to [0, 1]
 # All color datasets are scaled from [0, 255] to [-0.5, 0.5]
 
@@ -455,7 +462,7 @@ def get_imagenet32(dataroot):
     X_train_list = []
     for i in range(1, 11):
         X_train_batch = load_databatch(
-            os.path.join(
+            path.join(
                 dataroot,
                 "data",
                 "imagenet32_regular",
@@ -467,7 +474,7 @@ def get_imagenet32(dataroot):
 
     X_train = np.concatenate(X_train_list)
     X_test = load_databatch(
-        os.path.join(dataroot, "data", "imagenet32_regular", "valid_32x32", "val_data")
+        path.join(dataroot, "data", "imagenet32_regular", "valid_32x32", "val_data")
     )
 
     # TODO @Sam: you may want to replace this by another Dataset class.
@@ -483,72 +490,6 @@ def get_imagenet32(dataroot):
     )
 
     return image_shape, num_classes, train_dataset, test_dataset
-
-
-def _data_transforms_celeba64(size):
-    train_transform = transforms.Compose(
-        [
-            CropCelebA64(),
-            transforms.Resize(size),
-            # transforms.RandomHorizontalFlip(),  # taken out compared to NVAE --> we don't want data augmentation
-            transforms.ToTensor(),
-        ]
-    )
-
-    valid_transform = transforms.Compose(
-        [
-            CropCelebA64(),
-            transforms.Resize(size),
-            transforms.ToTensor(),
-        ]
-    )
-
-    return train_transform, valid_transform
-
-
-class CelebaA_Wrapper(DatasetWrapper):
-    name = "celeba"
-    image_shape = (32, 32, 3)
-    num_classes = NotImplementedError("currently labels for CelebaA are unimplemented")
-
-    resize = 32
-    train_transform, valid_transform = _data_transforms_celeba64(resize)
-
-    @staticmethod
-    def root(dataroot):
-        return path.join(dataroot, "celeba64_lmdb")
-
-    class CelebA_LMBD_Wrapper:
-        def __init__(self, lmdb_dataset):
-            self.lmdb_dataset = lmdb_dataset
-
-        def __len__(self):
-            return self.lmdb_dataset.__len__()
-
-        def __getitem__(self, item):
-            sample = self.lmdb_dataset.__getitem__(item)
-            sample = sample - 0.5
-            return sample, torch.zeros(1)
-
-    @staticmethod
-    def get_train(dataroot=DATAROOT):
-        return LMDBDataset(
-            root=CelebaA_Wrapper.root(dataroot),
-            name="celeba64",
-            split="train",
-            transform=CelebaA_Wrapper.train_transform,
-            is_encoded=True,
-        )
-
-    @staticmethod
-    def get_test(dataroot=DATAROOT):
-        return LMDBDataset(
-            root=CelebaA_Wrapper.root(dataroot),
-            name="celeba64",
-            split="test",
-            transform=CelebaA_Wrapper.train_transform,
-            is_encoded=True,
-        )
 
 
 def get_celeba(dataroot):
@@ -651,19 +592,70 @@ class CropCelebA64(object):
         return self.__class__.__name__ + "()"
 
 
-# ---------------------------------------------------------------
-# Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
-#
-# This work is licensed under the NVIDIA Source Code License
-# for NVAE. To view a copy of this license, see the LICENSE file.
-# ---------------------------------------------------------------
+def _data_transforms_celeba64(size):
+    train_transform = transforms.Compose(
+        [
+            CropCelebA64(),
+            transforms.Resize(size),
+            # transforms.RandomHorizontalFlip(),  # taken out compared to NVAE --> we don't want data augmentation
+            transforms.ToTensor(),
+        ]
+    )
 
-import torch.utils.data as data
-import numpy as np
-import lmdb
-import os
-import io
-from PIL import Image
+    valid_transform = transforms.Compose(
+        [
+            CropCelebA64(),
+            transforms.Resize(size),
+            transforms.ToTensor(),
+        ]
+    )
+
+    return train_transform, valid_transform
+
+
+class CelebaA_Wrapper(DatasetWrapper):
+    name = "celeba"
+    image_shape = (32, 32, 3)
+    num_classes = NotImplementedError("currently labels for CelebaA are unimplemented")
+
+    resize = 32
+    train_transform, valid_transform = _data_transforms_celeba64(resize)
+
+    @staticmethod
+    def root(dataroot):
+        return path.join(dataroot, "celeba64_lmdb")
+
+    class CelebA_LMBD_Wrapper:
+        def __init__(self, lmdb_dataset):
+            self.lmdb_dataset = lmdb_dataset
+
+        def __len__(self):
+            return self.lmdb_dataset.__len__()
+
+        def __getitem__(self, item):
+            sample = self.lmdb_dataset.__getitem__(item)
+            sample = sample - 0.5
+            return sample, torch.zeros(1)
+
+    @staticmethod
+    def get_train(dataroot=DATAROOT):
+        return LMDBDataset(
+            root=CelebaA_Wrapper.root(dataroot),
+            name="celeba64",
+            split="train",
+            transform=CelebaA_Wrapper.train_transform,
+            is_encoded=True,
+        )
+
+    @staticmethod
+    def get_test(dataroot=DATAROOT):
+        return LMDBDataset(
+            root=CelebaA_Wrapper.root(dataroot),
+            name="celeba64",
+            split="test",
+            transform=CelebaA_Wrapper.train_transform,
+            is_encoded=True,
+        )
 
 
 def num_samples(dataset, split):
@@ -687,7 +679,7 @@ class LMDBDataset(data.Dataset):
         self.split = split
         self.transform = transform
         if self.split in ["train", "validation", "test"]:
-            lmdb_path = os.path.join(root, f"{self.split}.lmdb")
+            lmdb_path = path.join(root, f"{self.split}.lmdb")
         else:
             print("invalid split param")
         self.data_lmdb = lmdb.open(
