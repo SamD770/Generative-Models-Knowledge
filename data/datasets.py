@@ -43,17 +43,6 @@ class DatasetWrapper:
 def MNIST_scaling(x):
     return x - 0.5
 
-{
-    "cifar": get_CIFAR10,
-    "svhn": get_SVHN,
-    "celeba": get_celeba,
-    "imagenet32": get_imagenet32,
-    "FashionMNIST": get_FashionMNIST,
-    "MNIST": get_MNIST,
-    "Omniglot": get_Omniglot,
-    "flipped_Omniglot": get_flipped_Omniglot,
-}
-
 
 class MNIST_Wrapper(DatasetWrapper):
 
