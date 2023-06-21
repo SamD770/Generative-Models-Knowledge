@@ -1,6 +1,7 @@
 from generative_model import GenerativeModel
 from path_definitions import GLOW_ROOT
 from os import path
+from data.utils import get_image_shape
 
 import math
 
@@ -330,7 +331,7 @@ class Glow(nn.Module, GenerativeModel):
         return postprocess(imgs)
 
     @staticmethod
-    def load_serialised(save_file, save_dir=GLOW_ROOT,  image_shape=None, num_classes=None, **params):
+    def load_serialised(save_file, save_dir=GLOW_ROOT, **params):
         # if "num_classes" not in params:
         #     num_classes = 10
         # elif "image_shape" not in params:
@@ -345,6 +346,9 @@ class Glow(nn.Module, GenerativeModel):
 
         with open(params_path) as json_file:
             hparams = json.load(json_file)
+
+        image_shape = get_image_shape(hparams["dataset"])
+        num_classes = None
 
         model = Glow(
             image_shape,

@@ -10,7 +10,10 @@ from torchvision.utils import make_grid
 
 import matplotlib.pyplot as plt
 
-temp = 1
+
+def run(model):
+    pass
+
 
 file_list = ["VAE_cifar.pt"]
 

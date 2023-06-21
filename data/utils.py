@@ -28,9 +28,6 @@ import json
 
 import torch
 
-device = torch.device("cuda")
-print(f"using device: {device}")
-
 # Dict that maps name string -> DataSetWrapper for the given datasets.
 
 to_dataset_wrapper = {

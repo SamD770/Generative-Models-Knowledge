@@ -1,6 +1,5 @@
 import torch
 
-from data.utils import device
 from models.glow_model.model import Glow
 from models.pixelCNN_model.main import PixelCNN
 from models.VAE_model.model import SimpleVAE
@@ -11,6 +10,8 @@ model_class_dict = {
     "PixelCNN": PixelCNN,
     "vae": SimpleVAE
 }
+
+model_classes = model_class_dict.keys()
 
 
 def load_generative_model(model_type, save_file, **params):
@@ -25,6 +26,9 @@ def load_generative_model(model_type, save_file, **params):
 
 def compute_nll(dataset, model):
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=512, num_workers=1)
+
+    device = torch.device("cuda")
+    print(f"using device: {device}")
 
     nlls = []
     for x, y in dataloader:

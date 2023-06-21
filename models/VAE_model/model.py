@@ -7,6 +7,8 @@ import torch
 
 from torch import nn
 
+import json
+
 # from torchvision import datasets, transforms
 from itertools import chain
 
@@ -261,7 +263,7 @@ if __name__ == "__main__":
     print(device)
 
     for dataset_name, dataset_getter in zip(
-            ["cifar", "svhn", "celeba", "imagenet"],
+            ["cifar10", "svhn", "celeba", "imagenet"],
             [get_CIFAR10, get_SVHN, get_celeba, get_imagenet32]):
 
         if dataset_name in ["cifar", "svhn"]:

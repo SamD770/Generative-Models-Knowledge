@@ -250,6 +250,7 @@ class CIFAR10_Wrapper(DatasetWrapper):
     name = "cifar10"
     image_shape = (32, 32, 3)
     num_classes = 10
+    pixel_range = (0.5, 0.5)
 
     @staticmethod
     def root(dataroot):
