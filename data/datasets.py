@@ -448,8 +448,9 @@ class Imagenet32_Wrapper(DatasetWrapper):
                 "valid_32x32",
                 "val_data")
         )
+
         dummy_test_labels = torch.zeros(len(X_test))
-        torch.utils.data.TensorDataset(
+        return torch.utils.data.TensorDataset(
             torch.as_tensor(X_test, dtype=torch.float32), dummy_test_labels
         )
 
@@ -626,7 +627,8 @@ class CelebaA_Wrapper(DatasetWrapper):
     def root(dataroot):
         return path.join(dataroot, "celeba64_lmdb")
 
-    class CelebA_LMBD_Wrapper:
+    class CelebA_LMBD_Dataset:
+        """Creates dummy labels and scales the images them to be in the range (-0.5, 0.5)"""
         def __init__(self, lmdb_dataset):
             self.lmdb_dataset = lmdb_dataset
 
@@ -640,22 +642,26 @@ class CelebaA_Wrapper(DatasetWrapper):
 
     @staticmethod
     def get_train(dataroot=DATAROOT):
-        return LMDBDataset(
-            root=CelebaA_Wrapper.root(dataroot),
-            name="celeba64",
-            split="train",
-            transform=CelebaA_Wrapper.train_transform,
-            is_encoded=True,
+        return CelebaA_Wrapper.CelebA_LMBD_Dataset(
+            LMDBDataset(
+                root=CelebaA_Wrapper.root(dataroot),
+                name="celeba64",
+                split="train",
+                transform=CelebaA_Wrapper.train_transform,
+                is_encoded=True,
+            )
         )
 
     @staticmethod
     def get_test(dataroot=DATAROOT):
-        return LMDBDataset(
-            root=CelebaA_Wrapper.root(dataroot),
-            name="celeba64",
-            split="test",
-            transform=CelebaA_Wrapper.train_transform,
-            is_encoded=True,
+        return CelebaA_Wrapper.CelebA_LMBD_Dataset(
+            LMDBDataset(
+                root=CelebaA_Wrapper.root(dataroot),
+                name="celeba64",
+                split="test",
+                transform=CelebaA_Wrapper.train_transform,
+                is_encoded=True,
+            )
         )
 
 

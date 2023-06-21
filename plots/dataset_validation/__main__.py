@@ -47,12 +47,16 @@ def run(dataset_name):
 
     title = f"samples from {dataset_name} dataset"
 
+    if grid.min() < 0:          # To account for the fact that the colour datasets are scaled (-0.5, 0.5)
+        grid -= grid.min()
+
     # plt.title(title)
     plt.imshow(grid)
     plt.axis("off")
 
     save_filepath = path.join(RUNNING_MODULE_DIR, title + ".png")
     plt.savefig(save_filepath)
+    print()
 
 
 args = parser.parse_args()
