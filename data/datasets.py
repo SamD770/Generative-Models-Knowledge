@@ -165,6 +165,19 @@ class FlippedOmniglotWrapper(Omniglot_Wrapper):
         ]
     )
 
+    @staticmethod
+    def get_train(dataroot=DATAROOT):
+        return datasets.Omniglot(
+            dataroot, background=True, download=True, transform=FlippedOmniglotWrapper.scaling_transform
+        )
+
+    @staticmethod
+    def get_test(dataroot=DATAROOT):
+        return datasets.Omniglot(
+            dataroot, background=False, download=True, transform=FlippedOmniglotWrapper.scaling_transform
+        )
+
+
 
 def get_Omniglot(dataroot):
     warnings.warn("DEPRECATED. Use Omniglot_Wrapper.get_all instead.", DeprecationWarning)
