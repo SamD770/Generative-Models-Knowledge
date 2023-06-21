@@ -2,13 +2,12 @@ from plots.utils import RUNNING_MODULE_DIR
 
 import torch
 import matplotlib.pyplot as plt
-from torchvision.utils import make_grid
 from random import randint
 
 from os import path
 
 from data.utils import get_test_dataset, get_image_shape
-from plots.utils import dataset_parser
+from plots.utils import dataset_parser, grid_from_imgs
 
 import argparse
 
@@ -41,14 +40,9 @@ def run(dataset_name):
         sample, _ = dataset[index]
         samples.append(sample)
 
-    grid = make_grid(samples, nrow=8)
-
-    grid = grid.permute(1, 2, 0)
+    grid = grid_from_imgs(samples)
 
     title = f"samples from {dataset_name} dataset"
-
-    if grid.min() < 0:          # To account for the fact that the colour datasets are scaled (-0.5, 0.5)
-        grid -= grid.min()
 
     # plt.title(title)
     plt.imshow(grid)

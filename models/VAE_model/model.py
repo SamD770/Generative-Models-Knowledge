@@ -62,7 +62,7 @@ class SimpleVAE(nn.Module, GenerativeModel):
         return samples
 
     @staticmethod
-    def load_serialised(model_name, **params):
+    def load_serialised(model_name):
 
         save_path = path.join(model_name, save_file)
         checkpoint = torch.load(save_path)

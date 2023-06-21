@@ -90,7 +90,7 @@ class PixelCNN(nn.Module, GenerativeModel):
         return sample
 
     @staticmethod
-    def load_serialised(model_name, **params):
+    def load_serialised(model_name):
 
         save_path = path.join(model_name, save_file)
 

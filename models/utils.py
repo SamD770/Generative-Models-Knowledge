@@ -14,14 +14,14 @@ model_class_dict = {
 model_classes = model_class_dict.keys()
 
 
-def load_generative_model(model_type, save_file, **params):
+def load_generative_model(model_type, model_name):
     model_class = {
         "glow": Glow,
         "PixelCNN": PixelCNN,
         "vae": SimpleVAE
     }[model_type]
 
-    return model_class.load_serialised(**params)
+    return model_class.load_serialised(model_name)
 
 
 def compute_nll(dataset, model):

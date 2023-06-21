@@ -21,7 +21,7 @@ class GenerativeModel:
         raise NotImplementedError()
 
     @staticmethod
-    def load_serialised(model_name, **params):
+    def load_serialised(model_name):
         raise NotImplementedError()
 
     @staticmethod

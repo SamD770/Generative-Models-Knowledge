@@ -1,8 +1,9 @@
 from generative_model import GenerativeModel
 from path_definitions import GLOW_ROOT
-from os import path
+from os import path, listdir
 from data.utils import get_image_shape
 
+import re
 import math
 
 import torch
@@ -12,8 +13,11 @@ import json
 
 n_bits = 8
 
+checkpoint_regex = re.compile("glow_checkpoint_\d*.pt")
+
 
 def postprocess(x):
+    """Deprecated."""
     x = torch.clamp(x, -0.5, 0.5)
     x += 0.5
     x = x * 2**n_bits
@@ -328,10 +332,12 @@ class Glow(nn.Module, GenerativeModel):
         if batch_size != 32:
             raise NotImplementedError("currently glow only supports batch sizes of 32.")
         imgs = self.forward(temperature=1, reverse=True)
-        return postprocess(imgs)
+        imgs = imgs.clamp(-0.5, 0.5)
+        # return postprocess(imgs)
+        return imgs
 
     @staticmethod
-    def load_serialised(model_name, **params):
+    def load_serialised(model_name):
         # if "num_classes" not in params:
         #     num_classes = 10
         # elif "image_shape" not in params:
@@ -340,7 +346,10 @@ class Glow(nn.Module, GenerativeModel):
         device = "cuda"
 
         base_path = path.join(GLOW_ROOT, model_name)
-        params_path = path.join(GLOW_ROOT, "hparams.json")
+
+        print(f"loading model from: {base_path}")
+
+        params_path = path.join(base_path, "hparams.json")
 
         with open(params_path) as json_file:
             hparams = json.load(json_file)
@@ -362,8 +371,17 @@ class Glow(nn.Module, GenerativeModel):
             hparams["y_condition"],
         )
 
-        print(f"loading model from: {model_path}")
-        model_path = path.join(GLOW_ROOT, save_file)
+        torch_filename = None
+
+        for filename in listdir(base_path):
+
+            m = checkpoint_regex.match(filename)
+            if m:
+                torch_filename = m.group()
+
+        model_path = path.join(base_path, torch_filename)
+
+        print(f"model_path: {model_path}")
 
         state_dicts = torch.load(model_path, map_location=device)
         print(f"stored information: {state_dicts.keys()}")
