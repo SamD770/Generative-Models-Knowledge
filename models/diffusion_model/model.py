@@ -39,7 +39,7 @@ class DiffusionModel(GenerativeModel):
         return imgs - 0.5           # diffusion model implementation works on images (0, 1)
 
     @staticmethod
-    def load_serialised(save_file, save_dir=DIFFUSION_ROOT, **params):
+    def load_serialised(model_name, **params):
         raise NotImplementedError()
 
 

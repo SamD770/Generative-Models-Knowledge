@@ -8,7 +8,7 @@ file = "PixelCNN_checkpoint.pt"
 
 model_dir = "../models/pixelCNN_model/"
 
-model = PixelCNN.load_serialised(file, model_dir)
+model = PixelCNN.load_serialised(model_dir)
 
 
 dl = DataLoader(get_vanilla_dataset("FashionMNIST"), batch_size=5)

@@ -331,7 +331,7 @@ class Glow(nn.Module, GenerativeModel):
         return postprocess(imgs)
 
     @staticmethod
-    def load_serialised(save_file, save_dir=GLOW_ROOT, **params):
+    def load_serialised(model_name, **params):
         # if "num_classes" not in params:
         #     num_classes = 10
         # elif "image_shape" not in params:
@@ -339,10 +339,8 @@ class Glow(nn.Module, GenerativeModel):
 
         device = "cuda"
 
-        model_path = path.join(save_dir, save_file)
-        params_path = path.join(save_dir, "hparams.json")
-
-        print(f"loading model from: {model_path}")
+        base_path = path.join(GLOW_ROOT, model_name)
+        params_path = path.join(GLOW_ROOT, "hparams.json")
 
         with open(params_path) as json_file:
             hparams = json.load(json_file)
@@ -363,6 +361,9 @@ class Glow(nn.Module, GenerativeModel):
             hparams["learn_top"],
             hparams["y_condition"],
         )
+
+        print(f"loading model from: {model_path}")
+        model_path = path.join(GLOW_ROOT, save_file)
 
         state_dicts = torch.load(model_path, map_location=device)
         print(f"stored information: {state_dicts.keys()}")

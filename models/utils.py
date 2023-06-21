@@ -21,7 +21,7 @@ def load_generative_model(model_type, save_file, **params):
         "vae": SimpleVAE
     }[model_type]
 
-    return model_class.load_serialised(save_file, **params)
+    return model_class.load_serialised(**params)
 
 
 def compute_nll(dataset, model):
