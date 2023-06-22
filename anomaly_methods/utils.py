@@ -4,4 +4,4 @@ anomaly_detection_methods_dict = {
     "gradients_L2_norms": L2NormAnomalyDetection
 }
 
-anomaly_detection_methods_list = anomaly_detection_methods_dict.keys()
+anomaly_detection_methods = anomaly_detection_methods_dict.keys()
