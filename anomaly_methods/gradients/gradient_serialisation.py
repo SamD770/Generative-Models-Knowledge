@@ -10,6 +10,8 @@ from data.utils import (
 )
 from models.utils import load_generative_model
 
+import warnings
+
 from path_definitions import GRADIENTS_DIR
 
 
@@ -49,6 +51,7 @@ class NormStore(GradientStore):
 
 class L2NormStore(NormStore):
     """Stores a mapping from the layer name to L^2 norm of the gradient vector."""
+    warnings.warn("DEPRECATED use gradients.L2_norms instead", DeprecationWarning)
 
     def take_norm(self, gradient_vector, layer):
         return (gradient_vector**2).sum()

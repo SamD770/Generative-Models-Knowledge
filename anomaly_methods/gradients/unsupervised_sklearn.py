@@ -4,6 +4,9 @@ import numpy as np
 
 from pandas import DataFrame
 
+
+import warnings
+
 from sklearn.svm import OneClassSVM
 from sklearn.ensemble import IsolationForest
 from sklearn.covariance import EllipticEnvelope
@@ -13,6 +16,7 @@ from sklearn.neighbors import LocalOutlierFactor
 def fit_sklearn_unsupervised(
     normed_id_data, normed_ood_data_list, sklearn_model, fit_sample_proportion=0.8
 ):
+    warnings.warn("DEPRECATED. please use gradients.L2_norms instead.", DeprecationWarning)
     def get_rejection_rate(data, model):
         prediction = model.predict(data)
         rejection_rate = (

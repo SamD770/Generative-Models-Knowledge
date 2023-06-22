@@ -33,7 +33,7 @@ class AnomalyDetectionMethod:
 
     The pipeline for anomaly detection is then as follows:
     - compute_summary_statistics and cache_summary_statistics for each dataset
-    - setup_method using the summary statistics for the in-distribution validation dataset
+    - setup_method using the summary statistics for the in-distribution "fitting" dataset
     - compute the anomaly_scores using the summary statistics for each dataset
     """
 
@@ -48,10 +48,9 @@ class AnomalyDetectionMethod:
     def extract_summary_statistics(self, batch: Tensor) -> Dict[str, float]:
         raise NotImplementedError()
 
-    def setup_method(self, valid_set_summary: Dict[str, List[float]]):
+    def setup_method(self, fit_set_summary: Dict[str, List[float]]):
         raise NotImplementedError()
 
-    @staticmethod
     def anomaly_score(self, summary_statistics: Dict[str, List[float]]) -> List[float]:
         raise NotImplementedError()
 

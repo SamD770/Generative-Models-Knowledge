@@ -41,6 +41,7 @@ def get_raw_image_data(batch_size, dataset_name):
 def get_norm_dict(
     batch_size, model_name, dataset_name, test_dataset=True, printout=False
 ):
+    warnings.warn("DEPRECATED. moved to anomaly_methods.gradients.L2_norms.zero_keys")
     norm_file_name = get_save_file_name(
         model_name, dataset_name, batch_size, test_dataset=test_dataset
     )
@@ -149,10 +150,12 @@ def get_norms_depricated(
 
 
 def get_stacked(norm_dict):
+    warnings.warn("DEPRECATED. moved to anomaly_methods.gradients.L2_norms")
     return torch.stack(list(norm_dict.values()))
 
 
 def get_norm_matrix(norm_dict):
+    warnings.warn("DEPRECATED. moved to anomaly_methods.gradients.L2_norms")
     stacked = get_stacked(norm_dict)
     return torch.transpose(stacked, 0, 1)
 
