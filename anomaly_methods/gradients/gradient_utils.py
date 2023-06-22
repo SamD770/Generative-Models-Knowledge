@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 
 from data.utils import get_vanilla_dataset
 
+import warnings
 
 from .gradient_serialisation import get_save_file_name
 from path_definitions import GRADIENTS_DIR
@@ -106,6 +107,7 @@ def get_norms(
 def get_norms_depricated(
     batch_size, model_name, id_dataset, ood_datasets, printout=False
 ):
+    warnings.warn("DEPRECATED", DeprecationWarning)
     id_norm_file = get_save_file_name(model_name, id_dataset, batch_size)
 
     ood_norm_files = [
@@ -186,6 +188,7 @@ def load_sklearn_norms(
 def get_sklearn_norms(id_norms, ood_norms_list):
     """DEPRECATED: use load_sklearn_norms
     Returns tensors of norms ready for anomaly_methods using sklearn."""
+    warnings.warn("DEPRECATED: use load_sklearn_norms", DeprecationWarning)
     stacked_id_norms = get_stacked(id_norms)
     stacked_id_norms = torch.transpose(stacked_id_norms, 0, 1)
 
