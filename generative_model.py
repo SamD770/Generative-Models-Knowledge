@@ -27,9 +27,14 @@ class GenerativeModel:
 
 class AnomalyDetectionMethod:
     """
-    Provides a standard interface for performing anomaly detection using deep generative models.
-    the pipeline for doing so is using the model and a batch of data to provide one dictionary of summary statistics.
-    The summary statistics for data can be cached and subsequently loaded to generate anomaly scores
+    Provides a standard interface for performing anomaly detection using deep generative models. Each method provides
+    a mapping of (model, data batch) -> dictionary of summary statistics (eg the norm of the gradient of each layer),
+    the likelihood, etc.
+
+    The pipeline for anomaly detection is then as follows:
+    - compute_summary_statistics and cache_summary_statistics for each dataset
+    - setup_method using the summary statistics for the in-distribution validation dataset
+    - compute the anomaly_scores using the summary statistics for each dataset
     """
 
     def __init__(self, model: GenerativeModel):
@@ -43,7 +48,7 @@ class AnomalyDetectionMethod:
     def extract_summary_statistics(self, batch: Tensor) -> Dict[str, float]:
         raise NotImplementedError()
 
-    def setup_method(self, train_set_summary: Dict[str, List[float]]):
+    def setup_method(self, valid_set_summary: Dict[str, List[float]]):
         raise NotImplementedError()
 
     @staticmethod
@@ -76,7 +81,7 @@ class AnomalyDetectionMethod:
                 )
 
     def cache_summary_statistics(self, filename, save_dir):
-        pass
+        pass # TODO: naming system to make sure that no
 
 
 
