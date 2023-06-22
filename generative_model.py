@@ -24,23 +24,6 @@ class GenerativeModel:
     def load_serialised(model_name):
         raise NotImplementedError()
 
-    @staticmethod
-    def get_save_file(name):
-        raise NotImplementedError()
-
-    @staticmethod
-    def get_save_dir(name):
-        raise NotImplementedError()
-
-    @staticmethod
-    def get_params(name):
-        raise NotImplementedError()
-
-    @classmethod
-    def load_from_name(cls, name):
-        """Allows for models to be loaded from the unique identifier 'name' strings"""
-        return cls.load_serialised(cls.get_params(name))
-
 
 class AnomalyDetectionMethod:
     """
