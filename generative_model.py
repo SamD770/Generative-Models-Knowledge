@@ -5,13 +5,13 @@ Provides standard interfaces for performing model-agnostic anomaly detection..
 import torch
 import pickle
 
-from torch import Tensor
+from torch import Tensor, Module
 from torch.utils.data import Dataset, DataLoader
 
 from typing import Dict, List
 
 
-class GenerativeModel:
+class GenerativeModel(Module):
     """Provides a standard interface for anomaly_methods code to interact with all types of models."""
 
     def eval_nll(self, x):
