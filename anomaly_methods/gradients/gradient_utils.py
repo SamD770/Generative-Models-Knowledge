@@ -9,18 +9,18 @@ from data.utils import get_vanilla_dataset
 import warnings
 
 from .gradient_serialisation import get_save_file_name
-from path_definitions import GRADIENTS_DIR
+from path_definitions import SERIALISED_GRADIENTS_DIR
 
 
 def get_single_gradients(batch_size, model_name, id_dataset, ood_datasets):
     id_grads = torch.load(
-        GRADIENTS_DIR
+        SERIALISED_GRADIENTS_DIR
         + get_save_file_name(model_name, id_dataset, batch_size, method="single_grad")
     )
 
     ood_grads_list = [
         torch.load(
-            GRADIENTS_DIR
+            SERIALISED_GRADIENTS_DIR
             + get_save_file_name(
                 model_name, ood_dataset, batch_size, method="single_grad"
             )
@@ -45,7 +45,7 @@ def get_norm_dict(
     norm_file_name = get_save_file_name(
         model_name, dataset_name, batch_size, test_dataset=test_dataset
     )
-    norms = torch.load(GRADIENTS_DIR + norm_file_name)
+    norms = torch.load(SERIALISED_GRADIENTS_DIR + norm_file_name)
 
     zero_count = 0
     zero_keys = set()
@@ -116,10 +116,10 @@ def get_norms_depricated(
         for dataset_name in ood_datasets
     ]
 
-    id_norms = torch.load(GRADIENTS_DIR + id_norm_file)
+    id_norms = torch.load(SERIALISED_GRADIENTS_DIR + id_norm_file)
 
     ood_norms_list = [
-        torch.load(GRADIENTS_DIR + ood_file) for ood_file in ood_norm_files
+        torch.load(SERIALISED_GRADIENTS_DIR + ood_file) for ood_file in ood_norm_files
     ]
 
     all_norms = copy(ood_norms_list)

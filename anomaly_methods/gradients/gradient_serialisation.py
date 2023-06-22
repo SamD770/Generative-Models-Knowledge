@@ -12,7 +12,7 @@ from models.utils import load_generative_model
 
 import warnings
 
-from path_definitions import GRADIENTS_DIR
+from path_definitions import SERIALISED_GRADIENTS_DIR
 
 
 class GradientStore:
@@ -193,7 +193,7 @@ def backprop_nll(model, batch):
 
 
 def serialise_gradients(
-    model, dataset, save_file, grad_store, batch_size, save_dir=GRADIENTS_DIR
+    model, dataset, save_file, grad_store, batch_size, save_dir=SERIALISED_GRADIENTS_DIR
 ):
     print(f"creating {save_dir + save_file}:")
 
@@ -238,6 +238,7 @@ def get_save_file_name(
     test_dataset=True,
     filetype="pt",
 ):
+    warnings.warn("DEPRECATED. moved to gradinets.L2_norms", DeprecationWarning)
     if test_dataset:
         file_name = (
             f"trained_{model_name}_{method}_{dataset_name}_{batch_size}.{filetype}"

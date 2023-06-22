@@ -39,7 +39,6 @@ class AnomalyDetectionMethod:
 
     def __init__(self, model: GenerativeModel):
         self.model = model
-        self.summary_stats = {}
 
     @staticmethod
     def summary_statistic_names(model: GenerativeModel) -> List[str]:
@@ -56,7 +55,7 @@ class AnomalyDetectionMethod:
 
     def compute_summary_statistics(self, dataset: Dataset, batch_size: int):
         """
-        Applies extract_summary_statistics to each batch in dataset and stores the results in self.summary_stats
+        Applies extract_summary_statistics to each batch in dataset
         :param dataset:
         :param batch_size:
         :return:
@@ -67,7 +66,7 @@ class AnomalyDetectionMethod:
 
         summary_stat_names = self.summary_statistic_names(self.model)
 
-        self.summary_stats = {
+        summary_stats = {
             name: [] for name in summary_stat_names
         }
 
@@ -75,12 +74,15 @@ class AnomalyDetectionMethod:
             batch_summary_stats = self.extract_summary_statistics(batch)
 
             for name in summary_stat_names:
-                self.summary_stats[name].append(
+                summary_stats[name].append(
                     batch_summary_stats[name]
                 )
 
-    def cache_summary_statistics(self, filename, save_dir):
-        pass # TODO: naming system to make sure that no
+        return summary_stats
+
+    @staticmethod
+    def summary_statistic_filepath(model_name, dataset_name, batch_size):
+        raise NotImplementedError()
 
 
 
