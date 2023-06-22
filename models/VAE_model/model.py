@@ -64,10 +64,10 @@ class SimpleVAE(nn.Module, GenerativeModel):
     @staticmethod
     def load_serialised(model_name):
 
-        save_path = path.join(model_name, save_file)
+        save_path = path.join(VAE_ROOT, model_name + ".pt")
         checkpoint = torch.load(save_path)
 
-        vae = SimpleVAE(encoder=LargeEncoder(), decoder=LargeDecoder(), **params) # TODO: clean this
+        vae = SimpleVAE(encoder=LargeEncoder(), decoder=LargeDecoder()) # TODO: clean this
         vae.load_state_dict(checkpoint["vae_state_dict"])
 
         return vae
