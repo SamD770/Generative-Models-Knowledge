@@ -1,10 +1,81 @@
-from .unsupervised_sklearn import *
+import argparse
 
 from sklearn.metrics import roc_curve, auc, RocCurveDisplay
 
 import matplotlib.pyplot as plt
 
+from plots.utils import anomaly_method_parser, model_name_parser, dataset_parser, save_plot
+from anomaly_methods.utils import anomaly_detection_methods_dict
 
+import torch
+
+
+def run(anomaly_detection_name, model_name, id_dataset, ood_dataset_names, batch_size):
+    anomaly_detection_method = anomaly_detection_methods_dict[anomaly_detection_name]
+
+    # Load summaries
+
+    filepath = anomaly_detection_method.summary_statistic_filepath(
+            model_name, id_dataset, batch_size
+        )
+
+    id_dataset_summary = torch.load(filepath)
+
+    ood_dataset_summaries = []
+
+    for dataset_name in ood_dataset_names:
+        filepath = anomaly_detection_method.summary_statistic_filepath(
+            model_name, dataset_name, batch_size)
+
+        ood_dataset_summaries.append(
+            torch.load(filepath)
+        )
+
+    # Compute anomaly scores
+
+    anomaly_detector = anomaly_detection_method.from_dataset_summary(id_dataset_summary)
+
+    id_fit_summary, id_test_summary = anomaly_detector.split_dataset_summary(id_dataset_summary, 0.5)
+
+    anomaly_detector.setup_method(id_fit_summary)
+
+    id_test_anomaly_scores = anomaly_detector.anomaly_score(id_test_summary)
+
+    ood_anomaly_scores_list = [
+        anomaly_detector.anomaly_score(dataset_summary) for dataset_summary in ood_dataset_summaries
+    ]
+
+    # Plot ROC curves
+
+    fig, ax = plt.subplots()
+
+    title = f"ROC plot ({anomaly_detection_name}, {model_name}, Batch size {batch_size})"
+    ax.set_title(title)
+
+    for ood_anomaly_scores, ood_dataset_name in zip(ood_anomaly_scores_list, ood_dataset_names):
+
+        y_true = torch.cat([torch.ones(len(id_test_anomaly_scores)),
+                            torch.zeros(len(ood_anomaly_scores))])
+
+        y_scores = torch.cat([torch.tensor(id_test_anomaly_scores),
+                              torch.tensor(ood_anomaly_scores)])
+
+        fpr, tpr, _ = roc_curve(y_true, y_scores)
+
+        roc_auc = auc(fpr, tpr)
+
+        print(ood_dataset_name, roc_auc)
+
+        display = RocCurveDisplay(
+            fpr=fpr, tpr=tpr, roc_auc=roc_auc, estimator_name=ood_dataset_name
+        )
+
+        display.plot(ax=ax)
+
+    save_plot(title)
+
+
+"""
 def get_unsupervised_roc_curve(
     id_test_data, id_train_data, ood_data_list, sklearn_model, fit_sample_proportion=0.8
 ):
@@ -98,3 +169,11 @@ if __name__ == "__main__":
             #                 estimator_name=f"{id_dataset}").plot(ax=ax)
 
             plt.savefig(f"analysis/plots/ROC_plots/{title}.png")
+"""
+
+
+parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_name_parser, dataset_parser])
+
+args = parser.parse_args()
+for model_name in args.model_names:
+    run(args.anomaly_detection, model_name, args.id_dataset, args.datasets, args.batch_size)

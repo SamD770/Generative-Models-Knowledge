@@ -2,7 +2,7 @@ from path_definitions import PLOTS_DIR
 from os import path
 import sys
 
-from plots.utils import RUNNING_MODULE_DIR, model_parser, grid_from_imgs
+from plots.utils import save_plot, model_parser, grid_from_imgs
 
 from models.utils import load_generative_model
 
@@ -27,9 +27,7 @@ def run(model_type, model_name):
     # plt.title(title)
     plt.imshow(grid)
     plt.axis("off")
-    save_dir = path.join(RUNNING_MODULE_DIR, f"({title}).png")
-
-    plt.savefig(save_dir)
+    save_plot(title)
 
 
 print("done")

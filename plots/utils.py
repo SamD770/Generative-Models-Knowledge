@@ -1,6 +1,8 @@
 import sys
 from os import path
 
+from matplotlib import pyplot as plt
+
 from data.utils import dataset_names
 from models.utils import model_classes
 from anomaly_methods.utils import anomaly_detection_methods
@@ -34,6 +36,12 @@ anomaly_method_parser = argparse.ArgumentParser(add_help=False)
 anomaly_method_parser.add_argument("--anomaly_detection", choices=anomaly_detection_methods,
                                    help="the anomaly detection method to use")
 
+anomaly_method_parser.add_argument("--id_dataset", choices=dataset_names,
+                                   help="the in-distribution dataset")
+
+anomaly_method_parser.add_argument("--batch_size", type=int,
+                                   help="the batch size used with the anomaly detection method")
+
 
 def grid_from_imgs(img_seq):
     """Takes a sequence of images and returns a grid with  that can be plotted using plt.imshow"""
@@ -45,3 +53,8 @@ def grid_from_imgs(img_seq):
         grid += 0.5
 
     return grid
+
+
+def save_plot(title):
+    save_filepath = path.join(RUNNING_MODULE_DIR, title + ".png")
+    plt.savefig(save_filepath)

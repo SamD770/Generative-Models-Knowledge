@@ -5,13 +5,13 @@ Provides standard interfaces for performing model-agnostic anomaly detection..
 import torch
 import pickle
 
-from torch import Tensor, Module
+from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 
-class GenerativeModel(Module):
+class GenerativeModel:
     """Provides a standard interface for anomaly_methods code to interact with all types of models."""
 
     def eval_nll(self, x):
@@ -37,11 +37,20 @@ class AnomalyDetectionMethod:
     - compute the anomaly_scores using the summary statistics for each dataset
     """
 
-    def __init__(self, model: GenerativeModel):
+    def __init__(self, summary_statistic_names, model: Optional[GenerativeModel] = None):
+        self.summary_statistic_names = summary_statistic_names
         self.model = model
 
+    @classmethod
+    def from_model(cls, model):
+        return cls(cls.get_summary_statistic_names(model), model)
+
+    @classmethod
+    def from_dataset_summary(cls, dataset_summary):
+        return cls(dataset_summary.keys())
+
     @staticmethod
-    def summary_statistic_names(model: GenerativeModel) -> List[str]:
+    def get_summary_statistic_names(model) -> List[str]:
         raise NotImplementedError()
 
     def extract_summary_statistics(self, batch: Tensor) -> Dict[str, float]:
@@ -53,6 +62,15 @@ class AnomalyDetectionMethod:
     def anomaly_score(self, summary_statistics: Dict[str, List[float]]) -> List[float]:
         raise NotImplementedError()
 
+    @staticmethod
+    def summary_statistic_filepath(model_name, dataset_name, batch_size):
+        raise NotImplementedError()
+
+    def dataset_summary_dict(self):
+        return {
+            name: [] for name in self.summary_statistic_names
+        }
+
     def compute_summary_statistics(self, dataset: Dataset, batch_size: int):
         """
         Applies extract_summary_statistics to each batch in dataset
@@ -60,30 +78,48 @@ class AnomalyDetectionMethod:
         :param batch_size:
         :return:
         """
+        if self.model is None:
+            raise ValueError("Attempted to extract summary statistics without initialising a model.")
+
         dataloader = DataLoader(
             dataset, batch_size=batch_size, shuffle=False, drop_last=True
         )
 
-        summary_stat_names = self.summary_statistic_names(self.model)
-
-        summary_stats = {
-            name: [] for name in summary_stat_names
-        }
+        dataset_summary = self.dataset_summary_dict()
 
         for batch in dataloader:
             batch_summary_stats = self.extract_summary_statistics(batch)
 
-            for name in summary_stat_names:
-                summary_stats[name].append(
+            for name in self.summary_statistic_names:
+                dataset_summary[name].append(
                     batch_summary_stats[name]
                 )
 
-        return summary_stats
+        return dataset_summary
 
-    @staticmethod
-    def summary_statistic_filepath(model_name, dataset_name, batch_size):
-        raise NotImplementedError()
+    def split_dataset_summary(self, dataset_summary, proportion):
+        summary_1 = {}
+        summary_2 = {}
 
+        summary_length = None
+
+        for name in self.summary_statistic_names:
+
+            statistic_list = dataset_summary[name]
+            statistic_count = len(statistic_list)
+
+            if summary_length is None:
+                summary_length = statistic_count
+                split_count = round(summary_length*proportion)
+
+            elif summary_length != statistic_count:
+                raise ValueError(f"Tried to split a dataset summary with uneven lengths: {name} has length "
+                                 f"{statistic_count} but this value was {summary_length} for other statistics.")
+
+            summary_1[name] = statistic_list[:split_count]
+            summary_2[name] = statistic_list[split_count:]
+
+        return summary_1, summary_2
 
 
 

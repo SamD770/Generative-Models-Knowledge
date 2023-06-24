@@ -71,10 +71,9 @@ class L2NormAnomalyDetection(AnomalyDetectionMethod):
         self.stdev_fit = None
         self.sklearn_model = None
 
-    @staticmethod
-    def summary_statistic_names(model: GenerativeModel) -> List[str]:
+    def get_summary_statistic_names(self) -> List[str]:
         return [
-            name for name, _ in model.named_parameters()
+            name for name, _ in self.model.named_parameters()
         ]
 
     def extract_summary_statistics(self, batch: Tensor) -> Dict[str, float]:

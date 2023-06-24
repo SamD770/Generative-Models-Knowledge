@@ -1,13 +1,10 @@
-from plots.utils import RUNNING_MODULE_DIR
 
 import torch
 import matplotlib.pyplot as plt
 from random import randint
 
-from os import path
-
-from data.utils import get_test_dataset, get_image_shape
-from plots.utils import dataset_parser, grid_from_imgs
+from data.utils import get_test_dataset
+from plots.utils import dataset_parser, grid_from_imgs, save_plot
 
 import argparse
 
@@ -48,9 +45,7 @@ def run(dataset_name):
     plt.imshow(grid)
     plt.axis("off")
 
-    save_filepath = path.join(RUNNING_MODULE_DIR, title + ".png")
-    plt.savefig(save_filepath)
-    print()
+    save_plot(title)
 
 
 args = parser.parse_args()
