@@ -8,6 +8,7 @@ import torch
 from torch import Tensor
 
 from sklearn.ensemble import IsolationForest
+from sklearn.svm import OneClassSVM
 
 
 def get_save_file_name(
@@ -27,16 +28,22 @@ def get_save_file_name(
     return file_name
 
 
-def zero_keys(summary_stats, printout=False):
-    """Returns a set of keys for which the corresponding summary statistics are 0 (Avoids ZeroDivisionErrors)."""
+def zero_keys(summary_stats, printout=True):
+    """Returns a set of keys for which the corresponding summary statistics have 0 standard deviation
+    (Avoids ZeroDivisionErrors)."""
     zero_count = 0
     zero_keys = set()
 
     for key, value in summary_stats.items():
         zeroes = torch.zeros(len(value))
-        if torch.any(value == zeroes):
+
+        if torch.std(value) == 0:
             zero_keys.add(key)
             zero_count += 1
+        #
+        # if torch.any(value == zeroes):
+        #     zero_keys.add(key)
+        #     zero_count += 1
     if printout:
         print(
             f"number of zero gradients: {zero_count}"
@@ -46,15 +53,17 @@ def zero_keys(summary_stats, printout=False):
 
 
 def get_stacked(summary_stats, zero_keys_valid):
+    # Stacks the summary statistics into a matrix, skipping over those in zero_keys_valid
     return torch.stack([
-        stats for stats in summary_stats.values() if stats not in zero_keys_valid
+        stat for stat_name, stat in summary_stats.items() if stat_name not in zero_keys_valid
     ])
 
 
 def get_summary_matrix(summary_stats, zero_keys_valid):
     """Stacks the summary statistics so that they can be passed to a sklearn model."""
     stacked = get_stacked(summary_stats, zero_keys_valid)
-    return torch.transpose(stacked, 0, 1)
+    matrix = torch.transpose(stacked, 0, 1)
+    return torch.nan_to_num(matrix)
 
 
 class L2NormAnomalyDetection(AnomalyDetectionMethod):
@@ -86,7 +95,7 @@ class L2NormAnomalyDetection(AnomalyDetectionMethod):
         }
 
     def setup_method(self, fit_set_summary: Dict[str, List[float]]):
-        # Fits pre-treats the raw statistics to make them suitable for the IsolationForest
+        # Pre-treats the raw statistics to make them suitable for the IsolationForest
         self.zero_keys_fit = zero_keys(fit_set_summary)
 
         summary_matrix_fit = get_summary_matrix(fit_set_summary, self.zero_keys_fit)
@@ -94,16 +103,30 @@ class L2NormAnomalyDetection(AnomalyDetectionMethod):
         self.mean_fit = torch.mean(summary_matrix_fit, 0)
         self.stdev_fit = torch.std(summary_matrix_fit, 0)
 
+        print(summary_matrix_fit.isnan().sum())
+        print(self.mean_fit.isnan().sum())
+        print(self.stdev_fit.isnan().sum())
+        print((self.stdev_fit == 0).sum())
+
         normed_summary_fit = (summary_matrix_fit - self.mean_fit) / self.stdev_fit
+
+        print(normed_summary_fit.isnan().sum())
+
+        if normed_summary_fit.isnan().any():
+            raise ValueError(f"summary matrix with shape {normed_summary_fit.shape} "
+                             f"contains {normed_summary_fit.isnan().sum()} Nan values")
 
         # Fits the IsolationForest
 
-        self.sklearn_model = IsolationForest(n_estimators=10000).fit(normed_summary_fit)
+        self.sklearn_model = OneClassSVM(nu=0.001).fit(normed_summary_fit)
 
     def anomaly_score(self, summary_statistics: Dict[str, List[float]]) -> List[float]:
 
         summary_matrix = get_summary_matrix(summary_statistics, self.zero_keys_fit)
         normed_summary = (summary_matrix - self.mean_fit) / self.stdev_fit
+
+        if normed_summary.isnan().any():
+            raise ValueError(f"summary matrix contains {normed_summary.isnan().sum()} Nan values")
 
         return self.sklearn_model.score_samples(normed_summary)
 
