@@ -34,5 +34,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     run(
-        args.anomaly_detection, args.batch_size, args.model_name, args.model_type, args.datasets, args.split
+        args.anomaly_detection, args.batch_size, args.model_names, args.model_type, args.datasets, args.split
     )
