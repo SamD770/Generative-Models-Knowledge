@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from random import randint
 
 from data.utils import get_test_dataset
-from plots.utils import dataset_parser, grid_from_imgs, save_plot
+from plots.utils import grid_from_imgs, save_plot
+from command_line_utils import dataset_parser
 
 import argparse
 

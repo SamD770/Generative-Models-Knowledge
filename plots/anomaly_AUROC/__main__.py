@@ -4,7 +4,8 @@ from sklearn.metrics import roc_curve, auc, RocCurveDisplay
 
 import matplotlib.pyplot as plt
 
-from plots.utils import anomaly_method_parser, model_name_parser, dataset_parser, save_plot
+from plots.utils import save_plot
+from command_line_utils import model_name_parser, anomaly_method_parser, dataset_parser
 from anomaly_methods.utils import anomaly_detection_methods_dict
 
 import torch

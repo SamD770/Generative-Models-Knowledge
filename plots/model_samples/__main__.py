@@ -2,7 +2,8 @@ from path_definitions import PLOTS_DIR
 from os import path
 import sys
 
-from plots.utils import save_plot, model_parser, grid_from_imgs
+from plots.utils import save_plot, grid_from_imgs
+from command_line_utils import model_parser
 
 from models.utils import load_generative_model
 
