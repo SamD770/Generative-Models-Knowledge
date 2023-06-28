@@ -56,6 +56,16 @@ def get_test_dataset(dataset_name):
     return to_dataset_wrapper[dataset_name].get_test()
 
 
+def get_dataset(dataset_name, split="test"):
+    wrapper = to_dataset_wrapper[dataset_name]
+    if split == "test":
+        return wrapper.get_test()
+    elif split == "train":
+        return wrapper.get_train()
+    else:
+        raise ValueError(f"requested dataset split '{split}' was not recognised.")
+
+
 svhn_path = "SVHN"
 cifar_path = "CIFAR10"
 
