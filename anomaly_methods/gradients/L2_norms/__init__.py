@@ -1,7 +1,7 @@
 from path_definitions import L2_NORMS_DIR
 
 from generative_model import AnomalyDetectionMethod, GenerativeModel
-from typing import Dict, List
+from typing import Dict, List, Optional
 from os import path
 
 import torch
@@ -26,6 +26,12 @@ def get_save_file_name(
     else:
         file_name = f"trained_{model_name}_{method}_{dataset_name}-train_{batch_size}.{filetype}"
     return file_name
+
+
+def backprop_nll(model: GenerativeModel, batch: Tensor):
+    nll = model.eval_nll(batch)
+    model.zero_grad()
+    nll.sum().backward()
 
 
 def zero_keys(summary_stats, printout=True):
@@ -71,8 +77,8 @@ class L2NormAnomalyDetection(AnomalyDetectionMethod):
     An AnomalyDetectionMethod that fits an IsolationForest (Liu et al.) to the norms of the gradient of each parameter.
     See https://openreview.net/forum?id=deYF9kVmIX for description of method.
     """
-    def __init__(self, model: GenerativeModel):
-        super(L2NormAnomalyDetection, self).__init__(model)
+    def __init__(self, summary_statistic_names, model: Optional[GenerativeModel] = None):
+        super(L2NormAnomalyDetection, self).__init__(summary_statistic_names, model)
 
         # We need to store the following information about the validation set when we run setup_method
         self.zero_keys_fit = set()
@@ -80,15 +86,18 @@ class L2NormAnomalyDetection(AnomalyDetectionMethod):
         self.stdev_fit = None
         self.sklearn_model = None
 
-    def get_summary_statistic_names(self) -> List[str]:
+    @staticmethod
+    def get_summary_statistic_names(model) -> List[str]:
         return [
-            name for name, _ in self.model.named_parameters()
+            name for name, _ in model.named_parameters()
         ]
 
     def extract_summary_statistics(self, batch: Tensor) -> Dict[str, float]:
         """Takes the L^2 norm of each parameter's gradient and stores it in a dictionary."""
         def take_norm(grad_vec):
             return (grad_vec ** 2).sum().item()
+
+        backprop_nll(self.model, batch)
 
         return {
             name: take_norm(p.grad) for name, p in self.model.named_parameters()

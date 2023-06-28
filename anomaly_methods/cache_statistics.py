@@ -19,20 +19,25 @@ def run(anomaly_method_name, batch_size, model_name, model_type, dataset_names, 
 
     for dataset_name in dataset_names:
 
-        dataset = get_dataset(dataset_name, dataset_split)
-        dataset_summary = anomaly_detector.compute_summary_statistics(dataset, batch_size)
-
         filepath = anomaly_detector.summary_statistic_filepath(model_name, dataset_name, batch_size)
 
         if verbose:
-            print("Saving summary statistics to:   ", filepath)
+            print("Creating summary statistics file:   ", filepath)
+
+        dataset = get_dataset(dataset_name, dataset_split)
+        dataset_summary = anomaly_detector.compute_summary_statistics(dataset, batch_size)
+
         save(dataset_summary, filepath)
+
+    if verbose:
+        print("done")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(parents=[anomaly_method_parser, dataset_parser, model_parser])
     args = parser.parse_args()
 
-    run(
-        args.anomaly_detection, args.batch_size, args.model_names, args.model_type, args.datasets, args.split
-    )
+    for model_name_arg in args.model_names:
+        run(
+            args.anomaly_detection, args.batch_size, model_name_arg, args.model_type, args.datasets, args.split
+        )

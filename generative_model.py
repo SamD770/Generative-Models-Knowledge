@@ -4,11 +4,18 @@ Provides standard interfaces for performing model-agnostic anomaly detection..
 
 import torch
 import pickle
+from datetime import datetime
 
 from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
 
 from typing import Dict, List, Optional
+
+
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+else:
+    device = torch.device("cpu")
 
 
 class GenerativeModel:
@@ -43,7 +50,8 @@ class AnomalyDetectionMethod:
 
     @classmethod
     def from_model(cls, model):
-        return cls(cls.get_summary_statistic_names(model), model)
+        summary_statistic_names = cls.get_summary_statistic_names(model)
+        return cls(summary_statistic_names, model)
 
     @classmethod
     def from_dataset_summary(cls, dataset_summary):
@@ -71,7 +79,7 @@ class AnomalyDetectionMethod:
             name: [] for name in self.summary_statistic_names
         }
 
-    def compute_summary_statistics(self, dataset: Dataset, batch_size: int):
+    def compute_summary_statistics(self, dataset: Dataset, batch_size: int, verbose=True):
         """
         Applies extract_summary_statistics to each batch in dataset
         :param dataset:
@@ -81,19 +89,28 @@ class AnomalyDetectionMethod:
         if self.model is None:
             raise ValueError("Attempted to extract summary statistics without initialising a model.")
 
+        self.model.to(device)
+
         dataloader = DataLoader(
             dataset, batch_size=batch_size, shuffle=False, drop_last=True
         )
 
         dataset_summary = self.dataset_summary_dict()
 
-        for batch in dataloader:
+        print_update_every = len(dataset) // (20 * batch_size)
+
+        for i, (batch, labels) in enumerate(dataloader):
+            batch = batch.to(device)
+
             batch_summary_stats = self.extract_summary_statistics(batch)
 
             for name in self.summary_statistic_names:
                 dataset_summary[name].append(
                     batch_summary_stats[name]
                 )
+
+            if verbose and i % print_update_every == 0:
+                print(f"({datetime.now()}) {i * batch_size}/{len(dataset)} complete")
 
         return dataset_summary
 
