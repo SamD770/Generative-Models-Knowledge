@@ -9,6 +9,9 @@ dataset_parser = argparse.ArgumentParser(add_help=False)
 dataset_parser.add_argument("-ds", "--datasets", nargs="+", choices=dataset_names,
                             help="The dataset(s) to run the plot on.")
 
+dataset_parser.add_argument("--split", choices=["train", "test"],
+                            help="the dataset split to use", default="test")
+
 model_name_parser = argparse.ArgumentParser(add_help=False)
 model_name_parser.add_argument("model_names", nargs="+",
                                help="The name of the model to run the plot on.")
