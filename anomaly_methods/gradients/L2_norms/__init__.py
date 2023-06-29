@@ -41,15 +41,11 @@ def zero_keys(summary_stats, printout=True):
     zero_keys = set()
 
     for key, value in summary_stats.items():
-        zeroes = torch.zeros(len(value))
 
         if torch.std(value) == 0:
             zero_keys.add(key)
             zero_count += 1
-        #
-        # if torch.any(value == zeroes):
-        #     zero_keys.add(key)
-        #     zero_count += 1
+
     if printout:
         print(
             f"number of zero gradients: {zero_count}"
@@ -111,11 +107,6 @@ class L2NormAnomalyDetection(AnomalyDetectionMethod):
 
         self.mean_fit = torch.mean(summary_matrix_fit, 0)
         self.stdev_fit = torch.std(summary_matrix_fit, 0)
-
-        print(summary_matrix_fit.isnan().sum())
-        print(self.mean_fit.isnan().sum())
-        print(self.stdev_fit.isnan().sum())
-        print((self.stdev_fit == 0).sum())
 
         normed_summary_fit = (summary_matrix_fit - self.mean_fit) / self.stdev_fit
 

@@ -112,6 +112,10 @@ class AnomalyDetectionMethod:
             if verbose and i % print_update_every == 0:
                 print(f"({datetime.now()}) {i * batch_size}/{len(dataset)} complete")
 
+        dataset_summary = {
+            key: torch.tensor(value) for key, value in dataset_summary.items()
+        }
+
         return dataset_summary
 
     def split_dataset_summary(self, dataset_summary, proportion):
