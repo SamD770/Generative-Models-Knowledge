@@ -6,7 +6,7 @@ from anomaly_methods.utils import anomaly_detection_methods
 
 
 dataset_parser = argparse.ArgumentParser(add_help=False)
-dataset_parser.add_argument("-ds", "--datasets", nargs="+", choices=dataset_names,
+dataset_parser.add_argument("-ds", "--datasets", nargs="+", choices=dataset_names.union({"cifar"}),
                             help="The dataset(s) to run the plot on.")
 
 dataset_parser.add_argument("--split", choices=["train", "test"],
@@ -26,7 +26,7 @@ anomaly_method_parser = argparse.ArgumentParser(add_help=False)
 anomaly_method_parser.add_argument("--anomaly_detection", choices=anomaly_detection_methods,
                                    help="the anomaly detection method to use")
 
-anomaly_method_parser.add_argument("--id_dataset", choices=dataset_names,
+anomaly_method_parser.add_argument("--id_dataset", choices=dataset_names.union({"cifar"}),
                                    help="the in-distribution dataset")
 
 anomaly_method_parser.add_argument("--batch_size", type=int,

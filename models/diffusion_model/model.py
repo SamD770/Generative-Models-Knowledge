@@ -3,7 +3,9 @@ from generative_model import GenerativeModel
 from path_definitions import DIFFUSION_ROOT
 
 from data.datasets import get_celeba
+from data.utils import get_dataset
 from denoising_diffusion_pytorch import Unet, GaussianDiffusion
+from os import path
 
 import torch
 
@@ -40,8 +42,20 @@ class DiffusionModel(GenerativeModel):
 
     @staticmethod
     def load_serialised(model_name):
-        raise NotImplementedError()
+        save_path = get_save_path(model_name)
+        checkpoint = torch.load(save_path)
 
+        print(f"Loading {model_name} trained for {checkpoint['epoch']} epochs")
+
+        diffusion_model = DiffusionModel()
+        diffusion_model.diffusion.load_state_dict(
+            checkpoint["diffusion_state_dict"])
+
+        return diffusion_model
+
+
+def get_save_path(model_name):
+    return path.join(DIFFUSION_ROOT, model_name + ".pt")
 
 
 def training_loop(
@@ -65,7 +79,7 @@ def training_loop(
             torch.save(
                 {
                     "epoch": n,
-                    "vae_state_dict": model.diffusion.state_dict(),
+                    "diffusion_state_dict": model.diffusion.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
                 },
                 checkpoint_path,
@@ -80,25 +94,31 @@ if __name__ == "__main__":
 
     print(device)
 
-    input_shape, _, train_dataset, _ = get_celeba(dataroot="./")
-    dataset_name = "celeba"
+    for dataset_name in ["cifar10", "svhn", "imagenet32"]:
+        train_dataset = get_dataset(dataset_name, split="train")
 
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=8, shuffle=True
-    )
+        # input_shape, _, train_dataset, _ = get_celeba(dataroot="./")
+        # dataset_name = "celeba"
 
-    model = DiffusionModel()
 
-    model.diffusion.to(device)
+        train_loader = torch.utils.data.DataLoader(
+            train_dataset, batch_size=8, shuffle=True
+        )
 
-    my_optimizer = torch.optim.Adam(model.diffusion.parameters(), lr=3e-4)
+        model = DiffusionModel()
 
-    training_loop(
-        n_epochs=100,
-        optimizer=my_optimizer,
-        model=model,
-        train_loader=train_loader,
-        checkpoint_path=f"./diffusion_model/VAE_{dataset_name}.pt",
-        device=device,
-    )
+        model.diffusion.to(device)
+
+        my_optimizer = torch.optim.Adam(model.diffusion.parameters(), lr=3e-4)
+
+        print("training on ", dataset_name)
+
+        training_loop(
+            n_epochs=5,
+            optimizer=my_optimizer,
+            model=model,
+            train_loader=train_loader,
+            checkpoint_path=get_save_path(f"diffusion_{dataset_name}"),
+            device=device,
+        )
 

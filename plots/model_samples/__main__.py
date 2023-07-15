@@ -14,10 +14,10 @@ import argparse
 
 def run(model_type, model_name):
     model = load_generative_model(model_type, model_name)
-    model.to("cuda")
-
-    pytorch_total_params = sum(p.numel() for p in model.parameters())
-    print("params:", pytorch_total_params)
+    # model.to("cuda")
+    #
+    # pytorch_total_params = sum(p.numel() for p in model.parameters())
+    # print("params:", pytorch_total_params)
 
     samples = model.generate_sample(32).cpu()
     print(f"range {(samples.min(), samples.max())}")
@@ -31,7 +31,7 @@ def run(model_type, model_name):
     save_plot(title)
 
 
-print("done")
+    print("done")
 
 """
 file_list = ["VAE_cifar.pt"]

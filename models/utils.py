@@ -3,23 +3,21 @@ import torch
 from models.glow_model.model import Glow
 from models.pixelCNN_model.main import PixelCNN
 from models.VAE_model.model import SimpleVAE
+from models.diffusion_model.model import DiffusionModel
 
 
 model_class_dict = {
     "glow": Glow,
     "PixelCNN": PixelCNN,
-    "vae": SimpleVAE
+    "vae": SimpleVAE,
+    "diffusion": DiffusionModel
 }
 
 model_classes = model_class_dict.keys()
 
 
 def load_generative_model(model_type, model_name):
-    model_class = {
-        "glow": Glow,
-        "PixelCNN": PixelCNN,
-        "vae": SimpleVAE
-    }[model_type]
+    model_class = model_class_dict[model_type]
 
     return model_class.load_serialised(model_name)
 
