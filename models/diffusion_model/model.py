@@ -6,6 +6,7 @@ from data.datasets import get_celeba
 from data.utils import get_dataset
 from denoising_diffusion_pytorch import Unet, GaussianDiffusion
 from os import path
+from torch import nn
 
 import torch
 
@@ -14,9 +15,11 @@ USING THE CODE FROM: https://github.com/lucidrains/denoising-diffusion-pytorch
 """
 
 
-class DiffusionModel(GenerativeModel):
+class DiffusionModel(GenerativeModel, nn.Module):
     """."""
     def __init__(self, image_shape=(32, 32, 3)):
+
+        super().__init__()
 
         input_width, input_height, input_channels = image_shape
 

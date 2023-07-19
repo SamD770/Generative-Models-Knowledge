@@ -38,10 +38,13 @@ def run(anomaly_detection_name, model_name, id_dataset, ood_dataset_names, batch
     for stat_name in anomaly_detector.summary_statistic_names:
 
         title = f"{stat_name} gradient histogram"
+
         filepath = path.join(RUNNING_MODULE_DIR, dir_name, title + ".png")
 
         print(f"creating: {filepath}")
         fig, ax = plt.subplots()
+        fig.suptitle(title)
+
         ax.hist(torch.log(id_dataset_summary[stat_name]).numpy(),
                 label=f"in distribution {id_dataset}", density=True, bins=20, alpha=0.6)
 
