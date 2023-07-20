@@ -2,7 +2,7 @@
 Contains the base classes for performing likelihood-based anomaly detection (currently using raw likelihoods and typicality)
 """
 from path_definitions import LIKELIHOODS_DIR
-from anomaly_methods.utils import get_save_file_name
+from anomaly_methods.cached_statistic_filenames import get_save_file_name
 
 from generative_model import GenerativeModel, AnomalyDetectionMethod
 from typing import Dict, List, Optional
@@ -32,7 +32,7 @@ class LikelihoodBasedAnomalyDetection(AnomalyDetectionMethod):
     @staticmethod
     def summary_statistic_filepath(model_name, dataset_name, batch_size):
         return path.join(LIKELIHOODS_DIR,
-                         get_save_file_name(model_name, dataset_name, batch_size))
+                         get_save_file_name(model_name, dataset_name, batch_size, method="likelihoods"))
 
 
 class RawLikelihoodAnomalyDetection(LikelihoodBasedAnomalyDetection):

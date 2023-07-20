@@ -1,4 +1,4 @@
-from anomaly_methods.utils import get_save_file_name
+from anomaly_methods.cached_statistic_filenames import get_save_file_name
 from path_definitions import L2_NORMS_DIR
 
 from generative_model import AnomalyDetectionMethod, GenerativeModel
