@@ -16,6 +16,7 @@ DIFFUSION_ROOT = path.join(MODELS_DIR, "diffusion_model")
 ANOMALY_DIR = path.join(PROJECT_ROOT, "anomaly_methods")
 GRADIENTS_DIR = path.join(ANOMALY_DIR, "gradients")
 L2_NORMS_DIR = path.join(GRADIENTS_DIR, "L2_norms")
+LIKELIHOODS_DIR = path.join(GRADIENTS_DIR, "likelihoods")
 
 SERIALISED_GRADIENTS_DIR = path.join(GRADIENTS_DIR, "serialised_gradients") # Deprecated
 
