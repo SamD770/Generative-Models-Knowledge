@@ -46,7 +46,7 @@ class RawLikelihoodAnomalyDetection(LikelihoodBasedAnomalyDetection):
 
 class TypicalityAnomalyDetection(LikelihoodBasedAnomalyDetection):
     """
-    Bootstrap implementation of 'DETECTING OUT-OF-DISTRIBUTION INPUTS TO DEEP
+    Bootstrap implementation of method described in 'DETECTING OUT-OF-DISTRIBUTION INPUTS TO DEEP
     GENERATIVE MODELS USING TYPICALITY' Nalisnick et al. 2019
     """
     def __init__(self, summary_statistic_names, model: Optional[GenerativeModel] = None):
