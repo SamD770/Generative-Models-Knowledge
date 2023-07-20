@@ -1,7 +1,9 @@
-from anomaly_methods.gradients.L2_norms import L2NormAnomalyDetection
+from anomaly_methods.gradients.L2_norms import L2NormAnomalyDetection, OneClassSVML2Norm, DiagonalGaussianL2Norm
 
 anomaly_detection_methods_dict = {
-    "gradients_L2_norms": L2NormAnomalyDetection
+    "gradients_L2_norms": L2NormAnomalyDetection,
+    "gradients_L2_norms_svm": OneClassSVML2Norm,
+    "gradients_L2_norms_gaussian": DiagonalGaussianL2Norm
 }
 
 anomaly_detection_methods = anomaly_detection_methods_dict.keys()
