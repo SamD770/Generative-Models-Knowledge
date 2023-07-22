@@ -9,13 +9,12 @@ from command_line_utils import model_name_parser, anomaly_method_parser, dataset
 from anomaly_methods.utils import anomaly_detection_methods_dict
 
 
-def run(anomaly_detection_name, model_name, id_dataset_name, ood_dataset_names, batch_size):
-    anomaly_detection_method = anomaly_detection_methods_dict[anomaly_detection_name]
+def run(anomaly_detection_name, model_name, id_dataset_name, all_dataset_names, batch_size):
 
     # Load summaries
 
-    id_test_anomaly_scores, ood_anomaly_scores_list = get_anomaly_scores(anomaly_detection_method, batch_size,
-                                                                         id_dataset_name, model_name, ood_dataset_names)
+    id_test_anomaly_scores, all_anomaly_scores_list = get_anomaly_scores(anomaly_detection_name, batch_size,
+                                                                         id_dataset_name, model_name, all_dataset_names)
 
     # Plot ROC curves
 
@@ -24,7 +23,10 @@ def run(anomaly_detection_name, model_name, id_dataset_name, ood_dataset_names, 
     title = f"ROC plot ({anomaly_detection_name}, {model_name}, Batch size {batch_size})"
     ax.set_title(title)
 
-    for ood_anomaly_scores, ood_dataset_name in zip(ood_anomaly_scores_list, ood_dataset_names):
+    for ood_anomaly_scores, ood_dataset_name in zip(all_anomaly_scores_list, all_dataset_names):
+
+        if ood_dataset_name == id_dataset_name:
+            continue    # To ensure the scores are genuinely ood
 
         fpr, tpr = positive_rates(id_test_anomaly_scores, ood_anomaly_scores)
 

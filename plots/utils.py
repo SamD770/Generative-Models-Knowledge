@@ -4,6 +4,7 @@ from os import path
 import torch
 from matplotlib import pyplot as plt
 from sklearn.metrics import roc_curve
+from anomaly_methods.utils import anomaly_detection_methods_dict
 
 from torchvision.utils import make_grid
 
@@ -38,10 +39,11 @@ def positive_rates(id_test_anomaly_scores, ood_anomaly_scores):
     return fpr, tpr
 
 
-def get_anomaly_scores(anomaly_detection_method, batch_size, id_dataset_name, model_name, ood_dataset_names):
+def get_anomaly_scores(anomaly_detection_name, batch_size, id_dataset_name, model_name, all_dataset_names):
+    anomaly_detection_method = anomaly_detection_methods_dict[anomaly_detection_name]
 
-    id_dataset_summary, ood_dataset_summaries = get_dataset_summmaries(anomaly_detection_method, batch_size,
-                                                                       id_dataset_name, model_name, ood_dataset_names)
+    id_dataset_summary, all_dataset_summaries = get_dataset_summmaries(anomaly_detection_method, batch_size,
+                                                                       id_dataset_name, model_name, all_dataset_names)
 
     # Compute anomaly scores
     anomaly_detector = anomaly_detection_method.from_dataset_summary(id_dataset_summary)
@@ -51,32 +53,29 @@ def get_anomaly_scores(anomaly_detection_method, batch_size, id_dataset_name, mo
 
     id_test_anomaly_scores = anomaly_detector.anomaly_score(id_test_summary)
 
-    ood_anomaly_scores_list = [
-        anomaly_detector.anomaly_score(dataset_summary) for dataset_summary in ood_dataset_summaries
+    all_anomaly_scores_list = [
+        anomaly_detector.anomaly_score(dataset_summary) for dataset_summary in all_dataset_summaries
     ]
 
-    return id_test_anomaly_scores, ood_anomaly_scores_list
+    return id_test_anomaly_scores, all_anomaly_scores_list
 
 
-def get_dataset_summmaries(anomaly_detection_method, batch_size, id_dataset_name, model_name, ood_dataset_names):
+def get_dataset_summmaries(anomaly_detection_method, batch_size, id_dataset_name, model_name, all_dataset_names):
 
     filepath = anomaly_detection_method.summary_statistic_filepath(
         model_name, id_dataset_name, batch_size
     )
 
     id_dataset_summary = torch.load(filepath)
-    ood_dataset_summaries = []
+    all_dataset_summaries = []
 
-    for dataset_name in ood_dataset_names:
-
-        if dataset_name == id_dataset_name:
-            continue
+    for dataset_name in all_dataset_names:
 
         filepath = anomaly_detection_method.summary_statistic_filepath(
             model_name, dataset_name, batch_size)
 
-        ood_dataset_summaries.append(
+        all_dataset_summaries.append(
             torch.load(filepath)
         )
 
-    return id_dataset_summary, ood_dataset_summaries
+    return id_dataset_summary, all_dataset_summaries
