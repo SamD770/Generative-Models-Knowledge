@@ -1,4 +1,4 @@
-from plots.utils import RUNNING_MODULE_DIR
+from plots.utils import RUNNING_MODULE_DIR, get_dataset_summmaries
 
 import torch
 
@@ -12,26 +12,12 @@ import matplotlib.pyplot as plt
 from os import path
 
 
-def run(model_type, model_name, anomaly_detection_name, id_dataset, ood_dataset_names, batch_size):
+def run(model_type, model_name, anomaly_detection_name, batch_size, id_dataset, ood_dataset_names):
     anomaly_detection_method = anomaly_detection_methods_dict[anomaly_detection_name]
 
-
-
-    filepath = anomaly_detection_method.summary_statistic_filepath(
-        model_name, id_dataset, batch_size
-    )
-
-    id_dataset_summary = torch.load(filepath)
-
-    ood_dataset_summaries = []
-
-    for dataset_name in ood_dataset_names:
-        filepath = anomaly_detection_method.summary_statistic_filepath(
-            model_name, dataset_name, batch_size)
-
-        ood_dataset_summaries.append(
-            torch.load(filepath)
-        )
+    id_dataset_summary, ood_dataset_summaries = get_dataset_summmaries(model_type, model_name,
+                                                                       anomaly_detection_method, batch_size,
+                                                                       id_dataset, ood_dataset_names)
 
     anomaly_detector = anomaly_detection_method.from_dataset_summary(id_dataset_summary)
 
@@ -63,4 +49,4 @@ parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, d
 
 args = parser.parse_args()
 for model_name in args.model_names:
-    run(args.model_type, model_name, args.anomaly_detection, args.id_dataset, args.datasets, args.batch_size)
+    run(args.model_type, model_name, args.anomaly_detection, args.batch_size, args.id_dataset, args.datasets)

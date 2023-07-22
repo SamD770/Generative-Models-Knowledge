@@ -9,13 +9,13 @@ from command_line_utils import model_parser, anomaly_method_parser, dataset_pars
 from anomaly_methods.utils import anomaly_detection_methods_dict
 
 
-def run(anomaly_detection_name, model_type, model_name, id_dataset_name, all_dataset_names, batch_size):
+def run(model_type, model_name, anomaly_detection_name, batch_size, id_dataset_name, all_dataset_names):
 
     # Load summaries
 
-    id_test_anomaly_scores, all_anomaly_scores_list = get_anomaly_scores(model_name, all_dataset_names,
+    id_test_anomaly_scores, all_anomaly_scores_list = get_anomaly_scores(model_type, model_name,
                                                                          anomaly_detection_name, batch_size,
-                                                                         id_dataset_name, )
+                                                                         id_dataset_name, all_dataset_names)
 
     # Plot ROC curves
 
@@ -48,4 +48,4 @@ parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, d
 
 args = parser.parse_args()
 for model_name, id_dataset in zip(args.model_names, args.id_datasets):
-    run(args.anomaly_detection, args.model_type, model_name, id_dataset, args.datasets, args.batch_size)
+    run(args.model_type, model_name, args.anomaly_detection, args.batch_size, id_dataset, args.datasets)

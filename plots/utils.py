@@ -40,6 +40,7 @@ def positive_rates(id_test_anomaly_scores, ood_anomaly_scores):
 
 
 def get_anomaly_scores(model_type, model_name, anomaly_detection_name, batch_size, id_dataset_name, all_dataset_names):
+
     anomaly_detection_method = anomaly_detection_methods_dict[anomaly_detection_name]
 
     id_dataset_summary, all_dataset_summaries = get_dataset_summmaries(model_type, model_name, anomaly_detection_method,
@@ -60,8 +61,8 @@ def get_anomaly_scores(model_type, model_name, anomaly_detection_name, batch_siz
     return id_test_anomaly_scores, all_anomaly_scores_list
 
 
-def get_dataset_summmaries(model_type, model_name, anomaly_detection_method, batch_size, id_dataset_name,
-                           all_dataset_names):
+def get_dataset_summmaries(model_type, model_name, anomaly_detection_method, batch_size,
+                           id_dataset_name, all_dataset_names):
 
     filepath = anomaly_detection_method.summary_statistic_filepath(
         model_type, model_name, id_dataset_name, batch_size
