@@ -15,6 +15,8 @@ from os import path
 def run(model_type, model_name, anomaly_detection_name, id_dataset, ood_dataset_names, batch_size):
     anomaly_detection_method = anomaly_detection_methods_dict[anomaly_detection_name]
 
+
+
     filepath = anomaly_detection_method.summary_statistic_filepath(
         model_name, id_dataset, batch_size
     )

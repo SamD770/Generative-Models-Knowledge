@@ -23,9 +23,9 @@ def run(model_type, model_names, anomaly_detection_name, id_datasets, dataset_na
 
     for model_name, id_dataset_name in zip(model_names, id_datasets):
 
-        id_test_anomaly_scores, all_anomaly_scores_list = get_anomaly_scores(anomaly_detection_name, batch_size,
-                                                                             id_dataset_name, model_name,
-                                                                             dataset_names)
+        id_test_anomaly_scores, all_anomaly_scores_list = get_anomaly_scores(model_name, dataset_names,
+                                                                             anomaly_detection_name, batch_size,
+                                                                             id_dataset_name, )
 
         for ood_anomaly_scores, ood_dataset_name in zip(all_anomaly_scores_list, dataset_names):
 

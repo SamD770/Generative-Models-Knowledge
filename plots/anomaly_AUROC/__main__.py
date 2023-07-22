@@ -13,8 +13,9 @@ def run(anomaly_detection_name, model_type, model_name, id_dataset_name, all_dat
 
     # Load summaries
 
-    id_test_anomaly_scores, all_anomaly_scores_list = get_anomaly_scores(anomaly_detection_name, batch_size,
-                                                                         id_dataset_name, model_name, all_dataset_names)
+    id_test_anomaly_scores, all_anomaly_scores_list = get_anomaly_scores(model_name, all_dataset_names,
+                                                                         anomaly_detection_name, batch_size,
+                                                                         id_dataset_name, )
 
     # Plot ROC curves
 
