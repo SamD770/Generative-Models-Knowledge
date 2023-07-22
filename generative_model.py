@@ -42,6 +42,8 @@ class AnomalyDetectionMethod:
     - compute_summary_statistics and cache_summary_statistics for each dataset
     - setup_method using the summary statistics for the in-distribution "fitting" dataset
     - compute the anomaly_scores using the summary statistics for each dataset
+
+    anomaly_score should be higher for in-distribution data and lower for out-of-distribution data.
     """
 
     def __init__(self, summary_statistic_names, model: Optional[GenerativeModel] = None):

@@ -165,7 +165,13 @@ class DiagonalGaussianL2Norm(L2NormAnomalyDetection):
 
         for summary_stat_name, log_value_tensor in self.log_value_generator(summary_statistics):
 
-            log_p += self.normal_dists[summary_stat_name].log_prob(log_value_tensor)
+            try:
+                log_value_tensor = log_value_tensor.nan_to_num()
+                layer_model_density = self.normal_dists[summary_stat_name].log_prob(log_value_tensor)
+                log_p += layer_model_density
+            except ValueError:
+                print(log_value_tensor.isnan().any())
+                print(log_value_tensor)
 
         return list(
             val.item() for val in log_p

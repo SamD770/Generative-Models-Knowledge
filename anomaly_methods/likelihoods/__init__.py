@@ -41,7 +41,7 @@ class RawLikelihoodAnomalyDetection(LikelihoodBasedAnomalyDetection):
         pass
 
     def anomaly_score(self, summary_statistics: Dict[str, List[float]]) -> List[float]:
-        return summary_statistics["-log p"]
+        return - summary_statistics["-log p"]
 
 
 class TypicalityAnomalyDetection(LikelihoodBasedAnomalyDetection):
@@ -65,6 +65,6 @@ class TypicalityAnomalyDetection(LikelihoodBasedAnomalyDetection):
 
         negative_log_likelihoods = summary_statistics["-log p"]
         return [
-            abs(nll - self.entropy_estimate) for nll in negative_log_likelihoods
+            - abs(nll - self.entropy_estimate) for nll in negative_log_likelihoods
         ]
 

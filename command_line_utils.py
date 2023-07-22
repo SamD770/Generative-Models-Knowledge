@@ -26,8 +26,8 @@ anomaly_method_parser = argparse.ArgumentParser(add_help=False)
 anomaly_method_parser.add_argument("--anomaly_detection", choices=anomaly_detection_methods,
                                    help="the anomaly detection method to use")
 
-anomaly_method_parser.add_argument("--id_dataset", choices=dataset_names.union({"cifar"}),
-                                   help="the in-distribution dataset")
+anomaly_method_parser.add_argument("--id_datasets", nargs="+", choices=dataset_names.union({"cifar"}),
+                                   help="the in-distribution dataset(s)")
 
 anomaly_method_parser.add_argument("--batch_size", type=int,
                                    help="the batch size used with the anomaly detection method")
