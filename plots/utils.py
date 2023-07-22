@@ -66,27 +66,24 @@ def get_anomaly_scores(model_type, model_name, anomaly_detection_name, batch_siz
 def get_dataset_summmaries(model_type, model_name, anomaly_detection_method, batch_size,
                            id_dataset_name, all_dataset_names):
 
-    filepath = anomaly_detection_method.summary_statistic_filepath(
-        model_type, model_name, id_dataset_name, batch_size
-    )
-
-    id_dataset_summary = torch.load(filepath)
+    id_dataset_summary = load_dataset_summary(model_type, model_name, anomaly_detection_method, batch_size,
+                                              id_dataset_name)
 
     all_dataset_summaries = []
 
     for dataset_name in all_dataset_names:
 
-        filepath = anomaly_detection_method.summary_statistic_filepath(
-            model_type, model_name, dataset_name, batch_size)
+        dataset_summary = load_dataset_summary(model_type, model_name, anomaly_detection_method, batch_size,
+                                               dataset_name)
 
         all_dataset_summaries.append(
-            torch.load(filepath)
+            dataset_summary
         )
 
     return id_dataset_summary, all_dataset_summaries
 
 
-def get_dataset_summary(anomaly_detection_method, model_type, model_name, dataset_name, batch_size, create=True):
+def load_dataset_summary(model_type, model_name, anomaly_detection_method, batch_size, dataset_name, create=True):
 
     # currently problematic as can lead to model re-loading
 
