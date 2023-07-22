@@ -1,3 +1,4 @@
+import os.path
 import sys
 from os import path
 
@@ -5,6 +6,7 @@ import torch
 from matplotlib import pyplot as plt
 from sklearn.metrics import roc_curve
 from anomaly_methods.utils import anomaly_detection_methods_dict, cache_statistics
+from models.utils import load_generative_model
 
 from torchvision.utils import make_grid
 
@@ -69,6 +71,7 @@ def get_dataset_summmaries(model_type, model_name, anomaly_detection_method, bat
     )
 
     id_dataset_summary = torch.load(filepath)
+
     all_dataset_summaries = []
 
     for dataset_name in all_dataset_names:
@@ -84,16 +87,25 @@ def get_dataset_summmaries(model_type, model_name, anomaly_detection_method, bat
 
 
 def get_dataset_summary(anomaly_detection_method, model_type, model_name, dataset_name, batch_size, create=True):
+
+    # currently problematic as can lead to model re-loading
+
     filepath = anomaly_detection_method.summary_statistic_filepath(
-        model_type, model_name, dataset_name, batch_size)
+        model_type, model_name, dataset_name, batch_size
+    )
 
     if not path.isfile(filepath):
         if create:
-            if anomaly_detection_method.model is None:
-                pass # load model
-
-            cache_statistics
+            print(f"No statistics cached at {filepath},")
+            model = load_generative_model(model_type, model_name)
+            anomaly_detector = anomaly_detection_method.from_model(model)
+            cache_statistics(filepath, anomaly_detector, batch_size, dataset_name)
         else:
-            raise FileNotFoundError(f"No statistics cached at {filepath}")
 
+            raise FileNotFoundError(f"No statistics cached at {filepath}, "
+                                    f"enable create=True to automatically create them.")
+
+    dataset_summary = torch.load(filepath)
+
+    return dataset_summary
 

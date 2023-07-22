@@ -19,30 +19,26 @@ def run(model_type, model_name, anomaly_method_name, batch_size, dataset_names, 
 
     for dataset_name in dataset_names:
 
-        cache_statistics(anomaly_detector, batch_size, dataset_name, dataset_split, model_name, verbose)
+        filepath = anomaly_detector.summary_statistic_filepath(model_type, model_name, dataset_name, batch_size)
+
+        cache_statistics(filepath, anomaly_detector, batch_size, dataset_name, dataset_split)
 
     if verbose:
         print("done")
 
 
-def cache_statistics(anomaly_detector, batch_size, dataset_name, dataset_split, model_name, model_type,
-                     filepath=None, verbose=True):
-
-    if filepath is None:
-        filepath = anomaly_detector.summary_statistic_filepath(model_type, model_name, dataset_name, batch_size)
+def cache_statistics(filepath, anomaly_detector, batch_size, dataset_name, dataset_split="test", verbose=True):
 
     if verbose:
         print("Creating summary statistics file:   ", filepath)
-
-    if anomaly_detector.model is None:
-        anomaly_detector.model = load_generative_model(model_type, model_name)
 
     dataset = get_dataset(dataset_name, dataset_split)
     dataset_summary = anomaly_detector.compute_summary_statistics(dataset, batch_size)
     save(dataset_summary, filepath)
 
 
-def load_statistics():
+def load_statistics(model_type, model_name, anomaly_detector, batch_size, dataset_name, dataset_split,
+                     filepath=None, verbose=True, create=True):
     pass
 
 
