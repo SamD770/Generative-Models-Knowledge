@@ -5,14 +5,14 @@ import torch
 import argparse
 
 from anomaly_methods.utils import anomaly_detection_methods_dict
-from command_line_utils import model_name_parser, anomaly_method_parser, dataset_parser
+from command_line_utils import model_parser, anomaly_method_parser, dataset_parser
 
 import matplotlib.pyplot as plt
 
 from os import path
 
 
-def run(anomaly_detection_name, model_name, id_dataset, ood_dataset_names, batch_size):
+def run(anomaly_detection_name, model_type, model_name, id_dataset, ood_dataset_names, batch_size):
     anomaly_detection_method = anomaly_detection_methods_dict[anomaly_detection_name]
 
     filepath = anomaly_detection_method.summary_statistic_filepath(
@@ -57,8 +57,8 @@ def run(anomaly_detection_name, model_name, id_dataset, ood_dataset_names, batch
         plt.savefig(filepath)
 
 
-parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_name_parser, dataset_parser])
+parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, dataset_parser])
 
 args = parser.parse_args()
 for model_name in args.model_names:
-    run(args.anomaly_detection, model_name, args.id_dataset, args.datasets, args.batch_size)
+    run(args.anomaly_detection, args.model_type, model_name, args.id_dataset, args.datasets, args.batch_size)

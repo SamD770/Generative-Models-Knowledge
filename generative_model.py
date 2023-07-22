@@ -73,7 +73,7 @@ class AnomalyDetectionMethod:
         raise NotImplementedError()
 
     @staticmethod
-    def summary_statistic_filepath(model_name, dataset_name, batch_size):
+    def summary_statistic_filepath(model_type, model_name, dataset_name, batch_size):
         raise NotImplementedError()
 
     def dataset_summary_dict(self):

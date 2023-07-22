@@ -1,5 +1,6 @@
 from anomaly_methods.gradients.L2_norms import L2NormAnomalyDetection, OneClassSVML2Norm, DiagonalGaussianL2Norm
 from anomaly_methods.likelihoods import LikelihoodBasedAnomalyDetection, RawLikelihoodAnomalyDetection, TypicalityAnomalyDetection
+from cache_statistics import cache_statistics
 
 anomaly_detection_methods_dict = {
     "gradients_L2_norms": L2NormAnomalyDetection,

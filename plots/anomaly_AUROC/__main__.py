@@ -5,11 +5,11 @@ from sklearn.metrics import auc, RocCurveDisplay
 import matplotlib.pyplot as plt
 
 from plots.utils import save_plot, positive_rates, get_anomaly_scores
-from command_line_utils import model_name_parser, anomaly_method_parser, dataset_parser
+from command_line_utils import model_parser, anomaly_method_parser, dataset_parser
 from anomaly_methods.utils import anomaly_detection_methods_dict
 
 
-def run(anomaly_detection_name, model_name, id_dataset_name, all_dataset_names, batch_size):
+def run(anomaly_detection_name, model_type, model_name, id_dataset_name, all_dataset_names, batch_size):
 
     # Load summaries
 
@@ -43,8 +43,8 @@ def run(anomaly_detection_name, model_name, id_dataset_name, all_dataset_names, 
     save_plot(title)
 
 
-parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_name_parser, dataset_parser])
+parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, dataset_parser])
 
 args = parser.parse_args()
 for model_name, id_dataset in zip(args.model_names, args.id_datasets):
-    run(args.anomaly_detection, model_name, id_dataset, args.datasets, args.batch_size)
+    run(args.anomaly_detection, args.model_type, model_name, id_dataset, args.datasets, args.batch_size)

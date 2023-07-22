@@ -4,7 +4,7 @@ from os import path
 import torch
 from matplotlib import pyplot as plt
 from sklearn.metrics import roc_curve
-from anomaly_methods.utils import anomaly_detection_methods_dict
+from anomaly_methods.utils import anomaly_detection_methods_dict, cache_statistics
 
 from torchvision.utils import make_grid
 
@@ -79,3 +79,19 @@ def get_dataset_summmaries(anomaly_detection_method, batch_size, id_dataset_name
         )
 
     return id_dataset_summary, all_dataset_summaries
+
+
+def get_dataset_summary(anomaly_detection_method, model_type, model_name, dataset_name, batch_size, create=True):
+    filepath = anomaly_detection_method.summary_statistic_filepath(
+        model_type, model_name, dataset_name, batch_size)
+
+    if not path.isfile(filepath):
+        if create:
+            if anomaly_detection_method.model is None:
+                pass # load model
+
+            cache_statistics
+        else:
+            raise FileNotFoundError(f"No statistics cached at {filepath}")
+
+

@@ -13,24 +13,37 @@ def run(anomaly_method_name, batch_size, model_name, model_type, dataset_names, 
 
     model = load_generative_model(model_type, model_name)
 
-    anomaly_method_name = anomaly_detection_methods_dict[anomaly_method_name]
+    anomaly_method = anomaly_detection_methods_dict[anomaly_method_name]
 
-    anomaly_detector = anomaly_method_name.from_model(model)
+    anomaly_detector = anomaly_method.from_model(model)
 
     for dataset_name in dataset_names:
 
-        filepath = anomaly_detector.summary_statistic_filepath(model_name, dataset_name, batch_size)
-
-        if verbose:
-            print("Creating summary statistics file:   ", filepath)
-
-        dataset = get_dataset(dataset_name, dataset_split)
-        dataset_summary = anomaly_detector.compute_summary_statistics(dataset, batch_size)
-
-        save(dataset_summary, filepath)
+        cache_statistics(anomaly_detector, batch_size, dataset_name, dataset_split, model_name, verbose)
 
     if verbose:
         print("done")
+
+
+def cache_statistics(anomaly_detector, batch_size, dataset_name, dataset_split, model_name, model_type,
+                     filepath=None, verbose=True):
+
+    if filepath is None:
+        filepath = anomaly_detector.summary_statistic_filepath(model_type, model_name, dataset_name, batch_size)
+
+    if verbose:
+        print("Creating summary statistics file:   ", filepath)
+
+    if anomaly_detector.model is None:
+        anomaly_detector.model = load_generative_model(model_type, model_name)
+
+    dataset = get_dataset(dataset_name, dataset_split)
+    dataset_summary = anomaly_detector.compute_summary_statistics(dataset, batch_size)
+    save(dataset_summary, filepath)
+
+
+def load_statistics():
+    pass
 
 
 if __name__ == "__main__":

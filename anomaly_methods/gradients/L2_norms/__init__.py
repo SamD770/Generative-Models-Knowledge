@@ -84,7 +84,7 @@ class L2NormAnomalyDetection(AnomalyDetectionMethod):
         }
 
     @staticmethod
-    def summary_statistic_filepath(model_name, dataset_name, batch_size):
+    def summary_statistic_filepath(model_type, model_name, dataset_name, batch_size):
         return path.join(L2_NORMS_DIR,
                          get_save_file_name(model_name, dataset_name, batch_size))
 
