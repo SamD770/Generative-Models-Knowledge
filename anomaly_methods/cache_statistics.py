@@ -8,7 +8,7 @@ from anomaly_methods.utils import anomaly_detection_methods_dict
 from data.utils import get_dataset
 
 
-def run(anomaly_method_name, batch_size, model_name, model_type, dataset_names, dataset_split, verbose=True):
+def run(model_type, model_name, anomaly_method_name, batch_size, dataset_names, dataset_split, verbose=True):
     """Caches the summary statistics from the given anomaly method and model applied to the given datasets."""
 
     model = load_generative_model(model_type, model_name)
@@ -51,6 +51,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     for model_name_arg in args.model_names:
-        run(
-            args.anomaly_detection, args.batch_size, model_name_arg, args.model_type, args.datasets, args.split
-        )
+        run(args.model_type, model_name_arg, args.anomaly_detection, args.batch_size, args.datasets, args.split)

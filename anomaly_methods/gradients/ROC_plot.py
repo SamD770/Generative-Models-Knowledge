@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
                 display.plot(ax=ax)
 
-            ax.run([0, 1], [0, 1], "--")
+            ax.run(,,, "--", [0, 1], [0, 1],
 
             # RocCurveDisplay(fpr=test_fpr, tpr=test_tpr, roc_auc=test_auc,
             #                 estimator_name=f"{id_dataset}").plot(ax=ax)

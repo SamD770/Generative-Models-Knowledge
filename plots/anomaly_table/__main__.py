@@ -12,7 +12,7 @@ metric_dict = {
 }
 
 
-def run(anomaly_detection_name, model_type, model_names, id_datasets, dataset_names, batch_size, metric_name):
+def run(model_type, model_names, anomaly_detection_name, id_datasets, dataset_names, batch_size, metric_name):
 
     metric = metric_dict[metric_name]
 
@@ -47,4 +47,5 @@ parser.add_argument("--metric", choices=metric_dict.keys(),
                     help="The metric by which to measure the success of the anomaly detection method", default="auc")
 
 args = parser.parse_args()
-run(args.anomaly_detection, args.model_type, args.model_names, args.id_datasets, args.datasets, args.batch_size, args.metric)
+run(args.model_type, args.model_names, args.anomaly_detection, args.id_datasets, args.datasets, args.batch_size,
+    args.metric)

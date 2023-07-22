@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from os import path
 
 
-def run(anomaly_detection_name, model_type, model_name, id_dataset, ood_dataset_names, batch_size):
+def run(model_type, model_name, anomaly_detection_name, id_dataset, ood_dataset_names, batch_size):
     anomaly_detection_method = anomaly_detection_methods_dict[anomaly_detection_name]
 
     filepath = anomaly_detection_method.summary_statistic_filepath(
@@ -61,4 +61,4 @@ parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, d
 
 args = parser.parse_args()
 for model_name in args.model_names:
-    run(args.anomaly_detection, args.model_type, model_name, args.id_dataset, args.datasets, args.batch_size)
+    run(args.model_type, model_name, args.anomaly_detection, args.id_dataset, args.datasets, args.batch_size)
