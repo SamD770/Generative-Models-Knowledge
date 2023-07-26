@@ -8,7 +8,7 @@ from anomaly_methods.utils import anomaly_detection_methods_dict
 from data.utils import get_dataset
 
 
-def run(model_type, model_name, anomaly_method_name, batch_size, dataset_names, dataset_split, verbose=True):
+def run(model_type, model_name, model_mode, anomaly_method_name, batch_size, dataset_names, dataset_split, verbose=True):
     """Caches the summary statistics from the given anomaly method and model applied to the given datasets."""
 
     model = load_generative_model(model_type, model_name)
@@ -19,21 +19,22 @@ def run(model_type, model_name, anomaly_method_name, batch_size, dataset_names, 
 
     for dataset_name in dataset_names:
 
-        filepath = anomaly_detector.summary_statistic_filepath(model_type, model_name, dataset_name, batch_size)
+        filepath = anomaly_detector.summary_statistic_filepath(model_type, model_name, model_mode, dataset_name, batch_size)
 
-        cache_statistics(filepath, anomaly_detector, batch_size, dataset_name, dataset_split)
+        cache_statistics(filepath, anomaly_detector, batch_size, dataset_name,
+                         model_mode=model_mode, dataset_split=dataset_split)
 
     if verbose:
         print("done")
 
 
-def cache_statistics(filepath, anomaly_detector, batch_size, dataset_name, dataset_split="test", verbose=True):
+def cache_statistics(filepath, anomaly_detector, batch_size, dataset_name,  model_mode="eval", dataset_split="test", verbose=True):
 
     if verbose:
         print("Creating summary statistics file:   ", filepath)
 
     dataset = get_dataset(dataset_name, dataset_split)
-    dataset_summary = anomaly_detector.compute_summary_statistics(dataset, batch_size)
+    dataset_summary = anomaly_detector.compute_summary_statistics(dataset, batch_size, model_mode=model_mode)
     save(dataset_summary, filepath)
 
 
@@ -42,4 +43,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     for model_name_arg in args.model_names:
-        run(args.model_type, model_name_arg, args.anomaly_detection, args.batch_size, args.datasets, args.split)
+        run(args.model_type, model_name_arg, args.model_mode,
+            args.anomaly_detection, args.batch_size, args.datasets, args.split)

@@ -44,12 +44,13 @@ def positive_rates(id_test_anomaly_scores, ood_anomaly_scores):
     return fpr, tpr
 
 
-def get_anomaly_scores(model_type, model_name, anomaly_detection_name, batch_size, id_dataset_name, all_dataset_names):
+def get_anomaly_scores(model_type, model_name, model_mode, anomaly_detection_name, batch_size, id_dataset_name, all_dataset_names):
 
     anomaly_detection_method = anomaly_detection_methods_dict[anomaly_detection_name]
 
-    id_dataset_summary, all_dataset_summaries = get_dataset_summmaries(model_type, model_name, anomaly_detection_method,
-                                                                       batch_size, id_dataset_name, all_dataset_names)
+    id_dataset_summary, all_dataset_summaries = get_dataset_summmaries(model_type, model_name, model_mode,
+                                                                       anomaly_detection_method, batch_size,
+                                                                       id_dataset_name, all_dataset_names)
 
     # Compute anomaly scores
     anomaly_detector = anomaly_detection_method.from_dataset_summary(id_dataset_summary)
@@ -66,17 +67,17 @@ def get_anomaly_scores(model_type, model_name, anomaly_detection_name, batch_siz
     return id_test_anomaly_scores, all_anomaly_scores_list
 
 
-def get_dataset_summmaries(model_type, model_name, anomaly_detection_method, batch_size,
+def get_dataset_summmaries(model_type, model_name, model_mode, anomaly_detection_method, batch_size,
                            id_dataset_name, all_dataset_names):
 
-    id_dataset_summary = load_dataset_summary(model_type, model_name, anomaly_detection_method, batch_size,
+    id_dataset_summary = load_dataset_summary(model_type, model_name, model_mode, anomaly_detection_method, batch_size,
                                               id_dataset_name)
 
     all_dataset_summaries = []
 
     for dataset_name in all_dataset_names:
 
-        dataset_summary = load_dataset_summary(model_type, model_name, anomaly_detection_method, batch_size,
+        dataset_summary = load_dataset_summary(model_type, model_name, model_mode, anomaly_detection_method, batch_size,
                                                dataset_name)
 
         all_dataset_summaries.append(
@@ -86,12 +87,12 @@ def get_dataset_summmaries(model_type, model_name, anomaly_detection_method, bat
     return id_dataset_summary, all_dataset_summaries
 
 
-def load_dataset_summary(model_type, model_name, anomaly_detection_method, batch_size, dataset_name, create=True):
+def load_dataset_summary(model_type, model_name, model_mode, anomaly_detection_method, batch_size, dataset_name, create=True):
 
     # currently problematic as can lead to model re-loading
 
     filepath = anomaly_detection_method.summary_statistic_filepath(
-        model_type, model_name, dataset_name, batch_size
+        model_type, model_name, model_mode, dataset_name, batch_size
     )
 
     if not path.isfile(filepath):
@@ -99,7 +100,7 @@ def load_dataset_summary(model_type, model_name, anomaly_detection_method, batch
             print(f"No statistics cached at {filepath},")
             model = load_generative_model(model_type, model_name)
             anomaly_detector = anomaly_detection_method.from_model(model)
-            cache_statistics(filepath, anomaly_detector, batch_size, dataset_name)
+            cache_statistics(filepath, anomaly_detector, batch_size, dataset_name, model_mode=model_mode)
         else:
 
             raise FileNotFoundError(f"No statistics cached at {filepath}, "

@@ -35,9 +35,9 @@ class L2NormAnomalyDetection(AnomalyDetectionMethod):
         pass
 
     @staticmethod
-    def summary_statistic_filepath(model_type, model_name, dataset_name, batch_size):
+    def summary_statistic_filepath(model_type, model_name, model_mode, dataset_name, batch_size):
         return path.join(FISHER_NORMS_DIR, model_type,
-                         get_save_file_name(model_name, dataset_name, batch_size))
+                         get_save_file_name(model_name, dataset_name, batch_size, model_mode=model_mode))
 
     def setup_method(self, fit_set_summary: Dict[str, List[float]]):
         pass # Maybe store average gradient vector

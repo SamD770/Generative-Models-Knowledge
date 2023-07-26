@@ -73,7 +73,7 @@ class AnomalyDetectionMethod:
         raise NotImplementedError()
 
     @staticmethod
-    def summary_statistic_filepath(model_type, model_name, dataset_name, batch_size):
+    def summary_statistic_filepath(model_type, model_name, model_mode, dataset_name, batch_size):
         raise NotImplementedError()
 
     def dataset_summary_dict(self):
@@ -81,7 +81,7 @@ class AnomalyDetectionMethod:
             name: [] for name in self.summary_statistic_names
         }
 
-    def compute_summary_statistics(self, dataset: Dataset, batch_size: int, verbose=True):
+    def compute_summary_statistics(self, dataset: Dataset, batch_size: int, model_mode="eval", verbose=True):
         """
         Applies extract_summary_statistics to each batch in dataset
         :param dataset:
@@ -92,7 +92,13 @@ class AnomalyDetectionMethod:
             raise ValueError("Attempted to extract summary statistics without initialising a model.")
 
         self.model.to(device)
-        self.model.eval()
+
+        if model_mode == "eval":
+            self.model.eval()
+        elif model_mode == "train":
+            self.model.train()
+        else:
+            raise ValueError(f"Model mode {model_mode} not recognised.")
 
         dataloader = DataLoader(
             dataset, batch_size=batch_size, shuffle=False, drop_last=True
