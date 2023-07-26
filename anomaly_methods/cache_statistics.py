@@ -37,11 +37,6 @@ def cache_statistics(filepath, anomaly_detector, batch_size, dataset_name, datas
     save(dataset_summary, filepath)
 
 
-def load_statistics(model_type, model_name, anomaly_detector, batch_size, dataset_name, dataset_split,
-                     filepath=None, verbose=True, create=True):
-    pass
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(parents=[anomaly_method_parser, dataset_parser, model_parser])
     args = parser.parse_args()

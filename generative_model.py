@@ -92,6 +92,7 @@ class AnomalyDetectionMethod:
             raise ValueError("Attempted to extract summary statistics without initialising a model.")
 
         self.model.to(device)
+        self.model.eval()
 
         dataloader = DataLoader(
             dataset, batch_size=batch_size, shuffle=False, drop_last=True

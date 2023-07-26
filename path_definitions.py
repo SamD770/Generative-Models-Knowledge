@@ -17,6 +17,7 @@ ANOMALY_DIR = path.join(PROJECT_ROOT, "anomaly_methods")
 
 GRADIENTS_DIR = path.join(ANOMALY_DIR, "gradients")
 L2_NORMS_DIR = path.join(GRADIENTS_DIR, "L2_norms")
+FISHER_NORMS_DIR = path.join(GRADIENTS_DIR, "Fisher_norms")
 
 LIKELIHOODS_DIR = path.join(ANOMALY_DIR, "likelihoods")
 

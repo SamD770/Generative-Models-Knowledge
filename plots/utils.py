@@ -5,7 +5,9 @@ from os import path
 import torch
 from matplotlib import pyplot as plt
 from sklearn.metrics import roc_curve
-from anomaly_methods.utils import anomaly_detection_methods_dict, cache_statistics
+from anomaly_methods.utils import anomaly_detection_methods_dict
+from anomaly_methods.cache_statistics import cache_statistics
+
 from models.utils import load_generative_model
 
 from torchvision.utils import make_grid
@@ -37,6 +39,7 @@ def positive_rates(id_test_anomaly_scores, ood_anomaly_scores):
                         torch.zeros(len(ood_anomaly_scores))])
     y_scores = torch.cat([torch.tensor(id_test_anomaly_scores),
                           torch.tensor(ood_anomaly_scores)])
+    y_scores = y_scores.nan_to_num()
     fpr, tpr, _ = roc_curve(y_true, y_scores)
     return fpr, tpr
 

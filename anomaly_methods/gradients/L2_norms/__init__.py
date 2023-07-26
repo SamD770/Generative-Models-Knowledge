@@ -1,4 +1,5 @@
 from anomaly_methods.cached_statistic_filenames import get_save_file_name
+from anomaly_methods.gradients.gradient_utils import backprop_nll
 from path_definitions import L2_NORMS_DIR
 
 from generative_model import AnomalyDetectionMethod, GenerativeModel
@@ -10,12 +11,6 @@ from torch import Tensor
 from torch.distributions.normal import Normal
 
 from sklearn.svm import OneClassSVM
-
-
-def backprop_nll(model: GenerativeModel, batch: Tensor):
-    nll = model.eval_nll(batch)
-    model.zero_grad()
-    nll.sum().backward()
 
 
 def zero_keys(summary_stats, printout=True):

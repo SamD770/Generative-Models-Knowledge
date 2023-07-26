@@ -38,7 +38,8 @@ def run(model_type, model_names, anomaly_detection_name, batch_size, id_datasets
             df[model_name].loc[ood_dataset_name] = performance
 
     print(
-        df.to_latex()
+        df.to_latex(caption=f"{metric_name} values for {anomaly_detection_name}, batch size {batch_size} "
+                            f"applied to {model_type}".replace("_", "\\_"))
     )
 
 
