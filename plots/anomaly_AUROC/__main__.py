@@ -9,11 +9,11 @@ from command_line_utils import model_parser, anomaly_method_parser, dataset_pars
 from anomaly_methods.utils import anomaly_detection_methods_dict
 
 
-def run(model_type, model_name, anomaly_detection_name, batch_size, id_dataset_name, all_dataset_names):
+def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, id_dataset_name, all_dataset_names):
 
     # Load summaries
 
-    id_test_anomaly_scores, all_anomaly_scores_list = get_anomaly_scores(model_type, model_name,
+    id_test_anomaly_scores, all_anomaly_scores_list = get_anomaly_scores(model_type, model_name, model_mode,
                                                                          anomaly_detection_name, batch_size,
                                                                          id_dataset_name, all_dataset_names)
 
@@ -48,4 +48,4 @@ parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, d
 
 args = parser.parse_args()
 for model_name, id_dataset in zip(args.model_names, args.id_datasets):
-    run(args.model_type, model_name, args.anomaly_detection, args.batch_size, id_dataset, args.datasets)
+    run(args.model_type, model_name, args.model_mode, args.anomaly_detection, args.batch_size, id_dataset, args.datasets)

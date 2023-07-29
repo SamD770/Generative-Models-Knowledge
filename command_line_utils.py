@@ -21,7 +21,7 @@ model_type_parser.add_argument("model_type", choices=model_classes,
                                help="The type of model to run the plot on.")
 
 model_parser = argparse.ArgumentParser(add_help=False, parents=[model_type_parser, model_name_parser])
-model_parser.add_argument("model_mode", default="eval", choices=["eval", "train"],
+model_parser.add_argument("--model_mode", default="eval", choices=["eval", "train"],
                           help="whether to call model.eval() or model.train() before extracting summary stats")
 
 anomaly_method_parser = argparse.ArgumentParser(add_help=False)

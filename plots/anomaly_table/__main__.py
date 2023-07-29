@@ -23,7 +23,7 @@ def run(model_type, model_names, model_mode, anomaly_detection_name, batch_size,
 
     for model_name, id_dataset_name in zip(model_names, id_datasets):
 
-        id_test_anomaly_scores, all_anomaly_scores_list = get_anomaly_scores(model_type, model_name,
+        id_test_anomaly_scores, all_anomaly_scores_list = get_anomaly_scores(model_type, model_name, model_mode,
                                                                              anomaly_detection_name, batch_size,
                                                                              id_dataset_name, dataset_names)
 
@@ -39,7 +39,7 @@ def run(model_type, model_names, model_mode, anomaly_detection_name, batch_size,
 
     print(
         df.to_latex(caption=f"{metric_name} values for {anomaly_detection_name}, batch size {batch_size} "
-                            f"applied to {model_type}".replace("_", "\\_"))
+                            f"applied to {model_type} in {model_mode} mode".replace("_", "\\_"))
     )
 
 
