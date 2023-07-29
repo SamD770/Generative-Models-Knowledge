@@ -12,10 +12,10 @@ import matplotlib.pyplot as plt
 from os import path
 
 
-def run(model_type, model_name, anomaly_detection_name, batch_size, id_dataset, ood_dataset_names):
+def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, id_dataset, ood_dataset_names):
     anomaly_detection_method = anomaly_detection_methods_dict[anomaly_detection_name]
 
-    id_dataset_summary, ood_dataset_summaries = get_dataset_summmaries(model_type, model_name,
+    id_dataset_summary, ood_dataset_summaries = get_dataset_summmaries(model_type, model_name, model_mode,
                                                                        anomaly_detection_method, batch_size,
                                                                        id_dataset, ood_dataset_names)
 
@@ -49,4 +49,4 @@ parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, d
 
 args = parser.parse_args()
 for model_name in args.model_names:
-    run(args.model_type, model_name, args.anomaly_detection, args.batch_size, args.id_dataset, args.datasets)
+    run(args.model_type, model_name, args.model_mode, args.anomaly_detection, args.batch_size, args.id_dataset, args.datasets)
