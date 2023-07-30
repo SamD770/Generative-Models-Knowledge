@@ -262,7 +262,7 @@ if __name__ == "__main__":
 
     print(device)
 
-    for dataset_name, dataset_getter in zip(
+    for dataset_name in zip(
             ["cifar10", "svhn", "celeba", "imagenet"],
             [get_CIFAR10, get_SVHN, get_celeba, get_imagenet32]):
 

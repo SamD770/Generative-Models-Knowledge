@@ -26,6 +26,8 @@ from data.datasets import (
     get_FashionMNIST,
 )
 
+from data.utils import to_dataset_wrapper
+
 from models.glow_model.model import Glow
 
 
@@ -54,6 +56,11 @@ def check_dataset(dataset, dataroot, augment, download):
         input_size, num_classes, train_dataset, test_dataset = get_FashionMNIST(
             dataroot
         )
+    elif dataset in to_dataset_wrapper:
+        dataset_wrapper = to_dataset_wrapper[dataset]
+        input_size, num_classes, train_dataset, test_dataset = dataset_wrapper.get_all(dataroot)
+    else:
+        raise ValueError("unrecognised dataset:", dataset)
 
     return input_size, num_classes, train_dataset, test_dataset
 
@@ -327,7 +334,7 @@ if __name__ == "__main__":
         "--dataset",
         type=str,
         default="cifar10",
-        choices=["cifar10", "svhn", "celeba", "imagenet32", "MNIST", "FashionMNIST"],
+        choices=to_dataset_wrapper.keys(),
         help="Type of the dataset to be used.",
     )
 
