@@ -13,6 +13,7 @@ import warnings
 
 from data.datasets import (
     CIFAR10_Wrapper,
+    GTSRBWrapper,
     SVHN_Wrapper,
     CelebaA_Wrapper,
     Imagenet32_Wrapper,
@@ -34,6 +35,7 @@ to_dataset_wrapper = {
     DS_Wrapper.name: DS_Wrapper for DS_Wrapper in
     [
         CIFAR10_Wrapper,
+        GTSRBWrapper,
         SVHN_Wrapper,
         CelebaA_Wrapper,
         Imagenet32_Wrapper,

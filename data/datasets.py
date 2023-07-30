@@ -306,6 +306,52 @@ class CIFAR10_Wrapper(DatasetWrapper):
         )
 
 
+class GTSRBWrapper(DatasetWrapper):
+    """For the German Traffic Sign Recognition Benchmark (Houben et al. 2013)"""
+    name = "gtsrb"
+    image_shape = (32, 32, 3)
+    num_classes = 40
+    pixel_range = (-0.5, 0.5)
+
+    @staticmethod
+    def root(dataroot):
+        return path.join(dataroot, "GTSRB")
+
+    @staticmethod
+    def get_train(dataroot=DATAROOT, augment=True):
+        if augment:
+            transformations = [
+                transforms.RandomAffine(0, translate=(0.1, 0.1)),
+                transforms.RandomHorizontalFlip(),
+            ]
+        else:
+            transformations = []
+
+        transformations.extend([transforms.ToTensor(), transforms.Resize((32, 32)), preprocess])
+        train_transform = transforms.Compose(transformations)
+
+        train_dataset = datasets.GTSRB(
+            GTSRBWrapper.root(dataroot),
+            split="train",
+            transform=train_transform,
+            download=True,
+        )
+
+        return train_dataset
+
+    @staticmethod
+    def get_test(dataroot=DATAROOT):
+
+        test_transform = transforms.Compose([transforms.ToTensor(), transforms.Resize((32, 32)), preprocess])
+
+        return datasets.GTSRB(
+            GTSRBWrapper.root(dataroot),
+            split="test",
+            transform=test_transform,
+            download=True,
+        )
+
+
 def get_CIFAR10(augment, dataroot, download):
     warnings.warn("DEPRECATED. Use CIFAR10_Wrapper.get_all instead.", DeprecationWarning)
 
