@@ -3,7 +3,7 @@ import numpy as np
 
 import argparse
 
-from plots.utils import get_anomaly_scores, positive_rates
+from plots.utils import get_anomaly_scores, positive_rates, save_log
 from command_line_utils import model_parser, anomaly_method_parser, dataset_parser
 from sklearn.metrics import auc
 
@@ -37,9 +37,15 @@ def run(model_type, model_names, model_mode, anomaly_detection_name, batch_size,
             performance = metric(fpr, tpr)
             df[model_name].loc[ood_dataset_name] = performance
 
+    title = f"{metric_name} values for {anomaly_detection_name}, batch size {batch_size} applied to {model_type} " \
+            f"in {model_mode} mode"
+
+    table_latex = df.to_latex(caption=title.replace("_", "\\_"))
+
+    save_log(title, table_latex)
+
     print(
-        df.to_latex(caption=f"{metric_name} values for {anomaly_detection_name}, batch size {batch_size} "
-                            f"applied to {model_type} in {model_mode} mode".replace("_", "\\_"))
+        table_latex
     )
 
 

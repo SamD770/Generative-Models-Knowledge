@@ -29,6 +29,12 @@ def grid_from_imgs(img_seq):
     return grid
 
 
+def save_log(title, log_string):
+    save_filepath = path.join(RUNNING_MODULE_DIR, title + ".txt")
+    with open(save_filepath, "wt") as f:
+        f.write(log_string)
+
+
 def save_plot(title):
     save_filepath = path.join(RUNNING_MODULE_DIR, title + ".png")
     plt.savefig(save_filepath)
