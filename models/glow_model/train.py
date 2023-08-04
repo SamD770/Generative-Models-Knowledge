@@ -260,8 +260,10 @@ def main(
 
     # load pre-trained model if given
     if saved_model:
-        model.load_state_dict(torch.load(saved_model))
+        model.load_state_dict(torch.load(saved_model)["model"])
         model.set_actnorm_init()
+
+        print("model loaded")
 
         if saved_optimizer:
             optimizer.load_state_dict(torch.load(saved_optimizer))
