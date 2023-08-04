@@ -47,6 +47,8 @@ def get_summary_matrix(summary_stats, zero_keys_valid):
     return torch.nan_to_num(matrix)
 
 
+# TODO: maybe override from_model
+
 class L2NormAnomalyDetection(AnomalyDetectionMethod):
     """
     An AnomalyDetectionMethod that fits an IsolationForest (Liu et al.) to the norms of the gradient of each parameter.
@@ -62,9 +64,9 @@ class L2NormAnomalyDetection(AnomalyDetectionMethod):
         self.sklearn_model = None
 
     @staticmethod
-    def get_summary_statistic_names(model) -> List[str]:
+    def get_summary_statistic_names(model) -> List:
         return [
-            name for name, _ in model.named_parameters()
+            (name, p.numel()) for name, p in model.named_parameters()
         ]
 
     def extract_summary_statistics(self, batch: Tensor) -> Dict[str, float]:
@@ -75,7 +77,7 @@ class L2NormAnomalyDetection(AnomalyDetectionMethod):
         backprop_nll(self.model, batch)
 
         return {
-            name: take_norm(p.grad) for name, p in self.model.named_parameters()
+            (name, p.numel()): take_norm(p.grad) for name, p in self.model.named_parameters()
         }
 
     @staticmethod
