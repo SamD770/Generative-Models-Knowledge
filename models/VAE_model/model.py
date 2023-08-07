@@ -292,6 +292,6 @@ if __name__ == "__main__":
             optimizer=my_optimizer,
             vae=my_vae,
             train_loader=train_loader,
-            checkpoint_path=f"./VAE_model/VAE_{dataset_name}.pt",
+            checkpoint_path=path.join(VAE_ROOT, f"VAE_{dataset_name}.pt"),
             device=device,
         )
