@@ -10,7 +10,7 @@ dataset_parser.add_argument("-ds", "--datasets", nargs="+", choices=dataset_name
                             help="The dataset(s) to run the plot on.")
 
 dataset_parser.add_argument("--split", choices=["train", "test"],
-                            help="the dataset split to use", default="test")
+                            help="the dataset split to use, default='test'", default="test")
 
 model_name_parser = argparse.ArgumentParser(add_help=False)
 model_name_parser.add_argument("model_names", nargs="+",
@@ -22,7 +22,8 @@ model_type_parser.add_argument("model_type", choices=model_classes,
 
 model_parser = argparse.ArgumentParser(add_help=False, parents=[model_type_parser, model_name_parser])
 model_parser.add_argument("--model_mode", default="eval", choices=["eval", "train"],
-                          help="whether to call model.eval() or model.train() before extracting summary stats")
+                          help="whether to call model.eval() or model.train() before extracting summary stats, "
+                               "default='test'")
 
 anomaly_method_parser = argparse.ArgumentParser(add_help=False)
 anomaly_method_parser.add_argument("--anomaly_detection", choices=anomaly_detection_methods,
