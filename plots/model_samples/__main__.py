@@ -1,6 +1,7 @@
 from path_definitions import PLOTS_DIR
 from os import path
 import sys
+import torch
 
 from plots.utils import save_plot, grid_from_imgs
 from command_line_utils import model_parser
@@ -11,10 +12,17 @@ import matplotlib.pyplot as plt
 
 import argparse
 
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+else:
+    device = torch.device("cpu")
+
+print(device)
+
 
 def run(model_type, model_name):
     model = load_generative_model(model_type, model_name)
-    # model.to("cuda")
+    model.to(device)
     #
     # pytorch_total_params = sum(p.numel() for p in model.parameters())
     # print("params:", pytorch_total_params)
