@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
     print(device)
 
-    for dataset_name in ["gtsrb", "cifar10", "", "imagenet32"]:
+    for dataset_name in ["gtsrb", "cifar10", "svhn", "imagenet32"]:
         train_dataset = get_dataset(dataset_name, split="train")
 
         # input_shape, _, train_dataset, _ = get_celeba(dataroot="./")
