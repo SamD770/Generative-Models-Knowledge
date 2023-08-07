@@ -64,7 +64,7 @@ def get_save_path(model_name):
 def training_loop(
     n_epochs, optimizer, model, train_loader, checkpoint_path, device, starting_epoch=1
 ):
-    for n in range(starting_epoch, n_epochs + 1):
+    for n in range(starting_epoch, starting_epoch + n_epochs + 1):
         train_loss = 0
         for imgs, _ in train_loader:
             imgs = imgs.to(device=device)
@@ -77,7 +77,7 @@ def training_loop(
 
             train_loss += loss.item()
 
-        if n < 5 or n % 10 == 0:
+        if n < 10:
             print(f"epoch: {n}, train loss: {train_loss / len(train_loader)}")
             torch.save(
                 {
@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
     print(device)
 
-    for dataset_name in ["gtsrb"]:
+    for dataset_name in ["gtsrb", "cifar10", "", "imagenet32"]:
         train_dataset = get_dataset(dataset_name, split="train")
 
         # input_shape, _, train_dataset, _ = get_celeba(dataroot="./")
@@ -108,7 +108,7 @@ if __name__ == "__main__":
             train_dataset, batch_size=8, shuffle=True
         )
 
-        model = DiffusionModel()
+        model = DiffusionModel.load_serialised(f"diffusion_{dataset_name}")
 
         model.diffusion.to(device)
 
@@ -123,5 +123,6 @@ if __name__ == "__main__":
             train_loader=train_loader,
             checkpoint_path=get_save_path(f"diffusion_{dataset_name}"),
             device=device,
+            starting_epoch=5
         )
 
