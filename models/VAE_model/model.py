@@ -1,5 +1,6 @@
 from generative_model import GenerativeModel
 from path_definitions import VAE_ROOT
+from data.utils import to_dataset_wrapper
 
 from os import path
 
@@ -262,14 +263,10 @@ if __name__ == "__main__":
 
     print(device)
 
-    for dataset_name in zip(
-            ["cifar10", "svhn", "celeba", "imagenet"],
-            [get_CIFAR10, get_SVHN, get_celeba, get_imagenet32]):
+    for dataset_name in ["gtsrb"]:
 
-        if dataset_name in ["cifar", "svhn"]:
-            input_shape, _, train_dataset, _ = dataset_getter(dataroot="./", augment=False, download=False)
-        else:
-            input_shape, _, train_dataset, _ = dataset_getter(dataroot="./")
+        dataset_wrapper = to_dataset_wrapper[dataset_name]
+        input_shape, _, train_dataset, _ = dataset_wrapper.get_all()
 
         train_loader = torch.utils.data.DataLoader(
             train_dataset, batch_size=64, shuffle=True
