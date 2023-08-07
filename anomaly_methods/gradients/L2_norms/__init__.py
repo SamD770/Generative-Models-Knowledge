@@ -3,12 +3,14 @@ from anomaly_methods.gradients.gradient_utils import backprop_nll
 from path_definitions import L2_NORMS_DIR
 
 from generative_model import AnomalyDetectionMethod, GenerativeModel
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from os import path
 
 import torch
 from torch import Tensor
+from torch.distributions import Distribution
 from torch.distributions.normal import Normal
+from torch.distributions.log_normal import LogNormal
 
 from sklearn.svm import OneClassSVM
 
@@ -131,51 +133,142 @@ class OneClassSVML2Norm(SKLearnL2NormAnomalyDetection):
 # TODO: unify these bois under one flag.
 
 
-class DiagonalGaussianL2Norm(L2NormAnomalyDetection):
+class DistributionFittingL2Norm(L2NormAnomalyDetection):
     """
-    Fits a Log-normal distribution to each feature, the anomaly score is the log-probability-density assuming independence.
+    Abstract class for fitting distributions to each feature independently. Currently returns the log-likelihood as the
+    anomaly score.
+    Let f_i be the feature for summary statistic i. dists returns the distributions fitted to f_i and log_scale_dists
+    returns the distributions fitted to log_f_i
     """
 
-    def log_value_generator(self, summary_statistics):
+    def value_generator(self, summary_statistics):
         """Pre-treats the values in summary_statistics by converting to a tensor and taking logs."""
         for summary_stat_name, value_list in summary_statistics.items():
             if summary_stat_name in self.zero_keys_fit:
                 continue
 
             value_tensor = torch.tensor(value_list)
-            log_value_tensor = torch.log(value_tensor)
-            yield summary_stat_name, log_value_tensor
+            yield summary_stat_name, value_tensor
 
     def setup_method(self, fit_set_summary: Dict[str, List[float]]):
         # Fits a log-normal distribution to each feature
         self.zero_keys_fit = zero_keys(fit_set_summary)
 
-        self.normal_dists = {}
+        self.distribution_parameters = {}
 
-        for summary_stat_name, log_value_tensor in self.log_value_generator(fit_set_summary):
+        for summary_stat_key, fit_value_tensor in self.value_generator(fit_set_summary):
 
-            normal_dist = Normal(log_value_tensor.mean(), log_value_tensor.std(dim=0))
-
-            self.normal_dists[summary_stat_name] = normal_dist
+            self.distribution_parameters[summary_stat_key] = \
+                self.compute_parameters(summary_stat_key, fit_value_tensor)
 
     def anomaly_score(self, summary_statistics: Dict[str, List[float]]) -> List[float]:
-
         # Computes the log-probability of each sample in parallel.
         log_p = 0
 
-        for summary_stat_name, log_value_tensor in self.log_value_generator(summary_statistics):
+        for summary_stat_key, value_tensor in self.value_generator(summary_statistics):
 
             try:
+                log_value_tensor = torch.log(value_tensor)
                 log_value_tensor = log_value_tensor.nan_to_num()
-                layer_model_density = self.normal_dists[summary_stat_name].log_prob(log_value_tensor)
+
+                dist = self.fitted_log_scale_distribution(summary_stat_key)
+                layer_model_density = dist.log_prob(log_value_tensor)
                 log_p += layer_model_density
+
             except ValueError:
                 print(log_value_tensor.isnan().any())
                 print(log_value_tensor)
 
-        return list(
+        log_p_list = list(
             val.item() for val in log_p
         )
+
+        return log_p_list
+
+
+    def fitted_distribution(self, key) -> Distribution:
+        params = self.distribution_parameters[key]
+        return self.parameters_to_distribution(params)
+
+    def fitted_log_scale_distribution(self, key) -> Distribution:
+        params = self.distribution_parameters[key]
+        return self.parameters_to_log_scale_distribution(params)
+
+    @classmethod
+    def parameters_to_distribution(cls, params):
+        raise NotImplementedError()
+
+    @classmethod
+    def parameters_to_log_scale_distribution(cls, params):
+        raise NotImplementedError()
+
+    def compute_parameters(self, summary_stat_key, fit_value_tensor):
+        raise NotImplementedError()
+
+
+class DiagonalGaussianL2Norm(L2NormAnomalyDetection):
+    def compute_parameters(self, summary_stat_key, fit_value_tensor):
+        log_value_tensor = torch.log(fit_value_tensor)
+        mean = log_value_tensor.mean()
+        std = log_value_tensor.std(dim=0)
+        print("running new code!")
+        exit()
+        return mean, std
+
+    @classmethod
+    def parameters_to_distribution(cls, params):
+        return LogNormal(*params)
+
+    @classmethod
+    def parameters_to_log_scale_distribution(cls, params):
+        return Normal(*params)
+
+#
+# class DiagonalGaussianL2Norm(L2NormAnomalyDetection):
+#     """
+#     Fits a Log-normal distribution to each feature, the anomaly score is the log-probability-density assuming independence.
+#     """
+#
+#     def log_value_generator(self, summary_statistics):
+#         """Pre-treats the values in summary_statistics by converting to a tensor and taking logs."""
+#         for summary_stat_name, value_list in summary_statistics.items():
+#             if summary_stat_name in self.zero_keys_fit:
+#                 continue
+#
+#             value_tensor = torch.tensor(value_list)
+#             log_value_tensor = torch.log(value_tensor)
+#             yield summary_stat_name, log_value_tensor
+#
+#     def setup_method(self, fit_set_summary: Dict[str, List[float]]):
+#         # Fits a log-normal distribution to each feature
+#         self.zero_keys_fit = zero_keys(fit_set_summary)
+#
+#         self.normal_dists = {}
+#
+#         for summary_stat_name, log_value_tensor in self.log_value_generator(fit_set_summary):
+#
+#             normal_dist = Normal(log_value_tensor.mean(), log_value_tensor.std(dim=0))
+#
+#             self.normal_dists[summary_stat_name] = normal_dist
+#
+#     def anomaly_score(self, summary_statistics: Dict[str, List[float]]) -> List[float]:
+#
+#         # Computes the log-probability of each sample in parallel.
+#         log_p = 0
+#
+#         for summary_stat_name, log_value_tensor in self.log_value_generator(summary_statistics):
+#
+#             try:
+#                 log_value_tensor = log_value_tensor.nan_to_num()
+#                 layer_model_density = self.normal_dists[summary_stat_name].log_prob(log_value_tensor)
+#                 log_p += layer_model_density
+#             except ValueError:
+#                 print(log_value_tensor.isnan().any())
+#                 print(log_value_tensor)
+#
+#         return list(
+#             val.item() for val in log_p
+#         )
 
 
 class ChiSquareL2Norm(L2NormAnomalyDetection):
@@ -188,6 +281,10 @@ class ChiSquareL2Norm(L2NormAnomalyDetection):
         self.scales = {}
 
         for key, value in fit_set_summary.items():
+
+            if key in self.zero_keys_fit:
+                continue
+
             _, num_elements = key
             self.scales[key] = torch.tensor(value).mean() / num_elements # This is the MLE
 
