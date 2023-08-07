@@ -128,6 +128,9 @@ class OneClassSVML2Norm(SKLearnL2NormAnomalyDetection):
         return OneClassSVM(nu=0.001)
 
 
+# TODO: unify these bois under one flag.
+
+
 class DiagonalGaussianL2Norm(L2NormAnomalyDetection):
     """
     Fits a Log-normal distribution to each feature, the anomaly score is the log-probability-density assuming independence.
@@ -172,4 +175,23 @@ class DiagonalGaussianL2Norm(L2NormAnomalyDetection):
 
         return list(
             val.item() for val in log_p
+        )
+
+
+class ChiSquareL2Norm(L2NormAnomalyDetection):
+    """
+    Fits a scaled Chi-Square distribution to the L2-norms, assuming independence
+    """
+    def setup_method(self, fit_set_summary: Dict[str, List[float]]):
+        # Fits a chi-square distribution times by some scale to each feature
+        self.zero_keys_fit = zero_keys(fit_set_summary)
+        self.scales = {}
+
+        for key, value in fit_set_summary.items():
+            _, num_elements = key
+            self.scales[key] = torch.tensor(value).mean() / num_elements # This is the MLE
+
+    def anomaly_score(self, summary_statistics: Dict[str, List[float]]) -> List[float]:
+        return sum(
+            torch.tensor(value) * num_elements for (_, num_elements), value in summary_statistics.items()
         )

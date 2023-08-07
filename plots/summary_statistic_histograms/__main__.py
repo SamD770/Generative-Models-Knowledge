@@ -12,7 +12,9 @@ import matplotlib.pyplot as plt
 from os import path
 
 
-def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, id_dataset, ood_dataset_names):
+def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, id_dataset, ood_dataset_names,
+        fitted_distribution):
+
     anomaly_detection_method = anomaly_detection_methods_dict[anomaly_detection_name]
 
     id_dataset_summary, ood_dataset_summaries = get_dataset_summmaries(model_type, model_name, model_mode,
@@ -40,13 +42,18 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
             ax.hist(torch.log(summary[stat_name]).numpy(),
                     label=f"out-of-distribution {dataset_name}", density=True, bins=20, alpha=0.6)
 
+        if fitted_distribution:
+            pass
+
         fig.legend()
 
         plt.savefig(filepath)
 
 
 parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, dataset_parser])
+parser.add_argument("--fitted_distribution", action="store_false")
 
 args = parser.parse_args()
 for model_name in args.model_names:
-    run(args.model_type, model_name, args.model_mode, args.anomaly_detection, args.batch_size, args.id_dataset, args.datasets)
+    run(args.model_type, model_name, args.model_mode, args.anomaly_detection, args.batch_size,
+        args.id_dataset, args.datasets, args.fitted_distribution)
