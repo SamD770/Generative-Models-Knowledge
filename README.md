@@ -1,3 +1,5 @@
+## Gradients for anomaly detection
+
 This code is that used for 
 [On Gradients of Deep Generative Models for Representation-Invariant Anomaly Detection](https://openreview.net/forum?id=deYF9kVmIX)
 
@@ -15,3 +17,18 @@ This code is that used for
   year={2023}
 }
 ```
+
+### Producing figures
+
+To replicate Figure 2 (using a randomly selected layer) run:
+
+```angular2html
+python -m plots.summary_statistic_histograms \ 
+    glow [name_of_glow_model_trained_on_celeba] --id_datasets celeba \
+    --datasets cifar10 celeba svhn imagenet32 gtsrb \
+    --anomaly_detection gradients_L2_norms_gaussian --batch_size 5 \
+    --fitted_distribution \
+    --n_statistics 1
+```
+
+To run for all layers, remove the `n_statistics` flag.
