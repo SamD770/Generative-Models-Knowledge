@@ -1,6 +1,7 @@
 from generative_model import GenerativeModel
 
 from path_definitions import DIFFUSION_ROOT
+import re
 
 from data.datasets import get_celeba
 from data.utils import get_dataset
@@ -14,10 +15,20 @@ import torch
 USING THE CODE FROM: https://github.com/lucidrains/denoising-diffusion-pytorch
 """
 
+DEFAULT_TIMESTEPS = 1000
+timesteps_regex = re.compile("(.*)_(\d*)_timesteps")
+
+
+# TODO: re-defining is a quick fix. need to put in one module and import everywhere
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+else:
+    device = torch.device("cpu")
+
 
 class DiffusionModel(GenerativeModel, nn.Module):
     """."""
-    def __init__(self, image_shape=(32, 32, 3)):
+    def __init__(self, image_shape=(32, 32, 3), timesteps_eval=DEFAULT_TIMESTEPS):
 
         super().__init__()
 
@@ -31,13 +42,24 @@ class DiffusionModel(GenerativeModel, nn.Module):
         self.diffusion = GaussianDiffusion(
             self.unet,
             image_size=input_width,
-            timesteps=1000,  # number of steps
+            timesteps=DEFAULT_TIMESTEPS,  # number of steps
             loss_type='l1'  # L1 or L2
         )
 
+        self.timesteps_eval = timesteps_eval
+
     def eval_nll(self, x):
         x += 0.5                    # diffusion model implementation works on images (0, 1)
-        return self.diffusion(x)
+
+        if self.timesteps_eval == DEFAULT_TIMESTEPS: # This uniformly samples t from [0, 1 ... t-1]
+            return self.diffusion(x)
+        else:
+            b, c, h, w = x.shape
+
+            # passing the value of t runs the diffusion process to x_{t+1}, for this reason we have to subtract 1
+            t = torch.ones((b,), device=device).long()*(self.timesteps_eval - 1)
+            x = self.diffusion.normalize(x)
+            return self.diffusion.p_losses(x, t)
 
     def generate_sample(self, batch_size):
         imgs = self.diffusion.sample(batch_size=batch_size)
@@ -45,14 +67,27 @@ class DiffusionModel(GenerativeModel, nn.Module):
 
     @staticmethod
     def load_serialised(model_name):
+
+        # greps the number of evaluation timesteps out of the model_name,
+        # for example to load my_diffusion_model.pt such that it evaluates using exactly 6 timesteps, pass:
+        # model_name=my_diffusion_model_6_timesteps
+
+        search_result = timesteps_regex.match(model_name)
+        if search_result:
+            timesteps_eval = int(search_result.group(2))
+            model_name = search_result.group(1)
+        else:
+            timesteps_eval = DEFAULT_TIMESTEPS
+
         save_path = get_save_path(model_name)
         checkpoint = torch.load(save_path)
 
         print(f"Loading {model_name} trained for {checkpoint['epoch']} epochs")
 
-        diffusion_model = DiffusionModel()
+        diffusion_model = DiffusionModel(timesteps_eval=timesteps_eval)
         diffusion_model.diffusion.load_state_dict(
-            checkpoint["diffusion_state_dict"])
+            checkpoint["diffusion_state_dict"]
+        )
 
         return diffusion_model
 
@@ -89,15 +124,31 @@ def training_loop(
             )
 
 
+
+def test_qsample():
+    model = DiffusionModel.load_serialised(f"diffusion_cifar10_1_timesteps")
+
+    model.diffusion.to(device)
+
+    # print(model.diffusion.sqrt_alphas_cumprod[:30])
+
+    t = torch.arange(30, device=device)*30
+    x_start = torch.ones(30, device=device).resize(30, 1, 1, 1)
+    print(model.diffusion.q_sample(x_start, t).resize(30))
+
+    model.eval_nll(x_start)
+
+
 if __name__ == "__main__":
-    if torch.cuda.is_available():
-        device = torch.device("cuda")
-    else:
-        device = torch.device("cpu")
 
     print(device)
 
+
+    test_qsample()
+    exit()
+
     for dataset_name in ["gtsrb", "cifar10", "svhn", "imagenet32"]:
+
         train_dataset = get_dataset(dataset_name, split="train")
 
         # input_shape, _, train_dataset, _ = get_celeba(dataroot="./")
@@ -109,6 +160,7 @@ if __name__ == "__main__":
         )
 
         model = DiffusionModel.load_serialised(f"diffusion_{dataset_name}")
+
 
         model.diffusion.to(device)
 
