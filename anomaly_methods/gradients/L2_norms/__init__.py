@@ -11,11 +11,12 @@ from torch import Tensor
 from torch.distributions import Distribution
 from torch.distributions.normal import Normal
 from torch.distributions.log_normal import LogNormal
+from torch.distributions.chi2 import Chi2
 
 from sklearn.svm import OneClassSVM
 
 
-def zero_keys(summary_stats, printout=True):
+def zero_keys(summary_stats, printout=False):
     """Returns a set of keys for which the corresponding summary statistics have 0 standard deviation
     (Avoids ZeroDivisionErrors)."""
     zero_count = 0
@@ -140,13 +141,6 @@ class DistributionFittingL2Norm(L2NormAnomalyDetection):
     Let f_i be the feature for summary statistic i. dists returns the distributions fitted to f_i and log_scale_dists
     returns the distributions fitted to log_f_i
     """
-    def __init__(self, summary_statistic_names):
-        super().__init__(summary_statistic_names)
-
-        self.distribution_parameters = {
-            s: None for s in summary_statistic_names
-        }
-
     def value_generator(self, summary_statistics):
         """Pre-treats the values in summary_statistics by converting to a tensor and taking logs."""
         for summary_stat_name, value_list in summary_statistics.items():
@@ -173,17 +167,13 @@ class DistributionFittingL2Norm(L2NormAnomalyDetection):
 
         for summary_stat_key, value_tensor in self.value_generator(summary_statistics):
 
-            try:
-                log_value_tensor = torch.log(value_tensor)
-                log_value_tensor = log_value_tensor.nan_to_num()
+            log_value_tensor = torch.log(value_tensor)
+            log_value_tensor = log_value_tensor.nan_to_num()
 
-                dist = self.fitted_distribution(summary_stat_key)
-                layer_model_density = dist.log_prob(value_tensor)
-                log_p += layer_model_density
+            dist = self.fitted_log_scale_distribution(summary_stat_key)
+            layer_model_density = dist.log_prob(log_value_tensor)
+            log_p += layer_model_density
 
-            except ValueError:
-                print(log_value_tensor.isnan().any())
-                print(log_value_tensor)
 
         log_p_list = list(
             val.item() for val in log_p
@@ -237,53 +227,58 @@ class ChiSquareL2Norm(DistributionFittingL2Norm):
         def __init__(self, child_dist, scale):
             self.child_dist = child_dist
             self.scale = scale
-            super().__init__()
+            super().__init__(validate_args=False)
 
         def log_prob(self, value):
-            return self.child_dist.log_prob(value / self.scale) - \
-                   torch.log(self.scale)
+            # As p(scale*x) = p(x) (scale)^-1
+            return self.child_dist.log_prob(value / self.scale) - torch.log(self.scale)
 
     class LogOf(Distribution):
         """Models log(X) where X ~ child_dist."""
         def __init__(self, child_dist):
             self.child_dist = child_dist
-            super().__init__()
+            super().__init__(validate_args=False)
 
         def log_prob(self, value):
-            pass
+            return self.child_dist.log_prob(torch.exp(value)) + torch.log(value)   # As p(log(x)) = p(x) x
 
     def compute_parameters(self, summary_stat_key, fit_value_tensor):
-        num_elements, _ = summary_stat_key
+        _, num_elements = summary_stat_key
         scale = fit_value_tensor.mean() / num_elements # This is the MLE for the scale parameter
         return scale, num_elements
 
     @classmethod
     def parameters_to_distribution(cls, params):
-        pass # TODO
+        scale, num_elements = params
+        return ChiSquareL2Norm.ScaledDist(
+            Chi2(num_elements), scale
+        )
 
     @classmethod
     def parameters_to_log_scale_distribution(cls, params):
-        pass # TODO
-
-
-class ChiSquareL2Norm(L2NormAnomalyDetection):
-    """
-    Fits a scaled Chi-Square distribution to the L2-norms, assuming independence
-    """
-    def setup_method(self, fit_set_summary: Dict[str, List[float]]):
-        # Fits a chi-square distribution times by some scale to each feature
-        self.zero_keys_fit = zero_keys(fit_set_summary)
-        self.scales = {}
-
-        for key, value in fit_set_summary.items():
-
-            if key in self.zero_keys_fit:
-                continue
-
-            _, num_elements = key
-            self.scales[key] = torch.tensor(value).mean() / num_elements # This is the MLE
-
-    def anomaly_score(self, summary_statistics: Dict[str, List[float]]) -> List[float]:
-        return sum(
-            torch.tensor(value) * num_elements for (_, num_elements), value in summary_statistics.items()
+        return ChiSquareL2Norm.LogOf(
+            cls.parameters_to_distribution(params)
         )
+
+#
+# class ChiSquareL2Norm(L2NormAnomalyDetection):
+#     """
+#     Fits a scaled Chi-Square distribution to the L2-norms, assuming independence
+#     """
+#     def setup_method(self, fit_set_summary: Dict[str, List[float]]):
+#         # Fits a chi-square distribution times by some scale to each feature
+#         self.zero_keys_fit = zero_keys(fit_set_summary)
+#         self.scales = {}
+#
+#         for key, value in fit_set_summary.items():
+#
+#             if key in self.zero_keys_fit:
+#                 continue
+#
+#             _, num_elements = key
+#             self.scales[key] = torch.tensor(value).mean() / num_elements # This is the MLE
+#
+#     def anomaly_score(self, summary_statistics: Dict[str, List[float]]) -> List[float]:
+#         return sum(
+#             torch.tensor(value) * num_elements for (_, num_elements), value in summary_statistics.items()
+#         )
