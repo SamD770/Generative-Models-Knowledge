@@ -67,9 +67,7 @@ def run(model_type, model_names, model_mode, anomaly_detection_name, batch_size,
 
     save_log(title, table_latex)
 
-    print(
-        table_latex
-    )
+    print(table_latex)
 
     avg_performance = np.nanmean(df.to_numpy()).item()
     print(f"average performance: {avg_performance:.4f}")
