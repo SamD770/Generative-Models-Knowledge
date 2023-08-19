@@ -15,7 +15,6 @@ metric_dict = {
 
 def run(model_type, model_names, model_mode, anomaly_detection_name, batch_size, id_datasets, dataset_names, metric_name):
 
-    performances = []
 
     metric = metric_dict[metric_name]
 
@@ -29,9 +28,8 @@ def run(model_type, model_names, model_mode, anomaly_detection_name, batch_size,
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
 
-            id_test_anomaly_scores, all_anomaly_scores_list = get_anomaly_scores(model_type, model_name, model_mode,
-                                                                             anomaly_detection_name, batch_size,
-                                                                             id_dataset_name, dataset_names)
+            id_test_anomaly_scores, all_anomaly_scores_list = get_anomaly_scores(
+                model_type, model_name, model_mode, anomaly_detection_name, batch_size, id_dataset_name, dataset_names)
 
         for ood_anomaly_scores, ood_dataset_name in zip(all_anomaly_scores_list, dataset_names):
 
@@ -43,36 +41,62 @@ def run(model_type, model_names, model_mode, anomaly_detection_name, batch_size,
             performance = metric(fpr, tpr)
             df[model_name].loc[ood_dataset_name] = performance
 
-    title = f"{metric_name} values for {anomaly_detection_name}, batch size {batch_size} applied to {model_type} " \
-            f"in {model_mode} mode"
+    performance_array = df.to_numpy()
+    avg_performance = np.nanmean(performance_array).item()
+    stdev_performance = np.nanstd(performance_array).item()
+    quantiles = list(np.nanquantile(performance_array, (0.25, 0.50, 0.75)))
 
-    def column_formatter(column_name):
+    title = f"{metric_name} values for {anomaly_detection_name}, batch size {batch_size} applied to {model_type} " \
+            f"in {model_mode} mode, " \
+            f"\\newline average performance: {avg_performance:.4f} (stdev: {stdev_performance:.4f})" \
+            f"\\newline 25/50/75 quantiles: {quantiles[0]:.4f} / {quantiles[1]:.4f} / {quantiles[2]:.4f}"
+
+    caption = title.replace("_", "\\_")
+
+    def column_name_formatter(column_name):
         if len(column_name) > 18:
-            column_name = "\\dots " + column_name[-16:]
+            column_name = "\\dots " + column_name[-20:-10]
 
         return column_name.replace("_", "\\_")
 
-    styler = df.style.format_index(
-        formatter=column_formatter,
+    def row_formatter(row_name):
+        styled_name = {
+            "cifar10": "CIFAR-10",
+            "svhn": "SVHN",
+            "celeba": "CelebA",
+            "imagenet32": "ImageNet32",
+            "gtsrb": "GTSRB"
+        }[row_name]
+
+        return "\\texttt{" + styled_name + "}"
+
+    styler = df.style
+
+    styler = styler.format_index(
+        formatter=column_name_formatter,
         axis="columns"
     )
 
-    caption = title.replace("_", "\\_")
+    styler = styler.format_index(
+        formatter=row_formatter,
+        axis="index"
+    )
+
+    styler = styler.format(
+        na_rep="-",
+        precision=4
+    )
 
     table_latex = styler.to_latex(
         hrules=True,
         caption=caption,
-        position="h!"
+        position="H",
+        column_format="l | r r r r r"
     )
 
-    save_log(title, table_latex)
+    # save_log(title, table_latex)
 
     print(table_latex)
-
-    avg_performance = np.nanmean(df.to_numpy()).item()
-    print(f"average performance: {avg_performance:.4f}")
-    print()
-    print()
 
 
 parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, dataset_parser])
