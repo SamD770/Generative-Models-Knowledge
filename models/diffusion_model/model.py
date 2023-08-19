@@ -16,8 +16,13 @@ USING THE CODE FROM: https://github.com/lucidrains/denoising-diffusion-pytorch
 """
 
 DEFAULT_TIMESTEPS = 1000
-timesteps_regex = re.compile("(.*)_(\d*)_timesteps")
+DEFAULT_SAMPLES_EVAL = 1
 
+# The pattern that should match the name is model_name_T_timesteps_n_samples
+#   These values are only used at evaluation time, so the same model weights are loaded.
+
+timesteps_regex = re.compile("(.*)_(\d*)_timesteps")
+samples_regex = re.compile("(.*)_(\d*)_samples")
 
 # TODO: re-defining is a quick fix. need to put in one module and import everywhere
 if torch.cuda.is_available():
@@ -28,7 +33,7 @@ else:
 
 class DiffusionModel(GenerativeModel, nn.Module):
     """."""
-    def __init__(self, image_shape=(32, 32, 3), timesteps_eval=DEFAULT_TIMESTEPS):
+    def __init__(self, image_shape=(32, 32, 3), timesteps_eval=DEFAULT_TIMESTEPS, samples_eval=DEFAULT_SAMPLES_EVAL):
 
         super().__init__()
 
@@ -46,20 +51,33 @@ class DiffusionModel(GenerativeModel, nn.Module):
             loss_type='l1'  # L1 or L2
         )
 
+        # timesteps_eval is the number of diffusion steps used to evaluate the variational lower bound in eval_nll
+        # samples eval is the number of independent noise samples used to approximate the VLB
         self.timesteps_eval = timesteps_eval
+        self.samples_eval = samples_eval
 
     def eval_nll(self, x):
         x += 0.5                    # diffusion model implementation works on images (0, 1)
 
-        if self.timesteps_eval == DEFAULT_TIMESTEPS: # This uniformly samples t from [0, 1 ... t-1]
-            return self.diffusion(x)
-        else:
-            b, c, h, w = x.shape
+        # Computes an empirical estimate of the Variational Lower Bound
+        vlb_estimates = []
 
-            # passing the value of t runs the diffusion process to x_{t+1}, for this reason we have to subtract 1
-            t = torch.ones((b,), device=device).long()*(self.timesteps_eval - 1)
-            x = self.diffusion.normalize(x)
-            return self.diffusion.p_losses(x, t)
+        for _ in range(self.samples_eval):
+
+            if self.timesteps_eval == DEFAULT_TIMESTEPS: # This uniformly samples t from [0, 1 ... t-1]
+                vlb_sample = self.diffusion(x)
+
+            else:
+                b, c, h, w = x.shape
+
+                # passing the value of t runs the diffusion process to x_{t+1}, for this reason we have to subtract 1
+                t = torch.ones((b,), device=device).long()*(self.timesteps_eval - 1)
+                x = self.diffusion.normalize(x)
+                vlb_sample = self.diffusion.p_losses(x, t)
+
+            vlb_estimates.append(vlb_sample)
+
+        return sum(vlb_estimates) / len(vlb_estimates)
 
     def generate_sample(self, batch_size):
         imgs = self.diffusion.sample(batch_size=batch_size)
@@ -68,9 +86,18 @@ class DiffusionModel(GenerativeModel, nn.Module):
     @staticmethod
     def load_serialised(model_name):
 
-        # greps the number of evaluation timesteps out of the model_name,
-        # for example to load my_diffusion_model.pt such that it evaluates using exactly 6 timesteps, pass:
-        # model_name=my_diffusion_model_6_timesteps
+        # greps the number of evaluation timesteps & samples out of the model_name,
+        # for example to load my_diffusion_model.pt such that it evaluates using exactly 6 timesteps and 7 samples, pass:
+        # model_name = my_diffusion_model_6_timesteps_7_samples
+
+        # ordering is important (this is to ensure compute isn't wasted by re-computing summary statistics)
+
+        search_result = samples_regex.match(model_name)
+        if search_result:
+            samples_eval = int(search_result.group(2))
+            model_name = search_result.group(1)
+        else:
+            samples_eval = DEFAULT_SAMPLES_EVAL
 
         search_result = timesteps_regex.match(model_name)
         if search_result:
@@ -84,7 +111,11 @@ class DiffusionModel(GenerativeModel, nn.Module):
 
         print(f"Loading {model_name} trained for {checkpoint['epoch']} epochs")
 
-        diffusion_model = DiffusionModel(timesteps_eval=timesteps_eval)
+        diffusion_model = DiffusionModel(
+            timesteps_eval=timesteps_eval,
+            samples_eval=samples_eval
+        )
+
         diffusion_model.diffusion.load_state_dict(
             checkpoint["diffusion_state_dict"]
         )
