@@ -88,6 +88,11 @@ class AnomalyDetectionMethod:
         :param batch_size:
         :return:
         """
+        # This whole process could be parallelized; which would speed up the process especially for batch_size 1
+        #   This could use call_for_per_sample_grad from PyTorch 2.0 when dealing with gradient-based methods.
+        #   Or it could use torch.multiprocessing and no ./anomaly_methods/ code would need to be changed.
+        #   Engineering time ~6 hours.
+
         if self.model is None:
             raise ValueError("Attempted to extract summary statistics without initialising a model.")
 
