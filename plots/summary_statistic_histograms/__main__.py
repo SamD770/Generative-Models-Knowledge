@@ -19,7 +19,15 @@ from os import path
 from os import makedirs
 
 
-def gradients_L2_norms_labels(model_type, model_name, id_dataset, n_statistics_method, n_statistics_plot, single_figure, stat_name=None):
+def get_input_var_xlabel(batch_size):
+    if batch_size == 1:
+        input_var_xlabel = "\\mathbf{x}"
+    else:
+        input_var_xlabel = "\\mathbf{x}_{1:" + str(batch_size) + "}"
+    return input_var_xlabel
+
+
+def gradients_L2_norms_labels(model_type, model_name, batch_size, id_dataset, n_statistics_method, n_statistics_plot, single_figure, stat_name=None):
 
     if single_figure:
         file_title = f"{model_type} {model_name} gradient histogram"
@@ -29,13 +37,28 @@ def gradients_L2_norms_labels(model_type, model_name, id_dataset, n_statistics_m
         file_title = f"{stat_name} gradient histogram"
         figure_title = f"gradients from 1 layer out of {len(n_statistics_plot)} in a {model_type} model"
 
-    xlabel = "$ \\log f_{\\mathbf{\\theta}_\\ell}(\\mathbf{x}_{1:B})  $"
+    input_var_xlabel = get_input_var_xlabel(batch_size)
+
+    xlabel = "$\\log f_{\\mathbf{\\theta}_\\ell}(" + input_var_xlabel +")  $"
 
     return file_title, figure_title, xlabel
 
 
+def likelihoods_labels(model_type, model_name, batch_size, id_dataset, n_statistics_method, n_statistics_plot, single_figure, stat_name=None):
+
+    file_title = f"likelihood histogram"
+    figure_title = f"likelihoods for {model_type} model trained on {id_dataset}"
+
+    input_var_xlabel = get_input_var_xlabel(batch_size)
+    xlabel = "$ \\log p_{\\mathbf{\\theta}}(" + input_var_xlabel + ") $"
+
+    return file_title, figure_title, xlabel
+
+
+
 label_getters = {
-    "gradients_L2_norms": gradients_L2_norms_labels
+    "gradients_L2_norms": gradients_L2_norms_labels,
+    "likelihoods": likelihoods_labels
 }
 
 
@@ -129,7 +152,7 @@ def run_multi_figures(model_type, model_name, model_mode, anomaly_detection_name
         label_getter = label_getters[anomaly_detection_name]
 
         file_title, figure_title, xlabel = label_getter(
-            model_type, model_name, id_dataset, anomaly_detector.summary_statistic_names, n_statistics_plot,
+            model_type, model_name, batch_size, id_dataset, anomaly_detector.summary_statistic_names, n_statistics_plot,
             single_figure=False, stat_name=stat_name
         )
 
@@ -179,7 +202,7 @@ def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name
     label_getter = label_getters[anomaly_detection_name]
 
     file_title, figure_title, xlabel = label_getter(
-        model_type, model_name, id_dataset, anomaly_detector.summary_statistic_names, n_statistics_plot,
+        model_type, model_name, batch_size, id_dataset, anomaly_detector.summary_statistic_names, n_statistics_plot,
         single_figure=True, stat_name=None
     )
 
