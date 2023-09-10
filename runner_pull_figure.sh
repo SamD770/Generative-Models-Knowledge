@@ -12,5 +12,5 @@ python -m plots.summary_statistic_histograms \
 python -m plots.summary_statistic_histograms \
     glow svhn_working \
     --id_datasets svhn  \
-    --datasets cifar10 svhn \
+    --datasets svhn cifar10 \
     --anomaly_detection $method --batch_size $bs
