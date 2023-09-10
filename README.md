@@ -4,9 +4,9 @@ This code is that used for
 [On Gradients of Deep Generative Models for Representation-Invariant Anomaly Detection](https://openreview.net/forum?id=deYF9kVmIX)
 
 - `generative_model.py` provides interfaces for general use of deep generative models for anomaly detection.
-- `models` contains several open source implementations of deep generative models
-- `anomaly_methods` contains implementations of deep-generative-model based anomaly detection
-- `plots` contains the plotting scripts used in the paper
+- `models/` contains several open source implementations of deep generative models
+- `anomaly_methods/` contains implementations of deep-generative-model based anomaly detection
+- `plots/` contains the plotting scripts used in the paper
 
 ```
 @inproceedings{gradients2023anomaly,
@@ -19,6 +19,11 @@ This code is that used for
 ```
 
 ### Producing figures
+
+The bash scripts used to produce the figures used in the paper are in `paper_figure_scripts/`, these call the python 
+scripts in `plots/` with specific arguments.
+
+#### Example: creating Figure 2
 
 To replicate Figure 2 (using a randomly selected layer) run:
 
