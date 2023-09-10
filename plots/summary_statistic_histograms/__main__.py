@@ -55,9 +55,12 @@ def likelihoods_labels(model_type, model_name, batch_size, id_dataset, n_statist
 
 
 
+# TODO: refactor to nicely handle subclasses
+
 label_getters = {
     "gradients_L2_norms": gradients_L2_norms_labels,
-    "likelihoods": likelihoods_labels
+    "likelihoods": likelihoods_labels,
+    "typicality": likelihoods_labels
 }
 
 
