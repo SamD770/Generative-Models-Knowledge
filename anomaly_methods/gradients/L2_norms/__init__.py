@@ -15,6 +15,8 @@ from torch.distributions.chi2 import Chi2
 
 from sklearn.svm import OneClassSVM
 
+import numpy as np
+
 
 def zero_keys(summary_stats, printout=False):
     """Returns a set of keys for which the corresponding summary statistics have 0 standard deviation
@@ -87,6 +89,20 @@ class L2NormAnomalyDetection(AnomalyDetectionMethod):
     def summary_statistic_filepath(model_type, model_name, model_mode, dataset_name, batch_size):
         return path.join(L2_NORMS_DIR,
                          get_save_file_name(model_name, dataset_name, batch_size, model_mode=model_mode))
+
+
+class NaiveL2Norm(L2NormAnomalyDetection):
+    """Simply uses the L2 norm of the whole gradient vector as an anomaly score."""
+    def setup_method(self, fit_set_summary: Dict[str, List[float]]):
+        pass
+
+    def anomaly_score(self, summary_statistics: Dict[str, List[float]]) -> List[float]:
+
+        L2_norm_sum = sum(
+            np.array(L2_norms) for layer, L2_norms in summary_statistics.items()
+        )
+
+        return list(L2_norm_sum)
 
 
 class SKLearnL2NormAnomalyDetection(L2NormAnomalyDetection):
@@ -259,6 +275,9 @@ class ChiSquareL2Norm(DistributionFittingL2Norm):
         return ChiSquareL2Norm.LogOf(
             cls.parameters_to_distribution(params)
         )
+
+
+
 
 #
 # class ChiSquareL2Norm(L2NormAnomalyDetection):
