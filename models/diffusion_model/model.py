@@ -185,13 +185,11 @@ if __name__ == "__main__":
         # input_shape, _, train_dataset, _ = get_celeba(dataroot="./")
         # dataset_name = "celeba"
 
-
         train_loader = torch.utils.data.DataLoader(
             train_dataset, batch_size=8, shuffle=True
         )
 
         model = DiffusionModel.load_serialised(f"diffusion_{dataset_name}")
-
 
         model.diffusion.to(device)
 
