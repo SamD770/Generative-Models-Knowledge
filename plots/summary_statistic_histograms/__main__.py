@@ -67,17 +67,19 @@ def plot_summary_histograms(ax, id_dataset_summary, id_dataset_name,
 
     range = (id_vals.min(), id_vals.max())
 
-    ax.hist(id_vals, range=range,
-            label=f"in distribution {id_dataset_name}", density=True, bins=40, alpha=0.6)
+    # ax.hist(id_vals, range=range,
+    #         label=f"in distribution {id_dataset_name}", density=True, bins=40, alpha=0.6)
 
     for dataset_name, summary in zip(ood_dataset_names, ood_dataset_summaries):
 
         if dataset_name == id_dataset_name:
-            continue
+            label=f"in distribution {id_dataset_name}"
+        else:
+            label=f"out-of-distribution {dataset_name}"
 
         vals = torch.log(summary[stat_name]).numpy()
         ax.hist(vals, range=range,
-                label=f"out-of-distribution {dataset_name}", density=True, bins=40, alpha=0.6)
+                label=label, density=True, bins=40, alpha=0.6)
 
 
 def plot_fitted_distribution(ax, anomaly_detector, stat_name):
