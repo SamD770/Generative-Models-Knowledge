@@ -133,7 +133,7 @@ def plot_fitted_distribution(ax, anomaly_detector, stat_name):
 
 
 def run_multi_figures(model_type, model_name, model_mode, anomaly_detection_name, batch_size, id_dataset, ood_dataset_names,
-                      fitted_distribution, n_statistics_plot):
+                      fitted_distribution, n_statistics_plot, x_lim):
     """Plots on one figure and axes for each summary statistic."""
 
     # Fetch cached statistics from the disk
@@ -166,7 +166,7 @@ def run_multi_figures(model_type, model_name, model_mode, anomaly_detection_name
         fig, ax = plt.subplots()
         fig.suptitle(figure_title)
 
-        plot_summary_histograms(ax, id_dataset_summary, id_dataset, ood_dataset_summaries, ood_dataset_names, stat_name)
+        plot_summary_histograms(ax, id_dataset_summary, id_dataset, ood_dataset_summaries, ood_dataset_names, stat_name, x_lim)
 
         if args.fitted_distribution:
             plot_fitted_distribution(ax, anomaly_detector, stat_name)
@@ -180,7 +180,7 @@ def run_multi_figures(model_type, model_name, model_mode, anomaly_detection_name
 
 
 def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name, batch_size, id_dataset, ood_dataset_names,
-                      fitted_distribution, n_statistics_plot):
+                      fitted_distribution, n_statistics_plot, x_lim):
     """Plots axes (one for each summary statistic) on one figure."""
 
     # Fetch cached statistics from the disk
@@ -221,7 +221,7 @@ def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name
 
     for stat_name, ax in zip(selected_stat_names, axs):
 
-        plot_summary_histograms(ax, id_dataset_summary, id_dataset, ood_dataset_summaries, ood_dataset_names, stat_name)
+        plot_summary_histograms(ax, id_dataset_summary, id_dataset, ood_dataset_summaries, ood_dataset_names, stat_name, x_lim)
 
         if args.fitted_distribution:
             plot_fitted_distribution(ax, anomaly_detector, stat_name)
@@ -247,15 +247,18 @@ parser.add_argument("--n_statistics", type=int, default=None,
 parser.add_argument("--same_figure", action="store_true",
                     help="Whether or not to plot the statistics for the same model on the same figure.")
 
+parser.add_argument("--x_lim", nargs=2, type=float, default=None,
+                    help="the limits of the x-axis plot (defaults to min/max of the id dataset)")
+
 args = parser.parse_args()
 
 for arg_model_name, arg_id_dataset in zip(args.model_names, args.id_datasets):
     if args.same_figure:
         run_single_figure(args.model_type, arg_model_name, args.model_mode, args.anomaly_detection, args.batch_size,
-                          arg_id_dataset, args.datasets, args.fitted_distribution, args.n_statistics)
+                          arg_id_dataset, args.datasets, args.fitted_distribution, args.n_statistics, args.x_lim)
     else:
         run_multi_figures(args.model_type, arg_model_name, args.model_mode, args.anomaly_detection, args.batch_size,
-                          arg_id_dataset, args.datasets, args.fitted_distribution, args.n_statistics)
+                          arg_id_dataset, args.datasets, args.fitted_distribution, args.n_statistics, args.x_lim)
 
 
 
