@@ -147,9 +147,6 @@ class OneClassSVML2Norm(SKLearnL2NormAnomalyDetection):
         return OneClassSVM(nu=0.001)
 
 
-# TODO: unify these bois under one flag.
-
-
 class DistributionFittingL2Norm(L2NormAnomalyDetection):
     """
     Abstract class for fitting distributions to each feature independently. Currently returns the log-likelihood as the
