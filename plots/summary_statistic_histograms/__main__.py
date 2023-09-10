@@ -19,6 +19,27 @@ from os import path
 from os import makedirs
 
 
+def gradients_L2_norms_labels(model_type, model_name, id_dataset, n_statistics_method, n_statistics_plot, single_figure, stat_name=None):
+
+    if single_figure:
+        file_title = f"{model_type} {model_name} gradient histogram"
+        figure_title = f"gradients from {n_statistics_plot} randomly selected layers out of " \
+                       f"{n_statistics_method} in a {model_type} model trained on {id_dataset}"
+    else:
+        file_title = f"{stat_name} gradient histogram"
+        figure_title = f"gradients from 1 layer out of {len(n_statistics_plot)} in a {model_type} model"
+
+    xlabel = "$ \\log f_{\\mathbf{\\theta}_\\ell}(\\mathbf{x}_{1:B})  $"
+
+    return file_title, figure_title, xlabel
+
+
+label_getters = {
+    "gradients_L2_norms": gradients_L2_norms_labels
+}
+
+
+
 def get_save_dir_path(model_name):
     save_dir_path = path.join(RUNNING_MODULE_DIR, model_name)
     if not path.exists(save_dir_path):
@@ -61,14 +82,11 @@ def fetch_preliminaries(model_type, model_name, model_mode, anomaly_detection_na
 
 
 def plot_summary_histograms(ax, id_dataset_summary, id_dataset_name,
-                            ood_dataset_summaries, ood_dataset_names, stat_name):
+                            ood_dataset_summaries, ood_dataset_names, stat_name, x_lim=None):
 
-    id_vals = torch.log(id_dataset_summary[stat_name]).numpy()
-
-    range = (id_vals.min(), id_vals.max())
-
-    # ax.hist(id_vals, range=range,
-    #         label=f"in distribution {id_dataset_name}", density=True, bins=40, alpha=0.6)
+    if x_lim is None:
+        id_vals = torch.log(id_dataset_summary[stat_name]).numpy()
+        x_lim = (id_vals.min(), id_vals.max())
 
     for dataset_name, summary in zip(ood_dataset_names, ood_dataset_summaries):
 
@@ -78,7 +96,7 @@ def plot_summary_histograms(ax, id_dataset_summary, id_dataset_name,
             label=f"out-of-distribution {dataset_name}"
 
         vals = torch.log(summary[stat_name]).numpy()
-        ax.hist(vals, range=range,
+        ax.hist(vals, range=x_lim,
                 label=label, density=True, bins=40, alpha=0.6)
 
 
@@ -92,7 +110,8 @@ def plot_fitted_distribution(ax, anomaly_detector, stat_name):
 
 
 def run_multi_figures(model_type, model_name, model_mode, anomaly_detection_name, batch_size, id_dataset, ood_dataset_names,
-                      fitted_distribution, n_statistics):
+                      fitted_distribution, n_statistics_plot):
+    """Plots on one figure and axes for each summary statistic."""
 
     # Fetch cached statistics from the disk
 
@@ -104,17 +123,23 @@ def run_multi_figures(model_type, model_name, model_mode, anomaly_detection_name
 
     # plot histograms of the data
 
-    selected_stat_names = select_summary_stat_names(anomaly_detector.summary_statistic_names, n_statistics)
+    selected_stat_names = select_summary_stat_names(anomaly_detector.summary_statistic_names, n_statistics_plot)
 
     for stat_name in selected_stat_names:
+        label_getter = label_getters[anomaly_detection_name]
 
-        file_title = f"{stat_name} gradient histogram"
+        file_title, figure_title, xlabel = label_getter(
+            model_type, model_name, id_dataset, anomaly_detector.summary_statistic_names, n_statistics_plot,
+            single_figure=False, stat_name=stat_name
+        )
+
+        # file_title = f"{stat_name} gradient histogram"
 
         filepath = path.join(save_dir_path, file_title + ".png")
 
         print(f"creating: {filepath}")
 
-        figure_title = f"gradients from 1 layer out of {len(anomaly_detector.summary_statistic_names)} in a {model_type} model"
+        # figure_title = f"gradients from 1 layer out of {len(anomaly_detector.summary_statistic_names)} in a {model_type} model"
         fig, ax = plt.subplots()
         fig.suptitle(figure_title)
 
@@ -124,7 +149,7 @@ def run_multi_figures(model_type, model_name, model_mode, anomaly_detection_name
             plot_fitted_distribution(ax, anomaly_detector, stat_name)
 
         ax.set_yticks([])
-        ax.set_xlabel("$ \\log f_{\\mathbf{\\theta}_\\ell}(\\mathbf{x}_{1:B})  $")
+        ax.set_xlabel(xlabel) # "$ \\log f_{\\mathbf{\\theta}_\\ell}(\\mathbf{x}_{1:B})  $")
 
         ax.legend()
 
@@ -132,7 +157,8 @@ def run_multi_figures(model_type, model_name, model_mode, anomaly_detection_name
 
 
 def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name, batch_size, id_dataset, ood_dataset_names,
-                      fitted_distribution, n_statistics):
+                      fitted_distribution, n_statistics_plot):
+    """Plots axes (one for each summary statistic) on one figure."""
 
     # Fetch cached statistics from the disk
 
@@ -144,13 +170,20 @@ def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name
 
     # plot histograms of the data
 
-    if n_statistics is None:
+    if n_statistics_plot is None:
         raise ValueError("Need to specify n_statistics if using one figure.")
 
-    selected_stat_names = select_summary_stat_names(anomaly_detector.summary_statistic_names, n_statistics)
-    fig, axs = plt.subplots(ncols=n_statistics, figsize=(16, 12/n_statistics))
+    selected_stat_names = select_summary_stat_names(anomaly_detector.summary_statistic_names, n_statistics_plot)
+    fig, axs = plt.subplots(ncols=n_statistics_plot, figsize=(16, 12 / n_statistics_plot))
 
-    file_title = f"{model_type} {model_name} gradient histogram"
+    label_getter = label_getters[anomaly_detection_name]
+
+    file_title, figure_title, xlabel = label_getter(
+        model_type, model_name, id_dataset, anomaly_detector.summary_statistic_names, n_statistics_plot,
+        single_figure=True, stat_name=None
+    )
+
+    # file_title = f"{model_type} {model_name} gradient histogram"
 
     filepath = path.join(save_dir_path, file_title + ".png")
 
@@ -159,8 +192,8 @@ def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name
 
     print(f"creating: {filepath}")
 
-    figure_title = f"gradients from {n_statistics} randomly selected layers out of " \
-                   f"{len(anomaly_detector.summary_statistic_names)} in a {model_type} model trained on {id_dataset}"
+    # figure_title = f"gradients from {n_statistics_plot} randomly selected layers out of " \
+    #                f"{len(anomaly_detector.summary_statistic_names)} in a {model_type} model trained on {id_dataset}"
     fig.suptitle(figure_title)
 
     for stat_name, ax in zip(selected_stat_names, axs):
@@ -171,7 +204,7 @@ def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name
             plot_fitted_distribution(ax, anomaly_detector, stat_name)
 
         ax.set_yticks([])
-        ax.set_xlabel("$ \\log f_{\\mathbf{\\theta}_\\ell}(\\mathbf{x}_{1:B})  $")
+        ax.set_xlabel(xlabel) # "$ \\log f_{\\mathbf{\\theta}_\\ell}(\\mathbf{x}_{1:B})  $")
 
     # Grab the labels from the last axes to prevent label duplication
     fig.legend(*ax.get_legend_handles_labels())
@@ -192,13 +225,14 @@ parser.add_argument("--same_figure", action="store_true",
                     help="Whether or not to plot the statistics for the same model on the same figure.")
 
 args = parser.parse_args()
-for model_name, id_dataset in zip(args.model_names, args.id_datasets):
+
+for arg_model_name, arg_id_dataset in zip(args.model_names, args.id_datasets):
     if args.same_figure:
-        run_single_figure(args.model_type, model_name, args.model_mode, args.anomaly_detection, args.batch_size,
-                          id_dataset, args.datasets, args.fitted_distribution, args.n_statistics)
+        run_single_figure(args.model_type, arg_model_name, args.model_mode, args.anomaly_detection, args.batch_size,
+                          arg_id_dataset, args.datasets, args.fitted_distribution, args.n_statistics)
     else:
-        run_multi_figures(args.model_type, model_name, args.model_mode, args.anomaly_detection, args.batch_size,
-                          id_dataset, args.datasets, args.fitted_distribution, args.n_statistics)
+        run_multi_figures(args.model_type, arg_model_name, args.model_mode, args.anomaly_detection, args.batch_size,
+                          arg_id_dataset, args.datasets, args.fitted_distribution, args.n_statistics)
 
 
 
