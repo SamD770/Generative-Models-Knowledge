@@ -106,9 +106,9 @@ if __name__ == "__main__":
 
         ax.set_xticks([])
         ax.set_yticks([])
-        x_label = "$\\Delta_{BPD} = " \
-                  "\\frac{\\log p_{RGB}(\\mathbf{x}) - \\log p_{HSV}(\\mathbf{x})} {3 \\times 32 \\times 32}$ = " + \
-                  f"{delta_BPD:.2f} "
+        x_label = "$\\Delta^{RGB \\to HSV}_{BPD}$ = " + f"{delta_BPD:.2f} " \
+                  # "\\frac{\\log p_{RGB}(\\mathbf{x}) - \\log p_{HSV}(\\mathbf{x})} {3 \\times 32 \\times 32}$ = " + \
+
 
         ax.set_xlabel(x_label, size=15)
 
