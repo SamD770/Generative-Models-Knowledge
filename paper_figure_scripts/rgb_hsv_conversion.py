@@ -4,10 +4,12 @@ from data.utils import get_test_dataset
 
 from matplotlib import pyplot as plt
 
+from itertools import chain
 from torch.autograd.functional import jacobian
 
 
-# function from https://www.geeksforgeeks.org/program-change-rgb-color-model-hsv-color-model/
+# Fix the seed for dequantization
+rng = torch.manual_seed(0)
 
 
 def rgb_to_hsv(rgb_tensor: Tensor) -> Tensor:
@@ -76,7 +78,7 @@ def image_rgb_to_hsv_volume_change(img):
 
             # To make comparison fair, we add a small amount of noise to account for quantization.
             # Without this the computation of the hue blows up when r = g = b.
-            rgb_tensor_dequantized = rgb_tensor + torch.randn((3,))/255
+            rgb_tensor_dequantized = rgb_tensor + torch.randn((3,), generator=rng)/255
             det = rgb_to_hsv_volume_change(rgb_tensor_dequantized)
 
             # det = det.nan_to_num().clamp(-10**6, 10**6)
@@ -90,14 +92,17 @@ def image_rgb_to_hsv_volume_change(img):
 
 if __name__ == "__main__":
 
-    fig, axs = plt.subplots(ncols=2)
+    fig, axs = plt.subplots(ncols=5, nrows=4, figsize=(10, 10))
 
     dataset = get_test_dataset("cifar10")
+
     imgs = [
-        dataset[i][0] for i in range(2)
+        dataset[i][0] for i in range(20)
     ]
 
-    for ax, img in zip(axs, imgs):
+    axs_unpacked = chain(*axs)
+
+    for ax, img in zip(axs_unpacked, imgs):
         img += 0.5
 
         delta_BPD = image_rgb_to_hsv_volume_change(img)
@@ -106,9 +111,9 @@ if __name__ == "__main__":
 
         ax.set_xticks([])
         ax.set_yticks([])
-        x_label = "$\\Delta^{RGB \\to HSV}_{BPD}$ = " + f"{delta_BPD:.2f} " \
+        x_label = f"{delta_BPD:.2f} "
+                    # "$\\Delta^{RGB \\to HSV}_{BPD}$ = " +  \
                   # "\\frac{\\log p_{RGB}(\\mathbf{x}) - \\log p_{HSV}(\\mathbf{x})} {3 \\times 32 \\times 32}$ = " + \
-
 
         ax.set_xlabel(x_label, size=15)
 
