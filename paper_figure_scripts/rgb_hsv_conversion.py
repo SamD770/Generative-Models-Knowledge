@@ -1,94 +1,115 @@
 import torch
-from data.utils import get_vanilla_dataset
+from torch import Tensor
+from data.utils import get_test_dataset
 
 from matplotlib import pyplot as plt
+
+from torch.autograd.functional import jacobian
 
 
 # function from https://www.geeksforgeeks.org/program-change-rgb-color-model-hsv-color-model/
 
 
-def rgb_to_hsv(r, g, b):
-    # R, G, B values are divided by 255
-    # to change the range from 0..255 to 0..1:
-    # r, g, b = r / 255.0, g / 255.0, b / 255.0
+def rgb_to_hsv(rgb_tensor: Tensor) -> Tensor:
+    c_min = rgb_tensor.min()
+    c_max = rgb_tensor.max()
 
-    # h, s, v = hue, saturation, value
-    # rgb = torch.cat([r, g, b])
-    cmax = max(r, g, b)  # maximum of r, g, b
-    cmin = min(r, g, b)  # minimum of r, g, b
-    # cmax = cmax.values
-    # cmin = cmin.values
-    diff = cmax - cmin  # diff of cmax and cmin.
+    diff = c_max - c_min
 
-    # r_mask = (cmax == r)
-    # g_mask = (cmax == g)
-    # b_mask = (cmax == b)
+    r, g, b = rgb_tensor
+    max_channel = rgb_tensor.argmax().item()
 
-    # h = r_mask * ((60 * ((g - b) / diff) + 360) % 360)
-    # h += g_mask * ((60 * ((b - r) / diff) + 120) % 360)
-    # h += b_mask * ((60 * ((r - g) / diff) + 240) % 360)
+    if max_channel == 0:      # r is the max value
+        h = (g - b)/(diff * 6)
+    elif max_channel == 1:    # g is the max value
+        h = (b - r)/(diff * 6) + 1/3
+    else:           # g is the max value
+        h = (r - g)/(diff * 6) + 2/3
 
-    # # if cmax and cmax are equal then h = 0
-    if cmax - cmin < 0.1:
-        return r, g, b
+    torch.remainder(h, 1)
 
-    # if cmax equal r then compute h
-    if cmax == r:
-        h = (60 * ((g - b) / diff) + 360) % 360
+    s = diff/c_max
+    v = c_max
 
-    # if cmax equal g then compute h
-    elif cmax == g:
-        h = (60 * ((b - r) / diff) + 120) % 360
-
-    # if cmax equal b then compute h
-    elif cmax == b:
-        h = (60 * ((r - g) / diff) + 240) % 360
-
-    #  cmax equal zero
-    # if cmax == 0:
-    #     diff += 0.01
-    s = diff / cmax
-
-    # compute v
-    v = cmax
-    return h / 360, s, v
+    return torch.stack([h, s, v])
 
 
-""" Driver Code """
-# print(rgb_to_hsv(45, 215, 0))
-# print(rgb_to_hsv(31, 52, 29))
+def rgb_to_hsv_test():
+
+    r = 132.
+    g = 153.
+    b = 122.
+    rgb_tensor = torch.tensor([r, g, b], dtype=torch.double)/255
+    hsv_tensor = rgb_to_hsv(rgb_tensor)
+
+    h, s, v = hsv_tensor
+
+    h = (h * 360).item()
+    s = (s * 100).item()
+    v = (v * 100).item()
+
+    print(h, s, v)
+
+    assert abs(h - 100.) < 1
+    assert abs(s - 20.) < 1
+    assert abs(v - 60.) < 1
 
 
-dataset = get_vanilla_dataset("cifar")
+def rgb_to_hsv_volume_change(rgb_tensor):
+    J = jacobian(rgb_to_hsv, rgb_tensor)
+    return J.det().abs()
 
 
-for img_index in range(2):
-    x, y = dataset[img_index]
-    x += 0.5
+def to_rgb_tensor(r, g, b):
+    return torch.tensor([r, g, b], dtype=torch.double, requires_grad=True) / 255
 
-    J_ten = torch.zeros((32, 32))
+
+def image_rgb_to_hsv_volume_change(img):
+    """Img should be an image with rgb colour channels scaled in the range [0, 1], returns the
+    change in Bits Per Dimension (BPD) by transitioning to an HSV colour channel."""
+
+    log_det_sum = 0
 
     for i in range(32):
         for j in range(32):
-            r, g, b = x[:, i, j]
-            rgb_inputs = tuple([r, g, b])
+            rgb_tensor = img[:, i, j]
 
-            # J = jacobian(rgb_to_hsv, rgb_inputs)
-            # J = torch.tensor(J)
-            h, s, v = rgb_to_hsv(r, g, b)
-            J_ten[i, j] = v + 0.1  # abs(J.det())
+            # To make comparison fair, we add a small amount of noise to account for quantization.
+            # Without this the computation of the hue blows up when r = g = b.
+            rgb_tensor_dequantized = rgb_tensor + torch.randn((3,))/255
+            det = rgb_to_hsv_volume_change(rgb_tensor_dequantized)
 
-    log_mult = torch.log(J_ten)
-    log_mult = log_mult.sum()
-    print(img_index, "Likelihood sum:", log_mult)
-    # print("Likelihood multiplier:", torch.exp(log_mult))
+            # det = det.nan_to_num().clamp(-10**6, 10**6)
+
+            log_det = det.log()
+            log_det = log_det
+            log_det_sum += log_det
+
+    return log_det_sum.item() / (3 * 32 * 32)   # We want to compute in bits/dim
 
 
-for boi in [8, 13]:
-    x, y = dataset[boi]
-    x += 0.5
-    x = x.permute(1, 2, 0)
-    plt.imshow(x)
-    plt.axis("off")
-    plt.savefig(f"cifar_image_{boi}.png")
+if __name__ == "__main__":
+
+    fig, axs = plt.subplots(ncols=2)
+
+    dataset = get_test_dataset("cifar10")
+    imgs = [
+        dataset[i][0] for i in range(2)
+    ]
+
+    for ax, img in zip(axs, imgs):
+        img += 0.5
+
+        delta_BPD = image_rgb_to_hsv_volume_change(img)
+
+        ax.imshow(img.permute(1, 2, 0))
+
+        ax.set_xticks([])
+        ax.set_yticks([])
+        x_label = "$\\Delta_{BPD} = " \
+                  "\\frac{\\log p_{RGB}(\\mathbf{x}) - \\log p_{HSV}(\\mathbf{x})} {3 \\times 32 \\times 32}$ = " + \
+                  f"{delta_BPD:.2f} "
+
+        ax.set_xlabel(x_label, size=15)
+
     plt.show()
