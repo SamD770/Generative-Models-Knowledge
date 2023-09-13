@@ -83,7 +83,7 @@ def image_rgb_to_hsv_volume_change(img):
 
             # det = det.nan_to_num().clamp(-10**6, 10**6)
 
-            log_det = det.log()
+            log_det = det.log2()
             log_det = log_det
             log_det_sum += log_det
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         ax.set_yticks([])
         x_label = f"{delta_BPD:.2f} "
                     # "$\\Delta^{RGB \\to HSV}_{BPD}$ = " +  \
-                  # "\\frac{\\log p_{RGB}(\\mathbf{x}) - \\log p_{HSV}(\\mathbf{x})} {3 \\times 32 \\times 32}$ = " + \
+                  # "\\frac{\\log p_{RGB}(\\mathbf{x}) - \\log_2 p_{HSV}(\\mathbf{x})} {3 \\times 32 \\times 32}$ = " + \
 
         ax.set_xlabel(x_label, size=15)
 
