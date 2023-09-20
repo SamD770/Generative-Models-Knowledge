@@ -1,6 +1,7 @@
 import random
 from os import path, makedirs
 
+import numpy as np
 import torch
 
 from anomaly_methods.gradients.L2_norms import DistributionFittingL2Norm
@@ -141,10 +142,33 @@ def select_summary_stat_names(summary_stat_names, n_statistics):
         return sorted(choices, key=(lambda name: stat_name_list.index(name)))
 
 
-def plot_fitted_distribution(ax, anomaly_detector, stat_name):
+def plot_fitted_distribution(ax, anomaly_detector, stat_name, color="k"):
     x_lim = ax.get_xlim()
     x = torch.linspace(*x_lim, steps=100)
 
     dist = anomaly_detector.fitted_log_scale_distribution(stat_name)
     p = torch.exp(dist.log_prob(x))
-    ax.plot(x, p, color="b", label="fitted distribution")
+    ax.plot(x, p, color=color, label="fitted distribution")
+
+
+def plot_fitted_distribution_scatter(ax, anomaly_detector, stat_name_x, stat_name_y, color="k"):
+    x_lim = ax.get_xlim()
+    x = torch.linspace(*x_lim, steps=100)
+
+    y_lim = ax.get_ylim()
+    y = torch.linspace(*y_lim, steps=100)
+
+    dist_x = anomaly_detector.fitted_log_scale_distribution(stat_name_x)
+
+    log_p_x = dist_x.log_prob(x)
+
+    dist_y = anomaly_detector.fitted_log_scale_distribution(stat_name_y)
+    log_p_y = dist_y.log_prob(y)
+
+    # Take cartesian products to get them independently
+    X, Y = np.meshgrid(x, y)
+    log_p_X, log_p_Y = np.meshgrid(log_p_x, log_p_y)
+
+    p_joint = np.exp(log_p_X + log_p_Y)
+
+    ax.contour(X, Y, p_joint, colors=color)
