@@ -1,17 +1,10 @@
-import pandas as pd
 import numpy as np
 
 import argparse
-import warnings
 
-from plots.anomaly_table import get_dataframe, model_name_formatter, dataset_name_formatter
-from plots.utils import get_anomaly_scores, positive_rates, save_log
+from plots.anomaly_table import get_dataframe, model_name_formatter, dataset_name_formatter, metric_dict
 from command_line_utils import model_parser, anomaly_method_parser, dataset_parser
-from sklearn.metrics import auc
 
-metric_dict = {
-    "auc": auc
-}
 
 def run(model_type, model_names, model_mode, anomaly_detection_name, batch_size, id_datasets, dataset_names,
         metric_name, model_name_column):
@@ -63,6 +56,7 @@ def run(model_type, model_names, model_mode, anomaly_detection_name, batch_size,
     # save_log(title, table_latex)
 
     print(table_latex)
+
 
 
 parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, dataset_parser])

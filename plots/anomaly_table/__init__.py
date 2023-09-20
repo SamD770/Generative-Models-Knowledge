@@ -1,10 +1,16 @@
-from plots.anomaly_table.__main__ import metric_dict
 from plots.utils import get_anomaly_scores, positive_rates
+
+import pandas as pd
+import warnings
+
+from plots.utils import get_anomaly_scores, positive_rates, save_log
+
+from sklearn.metrics import auc
 
 
 def get_dataframe(anomaly_detection_name, batch_size, dataset_names, id_datasets, metric_name, model_mode, model_names,
                   model_name_column, model_type):
-    print("model_name_column:", model_name_column)
+
     metric = metric_dict[metric_name]
     dataset_names = pd.Index(dataset_names)
     if model_name_column:
@@ -55,3 +61,8 @@ def dataset_name_formatter(row_name):
     }[row_name]
 
     return "\\texttt{" + styled_name + "}"
+
+
+metric_dict = {
+    "auc": auc
+}

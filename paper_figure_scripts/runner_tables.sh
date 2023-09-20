@@ -1,9 +1,9 @@
 
-for bs in 5 1
+for bs in 1
 do
-  for method in gradients_L2_norms_gaussian typicality
+  for method in gradients_L2_norms_gaussian
   do
-    python -m plots.anomaly_table \
+    python -m plots.anomaly_table.compare_with_typicality \
       glow cifar_long celeba svhn_working imagenet32 gtsrb_glow_continued \
       --id_datasets cifar10 celeba svhn imagenet32 gtsrb \
       --datasets cifar10 celeba svhn imagenet32 gtsrb \
