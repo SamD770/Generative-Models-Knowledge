@@ -1,3 +1,5 @@
+from plots.utils import RUNNING_MODULE_DIR
+
 from plots.summary_statistic_histograms import plot_summary_histograms, plot_summary_scatter, fetch_preliminaries, \
     label_getters, get_save_dir_path, select_summary_stat_names, plot_fitted_distribution
 
@@ -87,7 +89,7 @@ def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name
         single_figure=True, stat_name=None
     )
 
-    # file_title = f"{model_type} {model_name} gradient histogram"
+    file_title = f"{model_type} {model_name} gradient histogram"
 
     filepath = path.join(save_dir_path, file_title + ".png")
 
@@ -102,7 +104,8 @@ def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name
 
     for stat_name, ax in zip(selected_stat_names, axs):
 
-        plot_summary_histograms(ax, id_dataset_summary, id_dataset, ood_dataset_summaries, ood_dataset_names, stat_name, x_lim)
+        plot_summary_histograms(ax, id_dataset_summary, id_dataset, ood_dataset_summaries, ood_dataset_names, stat_name,
+                                fit_id_x_lim=True, x_lim=x_lim)
 
         if args.fitted_distribution:
             plot_fitted_distribution(ax, anomaly_detector, stat_name)

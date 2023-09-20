@@ -1,4 +1,6 @@
 
+# TODO: DELETE, NOT USED IN PAPER
+
 method="typicality"
 bs=1
 
