@@ -8,14 +8,20 @@ from anomaly_methods.utils import anomaly_detection_methods_dict
 from plots.utils import get_dataset_summmaries, RUNNING_MODULE_DIR
 
 
+random.seed(1)  # Fixes the seed so randomly selected layers are verifiable
+
 def prepare_vals(summary, stat_name):
     return torch.log(summary[stat_name]).numpy()
 
 
 def plot_summary_histograms(ax, id_dataset_summary, id_dataset_name,
-                            ood_dataset_summaries, ood_dataset_names, stat_name, x_lim=None):
+                            ood_dataset_summaries, ood_dataset_names, stat_name, fit_id_x_lim=False, x_lim=None):
+    """Plots the summary statistic stat_name as a histogram for the given summaries. providing x_lim overrides
+    using fit_id_x_lim to fit to the in-distribution data."""
 
-    if x_lim is None:
+    # fit_id_x_lim tells us to scale the x_lim by the id_dataset
+
+    if fit_id_x_lim and x_lim is None:
         id_vals = prepare_vals(id_dataset_summary, stat_name)
         x_lim = (id_vals.min(), id_vals.max())
 
@@ -110,6 +116,7 @@ def likelihoods_labels(model_type, model_name, batch_size, id_dataset, n_statist
 # TODO: refactor to nicely handle subclasses
 
 label_getters = {
+    "gradients_L2_norms_gaussian": gradients_L2_norms_labels,
     "gradients_L2_norms": gradients_L2_norms_labels,
     "likelihoods": likelihoods_labels,
     "typicality": likelihoods_labels
