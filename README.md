@@ -6,7 +6,7 @@ This code is that used for
 - `generative_model.py` provides interfaces for general use of deep generative models for anomaly detection.
 - `models/` contains several open source implementations of deep generative models
 - `anomaly_methods/` contains implementations of deep-generative-model based anomaly detection
-- `plots/` contains the plotting scripts used in the paper
+- `plots/` contains the general plotting scripts
 
 ```
 @inproceedings{gradients2023anomaly,
