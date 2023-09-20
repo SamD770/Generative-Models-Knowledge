@@ -1,3 +1,5 @@
+import numpy as np
+
 from plots.utils import get_anomaly_scores, positive_rates
 
 import pandas as pd
@@ -66,3 +68,11 @@ def dataset_name_formatter(row_name):
 metric_dict = {
     "auc": auc
 }
+
+
+def get_performance_stats(df):
+    performance_array = df.to_numpy()
+    avg_performance = np.nanmean(performance_array).item()
+    stdev_performance = np.nanstd(performance_array).item()
+    quantiles = list(np.nanquantile(performance_array, (0.25, 0.50, 0.75)))
+    return avg_performance, quantiles, stdev_performance

@@ -1,8 +1,7 @@
-import numpy as np
-
 import argparse
 
-from plots.anomaly_table import get_dataframe, model_name_formatter, dataset_name_formatter, metric_dict
+from plots.anomaly_table import get_dataframe, model_name_formatter, dataset_name_formatter, metric_dict, \
+    get_performance_stats
 from command_line_utils import model_parser, anomaly_method_parser, dataset_parser
 
 
@@ -12,10 +11,7 @@ def run(model_type, model_names, model_mode, anomaly_detection_name, batch_size,
     df = get_dataframe(anomaly_detection_name, batch_size, dataset_names, id_datasets, metric_name, model_mode,
                        model_names, model_name_column, model_type)
 
-    performance_array = df.to_numpy()
-    avg_performance = np.nanmean(performance_array).item()
-    stdev_performance = np.nanstd(performance_array).item()
-    quantiles = list(np.nanquantile(performance_array, (0.25, 0.50, 0.75)))
+    avg_performance, quantiles, stdev_performance = get_performance_stats(df)
 
     title = f"{metric_name} values for {anomaly_detection_name}, batch size {batch_size} applied to {model_type} " \
             f"in {model_mode} mode, " \
@@ -56,7 +52,6 @@ def run(model_type, model_names, model_mode, anomaly_detection_name, batch_size,
     # save_log(title, table_latex)
 
     print(table_latex)
-
 
 
 parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, dataset_parser])
