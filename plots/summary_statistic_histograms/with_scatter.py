@@ -42,8 +42,10 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
 
     filepath = path.join(save_dir_path, file_title + ".png")
 
-
     print(f"creating: {filepath}")
+
+    with open(filepath[:-4] + ".txt", "wt") as f: # quick and dirty way to record the names used
+        f.write(str(selected_stat_names))
 
     # fig.suptitle(figure_title)
     input_var_xlabel = get_input_var_xlabel(batch_size)
@@ -72,7 +74,7 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
                          selected_stat_names[0], selected_stat_names[1])
 
     # Grab the labels from the last axes to prevent label duplication
-    fig.legend(*histogram_axs[0].get_legend_handles_labels(), fontsize=fontsize)
+    # fig.legend(*histogram_axs[0].get_legend_handles_labels(), fontsize=fontsize)
 
     scatter_ax.set_xlabel(axes_labels[0], fontsize=fontsize)
     scatter_ax.set_ylabel(axes_labels[1], fontsize=fontsize)

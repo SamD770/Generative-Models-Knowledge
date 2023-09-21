@@ -7,3 +7,18 @@ python -m plots.summary_statistic_histograms.with_scatter \
     --datasets cifar10 celeba svhn imagenet32 gtsrb \
     --anomaly_detection $method_name --batch_size $bs \
     --fitted_distribution
+
+T=1
+
+python -m plots.summary_statistic_histograms.with_scatter \
+    diffusion \
+      diffusion_cifar10_${T}_timesteps \
+      diffusion_celeba_${T}_timesteps \
+      diffusion_svhn_${T}_timesteps \
+      diffusion_imagenet32_${T}_timesteps \
+      diffusion_gtsrb_${T}_timesteps \
+  --id_datasets cifar10 celeba svhn imagenet32 gtsrb \
+  --datasets cifar10 celeba svhn imagenet32 gtsrb \
+  --anomaly_detection $method_name --batch_size $bs \
+  --fitted_distribution
+
