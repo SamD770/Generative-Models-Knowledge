@@ -11,19 +11,31 @@ from plots.utils import get_dataset_summmaries, RUNNING_MODULE_DIR
 
 random.seed(1)  # Fixes the seed so randomly selected layers are verifiable
 
-def prepare_vals(summary, stat_name):
+
+def prepare_vals(summary, stat_name, take_log=True):
+    if take_log:
+        return prepare_vals_log(summary, stat_name)
+    else:
+        return prepare_vals_likelihoods(summary, stat_name)
+
+
+def prepare_vals_log(summary, stat_name):
     return torch.log(summary[stat_name]).numpy()
 
 
+def prepare_vals_likelihoods(summary, stat_name):
+    return -summary[stat_name].numpy()
+
+
 def plot_summary_histograms(ax, id_dataset_summary, id_dataset_name,
-                            ood_dataset_summaries, ood_dataset_names, stat_name, fit_id_x_lim=False, x_lim=None):
+                            ood_dataset_summaries, ood_dataset_names, stat_name,
+                            fit_id_x_lim=False, x_lim=None, take_log=True):
     """Plots the summary statistic stat_name as a histogram for the given summaries. providing x_lim overrides
     using fit_id_x_lim to fit to the in-distribution data."""
 
     # fit_id_x_lim tells us to scale the x_lim by the id_dataset
-
     if fit_id_x_lim and x_lim is None:
-        id_vals = prepare_vals(id_dataset_summary, stat_name)
+        id_vals = prepare_vals(id_dataset_summary, stat_name, take_log)
         x_lim = (id_vals.min(), id_vals.max())
 
     for dataset_name, summary in zip(ood_dataset_names, ood_dataset_summaries):
@@ -33,7 +45,7 @@ def plot_summary_histograms(ax, id_dataset_summary, id_dataset_name,
         else:
             label=f"out-of-distribution {dataset_name}"
 
-        vals = prepare_vals(summary, stat_name)
+        vals = prepare_vals(summary, stat_name, take_log)
         ax.hist(vals, range=x_lim,
                 label=label, density=True, bins=40, alpha=0.6)
 
@@ -41,7 +53,7 @@ def plot_summary_histograms(ax, id_dataset_summary, id_dataset_name,
 
 def plot_summary_scatter(ax, id_dataset_summary, id_dataset_name,
                              ood_dataset_summaries, ood_dataset_names,
-                             stat_name_x, stat_name_y, x_lim=None, y_lim=None, n_scatter=200):
+                             stat_name_x, stat_name_y, n_scatter=200):
 
     for dataset_name, summary in zip(ood_dataset_names, ood_dataset_summaries):
         if dataset_name == id_dataset_name:
