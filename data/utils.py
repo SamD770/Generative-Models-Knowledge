@@ -34,10 +34,10 @@ import torch
 to_dataset_wrapper = {
     DS_Wrapper.name: DS_Wrapper for DS_Wrapper in
     [
-        CIFAR10_Wrapper,
-        GTSRBWrapper,
         SVHN_Wrapper,
         CelebaA_Wrapper,
+        GTSRBWrapper,
+        CIFAR10_Wrapper,
         Imagenet32_Wrapper,
         MNIST_Wrapper,
         FashionMNIST_Wrapper,

@@ -15,7 +15,7 @@ from command_line_utils import model_parser, anomaly_method_parser, dataset_pars
 
 
 def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, id_dataset, ood_dataset_names,
-        fitted_distribution):
+        fitted_distribution, with_legend=True):
     """Plots axes (one for each summary statistic) on one figure."""
 
     # Fetch cached statistics from the disk
@@ -78,7 +78,8 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
     left_histogram_ax = histogram_axs[0]
     left_histogram_ax.set_ylabel(f"{model_type} model", fontsize=fontsize)
 
-    fig.legend(*left_histogram_ax.get_legend_handles_labels(), fontsize=fontsize)
+    if with_legend: # only add the legend to the first plot created
+        fig.legend(*left_histogram_ax.get_legend_handles_labels(), fontsize=fontsize)
 
     scatter_ax.set_xlabel(axes_labels[0], fontsize=fontsize)
     scatter_ax.set_ylabel(axes_labels[1], fontsize=fontsize)
@@ -98,9 +99,12 @@ if __name__ == "__main__":
                         help="whether plot the fitted distribution, if it exists, "
                              "with the summary statistics (default False)")
 
+    parser.add_argument("--with_legend", action="store_true",
+                        help="add a legend to the figure (default False)")
+
     args = parser.parse_args()
 
     for arg_model_name, arg_id_dataset in zip(args.model_names, args.id_datasets):
 
         run(args.model_type, arg_model_name, args.model_mode, args.anomaly_detection, args.batch_size,
-            arg_id_dataset, args.datasets, args.fitted_distribution)
+            arg_id_dataset, args.datasets, args.fitted_distribution, args.with_legend)
