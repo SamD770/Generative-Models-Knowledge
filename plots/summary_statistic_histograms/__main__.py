@@ -72,8 +72,7 @@ def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name
         fetch_preliminaries(model_type, model_name, model_mode, anomaly_detection_name, batch_size,
                             id_dataset, ood_dataset_names, fitted_distribution)
 
-    print("\n"*3,  model_type, "n_statistics: ", len(anomaly_detector.summary_statistic_names), "\n"*3)
-    exit()
+    print("\n",  model_type, "n_statistics: ", len(anomaly_detector.summary_statistic_names), "\n")
 
     save_dir_path = get_save_dir_path("Extra gradient histograms")
 
