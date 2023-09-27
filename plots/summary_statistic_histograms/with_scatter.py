@@ -29,7 +29,7 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
     # plot histograms of the data
 
     selected_stat_names = select_summary_stat_names(anomaly_detector.summary_statistic_names, 2)
-    fig, axs = plt.subplots(ncols=3, figsize=(30, 10))
+    fig, axs = plt.subplots(ncols=3, figsize=(12, 5))
 
     label_getter = label_getters[anomaly_detection_name]
 
@@ -56,7 +56,7 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
         "$\\log f_{\\mathbf{\\theta}_{" + layer_index +"}}(" + input_var_xlabel +")  $" for layer_index in "ij"
     ]
 
-    fontsize = "xx-large"
+    fontsize = "medium"
 
     histogram_axs = axs[:-1]
     scatter_ax = axs[-1]
@@ -74,13 +74,19 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
                          selected_stat_names[0], selected_stat_names[1])
 
     # Grab the labels from the last axes to prevent label duplication
-    # fig.legend(*histogram_axs[0].get_legend_handles_labels(), fontsize=fontsize)
+
+    left_histogram_ax = histogram_axs[0]
+    left_histogram_ax.set_ylabel(f"{model_type} model", fontsize=fontsize)
+
+    fig.legend(*left_histogram_ax.get_legend_handles_labels(), fontsize=fontsize)
 
     scatter_ax.set_xlabel(axes_labels[0], fontsize=fontsize)
     scatter_ax.set_ylabel(axes_labels[1], fontsize=fontsize)
 
     if fitted_distribution:
         plot_fitted_distribution_scatter(scatter_ax, anomaly_detector, selected_stat_names[0], selected_stat_names[1])
+
+    fig.tight_layout()
 
     plt.savefig(filepath)
 
