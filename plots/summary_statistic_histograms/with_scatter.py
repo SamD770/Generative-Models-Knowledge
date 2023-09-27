@@ -29,7 +29,7 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
     # plot histograms of the data
 
     selected_stat_names = select_summary_stat_names(anomaly_detector.summary_statistic_names, 2)
-    fig, axs = plt.subplots(ncols=3, figsize=(12, 5))
+    fig, axs = plt.subplots(ncols=3, figsize=(12, 4))
 
     label_getter = label_getters[anomaly_detection_name]
 
