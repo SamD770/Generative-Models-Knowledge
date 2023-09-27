@@ -72,7 +72,10 @@ def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name
         fetch_preliminaries(model_type, model_name, model_mode, anomaly_detection_name, batch_size,
                             id_dataset, ood_dataset_names, fitted_distribution)
 
-    save_dir_path = get_save_dir_path(model_name)
+    print("\n"*3,  model_type, "n_statistics: ", len(anomaly_detector.summary_statistic_names), "\n"*3)
+    exit()
+
+    save_dir_path = get_save_dir_path("Extra gradient histograms")
 
     # plot histograms of the data
 
@@ -89,7 +92,7 @@ def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name
         single_figure=True, stat_name=None
     )
 
-    file_title = f"{model_type} {model_name} gradient histogram"
+    # file_title = f"{model_type} {model_name} gradient histogram"
 
     filepath = path.join(save_dir_path, file_title + ".png")
 
@@ -100,12 +103,13 @@ def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name
 
     # figure_title = f"gradients from {n_statistics_plot} randomly selected layers out of " \
     #                f"{len(anomaly_detector.summary_statistic_names)} in a {model_type} model trained on {id_dataset}"
-    fig.suptitle(figure_title)
+    # fig.suptitle(figure_title)
+
 
     for stat_name, ax in zip(selected_stat_names, axs):
 
         plot_summary_histograms(ax, id_dataset_summary, id_dataset, ood_dataset_summaries, ood_dataset_names, stat_name,
-                                fit_id_x_lim=True, x_lim=x_lim)
+                                ) # fit_id_x_lim=True, x_lim=x_lim)
 
         if args.fitted_distribution:
             plot_fitted_distribution(ax, anomaly_detector, stat_name)
@@ -113,8 +117,12 @@ def run_single_figure(model_type, model_name, model_mode, anomaly_detection_name
         ax.set_yticks([])
         ax.set_xlabel(xlabel) # "$ \\log f_{\\mathbf{\\theta}_\\ell}(\\mathbf{x}_{1:B})  $")
 
+    leftmost_ax = axs[0]
+    leftmost_ax.set_ylabel(f"{model_type} model trained on {id_dataset}")
+
     # Grab the labels from the last axes to prevent label duplication
     fig.legend(*ax.get_legend_handles_labels())
+    fig.tight_layout()
 
     plt.savefig(filepath)
 
