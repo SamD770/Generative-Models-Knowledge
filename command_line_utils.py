@@ -35,3 +35,7 @@ anomaly_method_parser.add_argument("--id_datasets", nargs="+", choices=dataset_n
 anomaly_method_parser.add_argument("--batch_size", type=int,
                                    help="the batch size used with the anomaly detection method")
 
+plotting_parser = argparse.ArgumentParser(add_help=False)
+plotting_parser.add_argument("--with_legend", action="store_true",
+                             help="add a legend to the figure (default False)")
+

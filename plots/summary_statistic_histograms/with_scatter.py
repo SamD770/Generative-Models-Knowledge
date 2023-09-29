@@ -11,7 +11,7 @@ from plots.summary_statistic_histograms import (
 
 
 import argparse
-from command_line_utils import model_parser, anomaly_method_parser, dataset_parser
+from command_line_utils import model_parser, anomaly_method_parser, dataset_parser, plotting_parser
 
 
 def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, id_dataset, ood_dataset_names,
@@ -93,14 +93,12 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, dataset_parser])
+
+    parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, dataset_parser, plotting_parser])
 
     parser.add_argument("--fitted_distribution", action="store_true",
                         help="whether plot the fitted distribution, if it exists, "
                              "with the summary statistics (default False)")
-
-    parser.add_argument("--with_legend", action="store_true",
-                        help="add a legend to the figure (default False)")
 
     args = parser.parse_args()
 

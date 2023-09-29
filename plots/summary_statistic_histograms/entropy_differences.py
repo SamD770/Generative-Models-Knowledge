@@ -11,11 +11,11 @@ from plots.summary_statistic_histograms import (
 
 
 import argparse
-from command_line_utils import model_parser, anomaly_method_parser, dataset_parser
+from command_line_utils import model_parser, anomaly_method_parser, dataset_parser, plotting_parser
 
 
 def run(model_type, model_names, model_mode, batch_size,
-        id_datasets, ood_dataset_names, x_lim):
+        id_datasets, ood_dataset_names, x_lim, with_legend):
 
 
     fontsize = "xx-large"
@@ -45,11 +45,12 @@ def run(model_type, model_names, model_mode, batch_size,
 
     bottom_ax.set_xlabel(xlabel, fontsize=fontsize)
 
-    handles, _ = ax.get_legend_handles_labels()
 
     fig.tight_layout()
 
-    fig.legend(handles, ood_dataset_names, fontsize=fontsize)
+    if with_legend:
+        handles, _ = ax.get_legend_handles_labels()
+        fig.legend(handles, ood_dataset_names, fontsize=fontsize)
 
     file_title = f"{model_type}_entropy_differences"
 
@@ -59,7 +60,7 @@ def run(model_type, model_names, model_mode, batch_size,
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, dataset_parser])
+    parser = argparse.ArgumentParser(parents=[anomaly_method_parser, model_parser, dataset_parser, plotting_parser])
 
     parser.add_argument("--x_lim", nargs=2, type=float, default=None,
                         help="the limits of the x-axis plot (defaults to min/max of the id dataset)")
@@ -67,4 +68,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     run(args.model_type, args.model_names, args.model_mode, args.batch_size,
-        args.id_datasets, args.datasets, (-7, -1))
+        args.id_datasets, args.datasets, (-7, -1), args.with_legend)
