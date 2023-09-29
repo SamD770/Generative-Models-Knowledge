@@ -4,11 +4,10 @@ from os import path
 import matplotlib.pyplot as plt
 
 from plots.summary_statistic_histograms import (
-    plot_summary_histograms, plot_summary_scatter, fetch_preliminaries, \
-    get_save_dir_path, select_summary_stat_names, plot_fitted_distribution, label_getters,
-    plot_fitted_distribution_scatter, get_input_var_xlabel
+    plot_summary_histograms, fetch_preliminaries
 )
 
+from plots.utils import to_styled_dataset_name
 
 import argparse
 from command_line_utils import model_parser, anomaly_method_parser, dataset_parser, plotting_parser
@@ -32,7 +31,7 @@ def run(model_type, model_names, model_mode, batch_size,
                                 ood_dataset_summaries, ood_dataset_names,
                                 "-log p", x_lim=x_lim, take_log=False)
         ax.set_yticks([])
-        ax.set_ylabel(id_dataset, fontsize=fontsize)
+        ax.set_ylabel(to_styled_dataset_name[id_dataset], fontfamily="monospace", fontsize=fontsize)
 
         if ax is not bottom_ax:
             ax.sharex(bottom_ax)
@@ -40,8 +39,10 @@ def run(model_type, model_names, model_mode, batch_size,
 
     if model_type == "diffusion":
         xlabel = "$\\frac{p_{\\theta}(\\mathbf{x}_{0:1})}{q(\\mathbf{x}_{1} \\vert \\mathbf{x}_{0})}$"
+    elif model_type == "glow":
+        xlabel = "$\\frac{\\log_2 p(\\mathbf{x})}{3 \\times 32 \\times 32} "
     else:
-        xlabel = "$\\frac{\\log_2 p(x)}{3 \\times 32 \\times 32}$"
+        xlabel = f"xlabel not implemented for model type {model_type}"
 
     bottom_ax.set_xlabel(xlabel, fontsize=fontsize)
 
@@ -50,11 +51,18 @@ def run(model_type, model_names, model_mode, batch_size,
 
     if with_legend:
         handles, _ = ax.get_legend_handles_labels()
-        fig.legend(handles, ood_dataset_names, fontsize=fontsize)
+
+        styled_ood_dataset_names = [
+            to_styled_dataset_name[dsn] for dsn in ood_dataset_names
+        ]
+
+        prop = {"family": "monospace"}
+
+        fig.legend(handles, styled_ood_dataset_names, prop=prop, fontsize=fontsize)
 
     file_title = f"{model_type}_entropy_differences"
 
-    filepath = path.join("entropy_difference_plots", file_title + ".png")
+    filepath = path.join(file_title + ".png") # "entropy_difference_plots", file_title + ".png")
 
     plt.savefig(filepath)
 
@@ -68,4 +76,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     run(args.model_type, args.model_names, args.model_mode, args.batch_size,
-        args.id_datasets, args.datasets, (-7, -1), args.with_legend)
+        args.id_datasets, args.datasets, None, args.with_legend)
