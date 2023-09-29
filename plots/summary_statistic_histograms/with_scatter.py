@@ -4,8 +4,8 @@ from os import path
 import matplotlib.pyplot as plt
 
 from plots.summary_statistic_histograms import (
-    plot_summary_histograms, plot_summary_scatter, fetch_preliminaries, \
-    get_save_dir_path, select_summary_stat_names, plot_fitted_distribution, label_getters,
+    plot_summary_histograms, plot_summary_scatter, fetch_preliminaries,
+    get_save_dir_path, select_summary_stat_names, plot_fitted_distribution,
     plot_fitted_distribution_scatter, get_input_var_xlabel
 )
 
@@ -30,13 +30,6 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
 
     selected_stat_names = select_summary_stat_names(anomaly_detector.summary_statistic_names, 2)
     fig, axs = plt.subplots(ncols=3, figsize=(12, 4))
-
-    label_getter = label_getters[anomaly_detection_name]
-
-    file_title, figure_title, xlabel = label_getter(
-        model_type, model_name, batch_size, id_dataset, anomaly_detector.summary_statistic_names, 2,
-        single_figure=True, stat_name=None
-    )
 
     file_title = f"gradients from two randomly selected layers of a {model_type} model trained on {id_dataset}"
 
@@ -76,7 +69,8 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
     # Grab the labels from the last axes to prevent label duplication
 
     left_histogram_ax = histogram_axs[0]
-    left_histogram_ax.set_ylabel(f"{model_type} model", fontsize=fontsize)
+    y_label = f"{model_type} model".title()
+    left_histogram_ax.set_ylabel(y_label, fontsize=fontsize)
 
     if with_legend: # only add the legend to the first plot created
         fig.legend(*left_histogram_ax.get_legend_handles_labels(), fontsize=fontsize)
