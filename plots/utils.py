@@ -15,7 +15,7 @@ from torchvision.utils import make_grid
 RUNNING_MODULE_DIR, _ = path.split(sys.argv[0])
 
 
-styled_dataset_names = {
+to_styled_dataset_name = {
     "cifar10": "CIFAR-10",
     "svhn": "SVHN",
     "celeba": "CelebA",
