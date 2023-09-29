@@ -44,7 +44,7 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
 
     print(f"creating: {filepath}")
 
-    with open(filepath[:-4] + ".txt", "wt") as f: # quick and dirty way to record the names used
+    with open(filepath[:-4] + ".txt", "wt") as f:  # quick and dirty way to record the names used
         f.write(str(selected_stat_names))
 
     # fig.suptitle(figure_title)
@@ -52,7 +52,7 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
 
     # axes_labels = ["layer " + layer_index for layer_index in "ij"]
 
-    axes_labels = [
+    x_labels = [
         "$\\log f_{\\mathbf{\\theta}_{" + layer_index +"}}(" + input_var_xlabel +")  $" for layer_index in "ij"
     ]
 
@@ -61,14 +61,14 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
     histogram_axs = axs[:-1]
     scatter_ax = axs[-1]
 
-    for stat_name, ax, axes_label in zip(selected_stat_names, histogram_axs, axes_labels):
+    for stat_name, ax, x_label in zip(selected_stat_names, histogram_axs, x_labels):
 
         plot_summary_histograms(ax, id_dataset_summary, id_dataset, ood_dataset_summaries, ood_dataset_names, stat_name)
 
         if fitted_distribution:
             plot_fitted_distribution(ax, anomaly_detector, stat_name)
         ax.set_yticks([])
-        ax.set_xlabel(axes_label, fontsize=fontsize)
+        ax.set_xlabel(x_label, fontsize=fontsize)
 
     plot_summary_scatter(scatter_ax, id_dataset_summary, id_dataset, ood_dataset_summaries, ood_dataset_names,
                          selected_stat_names[0], selected_stat_names[1])
@@ -81,8 +81,8 @@ def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, 
     if with_legend: # only add the legend to the first plot created
         fig.legend(*left_histogram_ax.get_legend_handles_labels(), fontsize=fontsize)
 
-    scatter_ax.set_xlabel(axes_labels[0], fontsize=fontsize)
-    scatter_ax.set_ylabel(axes_labels[1], fontsize=fontsize)
+    scatter_ax.set_xlabel(x_labels[0], fontsize=fontsize)
+    scatter_ax.set_ylabel(x_labels[1], fontsize=fontsize)
 
     if fitted_distribution:
         plot_fitted_distribution_scatter(scatter_ax, anomaly_detector, selected_stat_names[0], selected_stat_names[1])

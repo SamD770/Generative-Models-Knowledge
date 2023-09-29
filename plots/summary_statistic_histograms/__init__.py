@@ -6,7 +6,7 @@ import torch
 
 from anomaly_methods.gradients.L2_norms import DistributionFittingL2Norm
 from anomaly_methods.utils import anomaly_detection_methods_dict
-from plots.utils import get_dataset_summmaries, RUNNING_MODULE_DIR
+from plots.utils import get_dataset_summmaries, RUNNING_MODULE_DIR, to_styled_dataset_name
 
 
 random.seed(1)  # Fixes the seed so randomly selected layers are verifiable
@@ -40,10 +40,12 @@ def plot_summary_histograms(ax, id_dataset_summary, id_dataset_name,
 
     for dataset_name, summary in zip(ood_dataset_names, ood_dataset_summaries):
 
+        styled_dataset_name = to_styled_dataset_name[dataset_name]
+
         if dataset_name == id_dataset_name:
-            label=f"in distribution {id_dataset_name}"
+            label=f"in distribution {styled_dataset_name}"
         else:
-            label=f"out-of-distribution {dataset_name}"
+            label=f"out-of-distribution {styled_dataset_name}"
 
         vals = prepare_vals(summary, stat_name, take_log)
         ax.hist(vals, range=x_lim,
