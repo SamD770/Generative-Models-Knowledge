@@ -15,6 +15,15 @@ from torchvision.utils import make_grid
 RUNNING_MODULE_DIR, _ = path.split(sys.argv[0])
 
 
+styled_dataset_names = {
+    "cifar10": "CIFAR-10",
+    "svhn": "SVHN",
+    "celeba": "CelebA",
+    "imagenet32": "ImageNet32",
+    "gtsrb": "GTSRB"
+}
+
+
 # Define parent parsers
 
 def grid_from_imgs(img_seq):

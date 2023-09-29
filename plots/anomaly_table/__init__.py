@@ -5,7 +5,7 @@ from plots.utils import get_anomaly_scores, positive_rates
 import pandas as pd
 import warnings
 
-from plots.utils import get_anomaly_scores, positive_rates, save_log
+from plots.utils import get_anomaly_scores, positive_rates, save_log, styled_dataset_names
 
 from sklearn.metrics import auc
 
@@ -54,13 +54,8 @@ def model_name_formatter(column_name):
 
 
 def dataset_name_formatter(row_name):
-    styled_name = {
-        "cifar10": "CIFAR-10",
-        "svhn": "SVHN",
-        "celeba": "CelebA",
-        "imagenet32": "ImageNet32",
-        "gtsrb": "GTSRB"
-    }[row_name]
+
+    styled_name = styled_dataset_names[row_name]
 
     return "\\texttt{" + styled_name + "}"
 
