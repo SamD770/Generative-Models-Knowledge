@@ -46,6 +46,7 @@ def save_log(title, log_string):
 
 def save_plot(title):
     save_filepath = path.join(RUNNING_MODULE_DIR, title + ".png")
+    print("saving to:", save_filepath)
     plt.savefig(save_filepath)
 
 
