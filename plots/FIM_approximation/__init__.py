@@ -15,6 +15,7 @@ else:
 
 print(device)
 
+random.seed(1)  # Fixes the seed so randomly selected layers are verifiable
 
 class MultiLayerFIMStore:
     def __init__(self, model, layer_names, weight_indices):
