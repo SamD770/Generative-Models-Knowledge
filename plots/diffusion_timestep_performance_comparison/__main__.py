@@ -12,16 +12,20 @@ typicality_batch_size_5 = \
     0.8489, 0.8447, 0.8358,
      0.8187]  #, 0.5584]
 
-plt.semilogx(n_timesteps, ours_batch_size_5, label="ours")
-plt.semilogx(n_timesteps, typicality_batch_size_5, label="typicality")
+
+# plt.xticks(n_timesteps, n_timesteps)
+
+plt.semilogx(n_timesteps, ours_batch_size_5, label="ours", base=2.)
+plt.semilogx(n_timesteps, typicality_batch_size_5, label="typicality", base=2.)
+
+plt.xticks(n_timesteps, n_timesteps)
 
 plt.title("Ablation study on the effect of the number of timesteps on the \n"
           " performance of a diffusion model using batch size 5.")
 
 plt.xlabel("number of timesteps (log scale)")
-plt.ylabel("AUROC (averaged over all pairings)")
+plt.ylabel("AUROC (averaged over all dataset pairings)")
 
-plt.xticks(n_timesteps, n_timesteps)
 
 plt.legend()
 
