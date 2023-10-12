@@ -274,7 +274,27 @@ class ChiSquareL2Norm(DistributionFittingL2Norm):
         )
 
 
+class FisherMethodGaussianL2Norm(DiagonalGaussianL2Norm):
+    def anomaly_score(self, summary_statistics: Dict[str, List[float]]) -> List[float]:
+        # Computes the log-probability of each sample in parallel.
+        fisher_test_stat = 0
 
+        for summary_stat_key, value_tensor in self.value_generator(summary_statistics):
+            log_value_tensor = torch.log(value_tensor)
+            log_value_tensor = log_value_tensor.nan_to_num()
+
+            dist = self.fitted_log_scale_distribution(summary_stat_key)
+
+            layer_model_p_val = dist.cdf(log_value_tensor)
+            layer_model_p_val = torch.minimum(layer_model_p_val, 1 - layer_model_p_val)
+
+            fisher_test_stat += 2 * layer_model_p_val
+
+        log_p_list = list(
+            val.item() for val in fisher_test_stat
+        )
+
+        return log_p_list
 
 #
 # class ChiSquareL2Norm(L2NormAnomalyDetection):
