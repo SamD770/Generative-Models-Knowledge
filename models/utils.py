@@ -42,3 +42,9 @@ def compute_nll(dataset, model):
             nlls.append(nll)
 
     return torch.cat(nlls).cpu()
+
+
+def n_parameters(model):
+    return sum(
+        p.numel() for p in model.parameters()
+    )
