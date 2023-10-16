@@ -9,7 +9,7 @@ from command_line_utils import model_parser
 from plots.utils import save_plot
 
 
-from plots.FIM_approximation import compute_FIM, load_prerequisites
+from plots.FIM_approximation import compute_FIM, load_prerequisites, reparam_FIM
 
 random.seed(1)  # Fixes the seed so randomly selected layers are verifiable
 
@@ -40,11 +40,10 @@ def run(model_type, model_name, sampling_model_name=None, n_layers=2, n_weights_
     for r, FIM_window_row in enumerate(FIM_windows):
         for c, matrix in enumerate(FIM_window_row):
 
-            diagonal_rows = diagonals[r].unsqueeze(1)
-            diagonal_cols = diagonals[c].unsqueeze(0)
+            diagonal_rows = diagonals[r]
+            diagonal_cols = diagonals[c]
 
-            matrix = matrix/(diagonal_rows.sqrt())
-            matrix = matrix/(diagonal_cols.sqrt())
+            matrix = reparam_FIM(matrix, diagonal_cols, diagonal_rows)
 
             ax = plt.subplot(gs[r, c])
 
@@ -82,10 +81,14 @@ parser.add_argument("--sampling_model_name",
                     help="optional specification of a different model to draw samples from "
                          "(defaults to the evaluation model).")
 
+parser.add_argument("--n_layers", type=int, default=2,
+                    help="optional specification of a different model to draw samples from "
+                         "(defaults to the evaluation model).")
+
 args = parser.parse_args()
 
 
 for arg_model_name in args.model_names:
-    run(args.model_type, arg_model_name, args.sampling_model_name)
+    run(args.model_type, arg_model_name, args.sampling_model_name, n_layers=args.n_layers)
 
 

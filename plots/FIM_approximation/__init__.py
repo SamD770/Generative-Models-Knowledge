@@ -157,3 +157,14 @@ def load_prerequisites(model_name, model_type, n_layers, n_weights_per_layer, sa
     fim_store, n_selected_weights_list = MultiLayerFIMStore.from_model(model, n_layers, n_weights_per_layer)
 
     return fim_store, model, n_selected_weights_list, sample_dataset
+
+
+def reparam_FIM(matrix, diagonal_cols, diagonal_rows):
+    """Returns a matrix of F_ab / sqrt(F_aa F_bb), corresponding to a rescaling of the model weights"""
+    diagonal_rows = diagonal_rows.unsqueeze(1)
+    diagonal_cols = diagonal_cols.unsqueeze(0)
+
+    matrix = matrix / (diagonal_rows.sqrt())
+    matrix = matrix / (diagonal_cols.sqrt())
+
+    return matrix
