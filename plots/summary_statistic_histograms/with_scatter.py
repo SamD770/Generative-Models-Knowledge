@@ -9,9 +9,10 @@ from plots.summary_statistic_histograms import (
     plot_fitted_distribution_scatter, get_input_var_xlabel
 )
 
-
 import argparse
 from command_line_utils import model_parser, anomaly_method_parser, dataset_parser, plotting_parser
+
+# plots three axes sequentially with two histogram plots and one scatter plot
 
 
 def run(model_type, model_name, model_mode, anomaly_detection_name, batch_size, id_dataset, ood_dataset_names,
