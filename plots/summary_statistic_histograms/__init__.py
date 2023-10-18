@@ -29,7 +29,7 @@ def prepare_vals_likelihoods(summary, stat_name):
 
 def plot_summary_histograms(ax, id_dataset_summary, id_dataset_name,
                             ood_dataset_summaries, ood_dataset_names, stat_name,
-                            fit_id_x_lim=False, x_lim=None, take_log=True):
+                            fit_id_x_lim=False, x_lim=None, take_log=True, **kwargs):
     """Plots the summary statistic stat_name as a histogram for the given summaries. providing x_lim overrides
     using fit_id_x_lim to fit to the in-distribution data."""
 
@@ -49,24 +49,26 @@ def plot_summary_histograms(ax, id_dataset_summary, id_dataset_name,
 
         vals = prepare_vals(summary, stat_name, take_log)
         ax.hist(vals, range=x_lim,
-                label=label, density=True, bins=40, alpha=0.6)
-
+                label=label, density=True, bins=40, alpha=0.6, **kwargs)
 
 
 def plot_summary_scatter(ax, id_dataset_summary, id_dataset_name,
                              ood_dataset_summaries, ood_dataset_names,
-                             stat_name_x, stat_name_y, n_scatter=200):
+                             stat_name_x, stat_name_y, n_scatter=200, **kwargs):
 
     for dataset_name, summary in zip(ood_dataset_names, ood_dataset_summaries):
+
+        styled_dataset_name = to_styled_dataset_name[dataset_name]
+
         if dataset_name == id_dataset_name:
-            label=f"in distribution {id_dataset_name}"
+            label=f"in distribution {styled_dataset_name}"
         else:
-            label=f"out-of-distribution {dataset_name}"
+            label=f"out-of-distribution {styled_dataset_name}"
 
         x_vals = prepare_vals(summary, stat_name_x)[:n_scatter]
         y_vals = prepare_vals(summary, stat_name_y)[:n_scatter]
 
-        ax.scatter(x_vals, y_vals, marker=".", label=label)
+        ax.scatter(x_vals, y_vals, marker=".", label=label, **kwargs)
 
 
 def fetch_preliminaries(model_type, model_name, model_mode, anomaly_detection_name, batch_size,
@@ -104,11 +106,12 @@ def gradients_L2_norms_labels(model_type, model_name, batch_size, id_dataset, n_
 
     if single_figure:
         file_title = f"{model_type} {model_name} gradient histogram"
+
         figure_title = f"gradients from {n_statistics_plot} randomly selected layers out of " \
                        f"{n_statistics_method} in a {model_type} model trained on {id_dataset}"
     else:
         file_title = f"{stat_name} gradient histogram"
-        figure_title = f"gradients from 1 layer out of {len(n_statistics_plot)} in a {model_type} model"
+        figure_title = f"gradients from 1 layer out of {n_statistics_method} in a {model_type} model"
 
     input_var_xlabel = get_input_var_xlabel(batch_size)
 
