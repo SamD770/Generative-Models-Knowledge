@@ -23,6 +23,14 @@ to_styled_dataset_name = {
     "gtsrb": "GTSRB"
 }
 
+# Used to enforce a canonical (dataset, colour) pairing to the plots using matplotlib's standard cycle.
+dataset_to_colour = {
+    dataset_name: colour for dataset_name, colour in zip(
+        ["svhn", "celeba", "gtsrb", "cifar10", "imagenet32"],
+        plt.rcParams['axes.prop_cycle'].by_key()['color']
+    )
+}
+
 
 # Define parent parsers
 
