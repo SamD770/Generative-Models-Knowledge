@@ -34,9 +34,9 @@ dataset_to_colour = {
 
 # Define parent parsers
 
-def grid_from_imgs(img_seq):
+def grid_from_imgs(img_seq, nrow=8):
     """Takes a sequence of images and returns a grid with  that can be plotted using plt.imshow"""
-    grid = make_grid(img_seq, nrow=8)
+    grid = make_grid(img_seq, nrow=nrow)
 
     grid = grid.permute(1, 2, 0)
 

@@ -7,7 +7,8 @@ from plots.summary_statistic_histograms import (
     plot_summary_histograms, fetch_preliminaries
 )
 
-from plots.utils import to_styled_dataset_name
+from models.diffusion_model.model import extract_timesteps # only nice way to grep the timestep count out
+from plots.utils import to_styled_dataset_name, save_plot
 
 import argparse
 from command_line_utils import model_parser, anomaly_method_parser, dataset_parser, plotting_parser
@@ -16,11 +17,11 @@ from command_line_utils import model_parser, anomaly_method_parser, dataset_pars
 def run(model_type, model_names, model_mode, batch_size,
         id_datasets, ood_dataset_names, x_lim, with_legend, with_train_dataset_labels):
 
-    fontsize = "xx-large"
+    fontsize = "x-large"
     fig, axs = plt.subplots(nrows=len(model_names), figsize=(8, 10))
 
     title = f"{model_type} model".title()
-    fig.suptitle(title)
+    fig.suptitle(title, fontsize=fontsize)
 
     bottom_ax = axs[-1]
 
@@ -42,11 +43,20 @@ def run(model_type, model_names, model_mode, batch_size,
             # ax.set_xticklabels([])
 
     if model_type == "diffusion":
-        xlabel = "$\\frac{p_{\\theta}(\\mathbf{x}_{0:1})}{q(\\mathbf{x}_{1} \\vert \\mathbf{x}_{0})}$"
+        _, timesteps = extract_timesteps(model_name)
+
+        xlabel = "One-Step Negative Log Likelihood"
+        # xlabel = "$L_{" + str(timesteps - 1) + "}(\\mathbf{x}_{1:5})$"
+        file_title = f"{model_type}_{timesteps}_timesteps_entropy_differences_{batch_size}_batches"
+
     elif model_type == "glow":
-        xlabel = "$\\frac{\\log_2 p(\\mathbf{x})}{3 \\times 32 \\times 32}$"
+        xlabel = "Negative Bits Per Dimension"
+        # xlabel = "$\\frac{\\log_2 p(\\mathbf{x})}{3 \\times 32 \\times 32}$"
+        file_title = f"{model_type}_entropy_differences_{batch_size}_batches"
+
     else:
         xlabel = f"xlabel not implemented for model type {model_type}"
+        file_title = f"{model_type}_entropy_differences_{batch_size}_batches"
 
     bottom_ax.set_xlabel(xlabel, fontsize=fontsize)
 
@@ -63,11 +73,12 @@ def run(model_type, model_names, model_mode, batch_size,
 
         fig.legend(handles, styled_ood_dataset_names, prop=prop, fontsize=fontsize)
 
-    file_title = f"{model_type}_entropy_differences"
 
-    filepath = path.join("entropy_difference_plot", file_title + ".png")
+    save_plot(file_title)
 
-    plt.savefig(filepath)
+    # filepath = path.join("entropy_difference_plot", file_title + ".png")
+    #
+    # plt.savefig(filepath)
 
 
 if __name__ == "__main__":

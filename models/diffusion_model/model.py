@@ -99,12 +99,7 @@ class DiffusionModel(GenerativeModel, nn.Module):
         else:
             samples_eval = DEFAULT_SAMPLES_EVAL
 
-        search_result = timesteps_regex.match(model_name)
-        if search_result:
-            timesteps_eval = int(search_result.group(2))
-            model_name = search_result.group(1)
-        else:
-            timesteps_eval = DEFAULT_TIMESTEPS
+        model_name, timesteps_eval = extract_timesteps(model_name)
 
         save_path = get_save_path(model_name)
         checkpoint = torch.load(save_path)
@@ -121,6 +116,16 @@ class DiffusionModel(GenerativeModel, nn.Module):
         )
 
         return diffusion_model
+
+
+def extract_timesteps(model_name):
+    search_result = timesteps_regex.match(model_name)
+    if search_result:
+        timesteps_eval = int(search_result.group(2))
+        model_name = search_result.group(1)
+    else:
+        timesteps_eval = DEFAULT_TIMESTEPS
+    return model_name, timesteps_eval
 
 
 def get_save_path(model_name):
@@ -158,6 +163,7 @@ def training_loop(
 
 def test_qsample():
     model = DiffusionModel.load_serialised(f"diffusion_cifar10_1_timesteps")
+    print(f"{model.diffusion.objective=}")
 
     model.diffusion.to(device)
 
@@ -173,8 +179,6 @@ def test_qsample():
 if __name__ == "__main__":
 
     print(device)
-
-
     test_qsample()
     exit()
 

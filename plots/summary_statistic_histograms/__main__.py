@@ -47,9 +47,12 @@ def run_multi_figures(model_type, model_name, model_mode, anomaly_detection_name
 
         # figure_title = f"gradients from 1 layer out of {len(anomaly_detector.summary_statistic_names)} in a {model_type} model"
         fig, ax = plt.subplots()
-        fig.suptitle(figure_title)
+        # fig.suptitle(figure_title)
 
-        plot_summary_histograms(ax, id_dataset_summary, id_dataset, ood_dataset_summaries, ood_dataset_names, stat_name, x_lim)
+        try:
+            plot_summary_histograms(ax, id_dataset_summary, id_dataset, ood_dataset_summaries, ood_dataset_names, stat_name, x_lim)
+        except ValueError:
+            continue
 
         if args.fitted_distribution:
             plot_fitted_distribution(ax, anomaly_detector, stat_name)

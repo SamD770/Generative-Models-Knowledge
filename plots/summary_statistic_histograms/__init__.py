@@ -6,7 +6,7 @@ import torch
 
 from anomaly_methods.gradients.L2_norms import DistributionFittingL2Norm
 from anomaly_methods.utils import anomaly_detection_methods_dict
-from plots.utils import get_dataset_summmaries, RUNNING_MODULE_DIR, to_styled_dataset_name
+from plots.utils import get_dataset_summmaries, RUNNING_MODULE_DIR, to_styled_dataset_name, dataset_to_colour
 
 
 random.seed(1)  # Fixes the seed so randomly selected layers are verifiable
@@ -42,6 +42,11 @@ def plot_summary_histograms(ax, id_dataset_summary, id_dataset_name,
 
         styled_dataset_name = to_styled_dataset_name[dataset_name]
 
+        if dataset_name in dataset_to_colour:
+            colour = dataset_to_colour[dataset_name]
+        else:
+            colour = None
+
         if dataset_name == id_dataset_name:
             label=f"in distribution {styled_dataset_name}"
         else:
@@ -49,7 +54,7 @@ def plot_summary_histograms(ax, id_dataset_summary, id_dataset_name,
 
         vals = prepare_vals(summary, stat_name, take_log)
         ax.hist(vals, range=x_lim,
-                label=label, density=True, bins=40, alpha=0.6, **kwargs)
+                label=label, density=True, bins=40, alpha=0.6, color=colour, **kwargs)
 
 
 def plot_summary_scatter(ax, id_dataset_summary, id_dataset_name,
@@ -60,6 +65,11 @@ def plot_summary_scatter(ax, id_dataset_summary, id_dataset_name,
 
         styled_dataset_name = to_styled_dataset_name[dataset_name]
 
+        if dataset_name in dataset_to_colour:
+            colour = dataset_to_colour[dataset_name]
+        else:
+            colour = None
+
         if dataset_name == id_dataset_name:
             label=f"in distribution {styled_dataset_name}"
         else:
@@ -68,7 +78,7 @@ def plot_summary_scatter(ax, id_dataset_summary, id_dataset_name,
         x_vals = prepare_vals(summary, stat_name_x)[:n_scatter]
         y_vals = prepare_vals(summary, stat_name_y)[:n_scatter]
 
-        ax.scatter(x_vals, y_vals, marker=".", label=label, **kwargs)
+        ax.scatter(x_vals, y_vals, marker=".", label=label, color=colour, **kwargs)
 
 
 def fetch_preliminaries(model_type, model_name, model_mode, anomaly_detection_name, batch_size,
