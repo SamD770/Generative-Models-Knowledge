@@ -13,7 +13,7 @@ This code is that used for
   title={On Gradients of Deep Generative Models for Representation-Invariant Anomaly Detection},
   author={Sam Dauncey and Christopher C. Holmes and Christopher Williams and Fabian Falck},
   booktitle={ICLR 2023 Workshop on Pitfalls of limited data and computation for Trustworthy ML},
-  url={https://openreview.net/forum?id=deYF9kVmIX}
+  url={https://openreview.net/forum?id=deYF9kVmIX},
   year={2023}
 }
 ```
