@@ -18,6 +18,12 @@ This code is that used for
 }
 ```
 
+### Requirements
+
+`conda_requirements.yml` and `pip_requirements.txt` have the output of `conda env export` and `pip freeze` respectively from a working environment. 
+
+- TODO: add a docker container.
+
 ### Producing figures
 
 The bash scripts used to produce the figures used in the paper are in `paper_figure_scripts/`, these call the python 
