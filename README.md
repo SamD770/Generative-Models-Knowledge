@@ -26,7 +26,7 @@ ICLR workshop paper:
 
 ### Requirements
 
-`conda_requirements.yml` and `pip_requirements.txt` have the output of `conda env export` and `pip freeze` respectively from a working environment. 
+`conda_requirements.yml` and `pip_requirements.txt` have the output of `conda env export` and `pip freeze` respectively from a working environment. Please contact me if you have any difficulty getting the code working.
 
 - TODO: add a docker container.
 
