@@ -1,13 +1,12 @@
 ## Gradients for anomaly detection
 
-This code is that used for 
-[On Gradients of Deep Generative Models for Representation-Invariant Anomaly Detection](https://openreview.net/forum?id=deYF9kVmIX)
+This code is that used for our [TMLR paper, "Approximations to the Fisher Information Metric of Deep Generative Models for Out-Of-Distribution Detection"](https://openreview.net/forum?id=EcuwtinFs9) and our [ICLR workshop paper, "On Gradients of Deep Generative Models for Representation-Invariant Anomaly Detection"](https://openreview.net/forum?id=deYF9kVmIX)
 
-- `generative_model.py` provides interfaces for general use of deep generative models for anomaly detection.
-- `models/` contains several open source implementations of deep generative models
-- `anomaly_methods/` contains implementations of deep-generative-model based anomaly detection
-- `plots/` contains the general plotting scripts
+TODO after completed: add link to blog post
 
+TODO after camera-ready accepted: add TMLR paper bibtex
+
+ICLR workshop paper:
 ```
 @inproceedings{gradients2023anomaly,
   title={On Gradients of Deep Generative Models for Representation-Invariant Anomaly Detection},
@@ -17,6 +16,13 @@ This code is that used for
   year={2023}
 }
 ```
+
+### Code structure
+
+`generative_model.py` provides interfaces for general use of deep generative models for anomaly detection.
+`models/` contains several open source implementations of deep generative models
+`anomaly_methods/` contains implementations of deep-generative-model based anomaly detection
+`plots/` contains the general plotting scripts
 
 ### Requirements
 
